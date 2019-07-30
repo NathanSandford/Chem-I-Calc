@@ -2,18 +2,15 @@ import pandas as pd
 from mendeleev import element
 from chemicalc.utils import data_dir, convolve_spec, calc_gradient
 
-precomputed_res = {'max': 300000,
-                   'high': 100000,
-                   'med': 50000,
-                   'low': 25000}
+precomputed_res = {'med': 50000}
 
-reference_stars = list(pd.read_hdf(data_dir + 'reference_spectra_300000.h5', 'ref_list').values.flatten())
+reference_stars = list(pd.read_hdf(data_dir + 'reference_spectra_050000.h5', 'ref_list').values.flatten())
 elements_included = [x.symbol for x in element(list(range(3, 100)))]
 label_names = ['Teff', 'logg', 'v_micro'] + elements_included
 
 
 class ReferenceSpectra:
-    def __init__(self, reference: str, res='max', iron_scaled=False):
+    def __init__(self, reference: str, res='med', iron_scaled=False):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
         self.reference_file = f'reference_spectra_{self.resolution["init"]:06}.h5'
