@@ -4,7 +4,7 @@ from chemicalc.utils import data_dir, convolve_spec, calc_gradient
 
 precomputed_res = {'med': 50000}
 
-reference_stars = list(pd.read_hdf(data_dir + 'reference_spectra_050000.h5', 'ref_list').values.flatten())
+reference_stars = list(pd.read_hdf(data_dir + 'reference_labels.h5', 'ref_list').values.flatten())
 elements_included = [x.symbol for x in element(list(range(3, 100)))]
 label_names = ['Teff', 'logg', 'v_micro'] + elements_included
 
@@ -13,9 +13,10 @@ class ReferenceSpectra:
     def __init__(self, reference: str, res='med', iron_scaled=False):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
-        self.reference_file = f'reference_spectra_{self.resolution["init"]:06}.h5'
-        wave_df = pd.read_hdf(data_dir + self.reference_file, 'highres_wavelength')
-        spec_df = pd.read_hdf(data_dir + self.reference_file, reference)
+        self.reference_file = f'{reference}_{self.resolution["init"]:06}.h5'
+        self.wavelength_file = f'wavelength_{self.resolution["init"]:06}.h5'
+        wave_df = pd.read_hdf(data_dir + self.wavelength_file, 'wavelength')
+        spec_df = pd.read_hdf(data_dir + self.reference_file, 'spectra')
         label_df = pd.read_hdf(data_dir + 'reference_labels.h5', reference)
         label_df.index = label_names
         if not iron_scaled:
