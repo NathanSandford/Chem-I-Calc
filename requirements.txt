@@ -1,3 +1,5 @@
+tqdm
+requests
 dash
 flask
 mendeleev
