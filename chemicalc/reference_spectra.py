@@ -26,7 +26,7 @@ class ReferenceSpectra:
         self.reference_file = data_dir.joinpath(f'{reference}_{self.resolution["init"]:06}.h5')
         if not self.reference_file.exists():
             print('Downloading reference file---this may take a few minutes but is only necessary once')
-            download_package_files(id='1MTnErqUtwQeilmS-y0DLwwRemq1rYzqj',
+            download_package_files(id=precomputed_id[res],
                                    destination=self.reference_file)
         wave_df = pd.read_hdf(self.reference_file, 'highres_wavelength')
         spec_df = pd.read_hdf(self.reference_file, reference)
