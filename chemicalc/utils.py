@@ -1,11 +1,15 @@
 import os
+from pathlib import Path
+import requests
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from numpy.fft import rfftfreq
 from scipy.interpolate import interp1d
 from chemicalc import exception as e
 
-data_dir = os.path.dirname(__file__) + '/data/'
+data_dir = Path(os.path.dirname(__file__)).joinpath('data')
+data_dir.mkdir(exist_ok=True)
 
 
 def generate_wavelength_template(start_wavelength: float, end_wavelength: float,
@@ -235,3 +239,33 @@ def kpc_to_mu(d: float):
     :return: distance modulus
     """
     return 5 * np.log10(d * 1e3 / 10)
+
+
+def download_package_files(id, destination):
+    def get_confirm_token(response):
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                return value
+
+        return None
+
+    def save_response_content(response, destination):
+        chunk_size = 32768
+
+        with open(destination, "wb") as f:
+            for chunk in tqdm(response.iter_content(chunk_size)):
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chunk)
+
+    url = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(url, params={'id': id}, stream=True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = {'id': id, 'confirm': token}
+        response = session.get(url, params=params, stream=True)
+
+    save_response_content(response, destination)

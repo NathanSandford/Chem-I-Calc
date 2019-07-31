@@ -1,23 +1,36 @@
+from pathlib import Path
 import pandas as pd
 from mendeleev import element
 from chemicalc.utils import data_dir, convolve_spec, calc_gradient
+from chemicalc.utils import download_package_files
 
-precomputed_res = {'med': 50000}
 
-reference_stars = list(pd.read_hdf(data_dir + 'reference_labels.h5', 'ref_list').values.flatten())
+precomputed_res = {'high': 100000}
+precomputed_id = {'high': '1MTnErqUtwQeilmS-y0DLwwRemq1rYzqj'}
+
+label_file = data_dir.joinpath('reference_labels.h5')
+if not label_file.exists():
+    print('Downloading label_file')
+    download_package_files(id='11r1UhJl0z8mNbZMaoAwgMtQDmMSjs86n',
+                           destination=label_file)
+
+reference_stars = list(pd.read_hdf(label_file, 'ref_list').values.flatten())
 elements_included = [x.symbol for x in element(list(range(3, 100)))]
 label_names = ['Teff', 'logg', 'v_micro'] + elements_included
 
 
 class ReferenceSpectra:
-    def __init__(self, reference: str, res='med', iron_scaled=False):
+    def __init__(self, reference: str, res='high', iron_scaled=False):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
-        self.reference_file = f'{reference}_{self.resolution["init"]:06}.h5'
-        self.wavelength_file = f'wavelength_{self.resolution["init"]:06}.h5'
-        wave_df = pd.read_hdf(data_dir + self.wavelength_file, 'wavelength')
-        spec_df = pd.read_hdf(data_dir + self.reference_file, 'spectra')
-        label_df = pd.read_hdf(data_dir + 'reference_labels.h5', reference)
+        self.reference_file = data_dir.joinpath(f'{reference}_{self.resolution["init"]:06}.h5')
+        if not self.reference_file.exists():
+            print('Downloading reference file---this may take a few minutes but is only necessary once')
+            download_package_files(id='1MTnErqUtwQeilmS-y0DLwwRemq1rYzqj',
+                                   destination=self.reference_file)
+        wave_df = pd.read_hdf(self.reference_file, 'highres_wavelength')
+        spec_df = pd.read_hdf(self.reference_file, reference)
+        label_df = pd.read_hdf(label_file, reference)
         label_df.index = label_names
         if not iron_scaled:
             label_df.loc[set(elements_included) ^ {'Fe'}] -= label_df.loc['Fe']
