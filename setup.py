@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Chem-I-Calc',
-    version='0.1.dev0',
+    version='0.1',
     packages=['chemicalc', 'chemicalc_app'],
     scripts=['chemicalc_app/run_chemicalc'],
     author='Nathan Sandford',
