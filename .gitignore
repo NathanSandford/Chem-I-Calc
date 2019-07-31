@@ -1,3 +1,5 @@
 .idea
 */__pycache__
 chemicalc/data
+Chem_I-Calc.egg-info
+build
