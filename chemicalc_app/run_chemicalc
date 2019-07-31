@@ -1,0 +1,9 @@
+#! python
+
+from chemicalc_app.app import app
+import chemicalc_app.callbacks_inst
+import chemicalc_app.callbacks_ref
+import chemicalc_app.callbacks_crlb
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
