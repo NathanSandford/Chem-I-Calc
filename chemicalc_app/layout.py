@@ -485,7 +485,7 @@ fig.update_layout(width=1000, height=800,
 # Header
 # -----------
 header = html.Div([
-    html.H1(children='ChemiCalc - Chemical Information Calculator',
+    html.H1(children='Chem-I-Calc',
             style={'backgroundColor': UC_colors['blue'],
                    'color': UC_colors['white'],
                    'margin': 0,
