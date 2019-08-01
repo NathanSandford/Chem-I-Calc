@@ -6,4 +6,4 @@ import chemicalc_app.callbacks_ref
 import chemicalc_app.callbacks_crlb
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
