@@ -3,3 +3,4 @@
 chemicalc/data
 Chem_I-Calc.egg-info
 build
+*/.ipynb_checkpoints
