@@ -10,6 +10,7 @@ from chemicalc import exception as e
 
 data_dir = Path(os.path.dirname(__file__)).joinpath('data')
 data_dir.mkdir(exist_ok=True)
+filter_file = data_dir + 'filters.h5'
 
 
 def generate_wavelength_template(start_wavelength: float, end_wavelength: float,
@@ -45,6 +46,55 @@ def generate_wavelength_template(start_wavelength: float, end_wavelength: float,
     if truncate:
         wavelength_template = wavelength_template[:-1]
     return wavelength_template
+
+
+def calc_f_nu(spectra, radius, dist=10):
+    """
+    radius: radius of star in solar radii
+    dist: distance to star in pc
+    """
+    r_sun_cm = 6.957e10  # radius of the Sun in cm
+    pc_cm = 3.086e18  # 1 parsec in cm
+    f_nu0 = spectra * 4 * np.pi
+    f_nu = f_nu0 * ((radius[:, np.newaxis] * r_sun_cm) / (dist * pc_cm)) ** 2
+    return f_nu
+
+
+def all_filters():
+    tmp = pd.read_hdf(data_dir + 'filters.h5', 'fwhm')
+    return list(tmp.columns)
+
+
+def load_filter_throughput(filters):
+    throughput = pd.read_hdf(data_dir + 'filters.h5', 'throughput')[filters]
+    wave_eff = pd.read_hdf(data_dir + 'filters.h5', 'wave_eff', index='wave_eff')[filters]
+    wave_eff = {fltr: wave_eff[fltr].values[0] for fltr in wave_eff}
+    fwhm = pd.read_hdf(data_dir + 'filters.h5', 'fwhm')[filters]
+    fwhm = {fltr: fwhm[fltr].values[0] for fltr in fwhm}
+    return throughput, wave_eff, fwhm
+
+
+def generate_tophat_throughput(name, wave_eff, width, transmission):
+    wave = pd.read_hdf(data_dir + 'reference_spectra_300000.h5', 'highres_wavelength').values.flatten()
+    throughput = transmission * pd.DataFrame((np.abs(wave - wave_eff) <= width / 2).astype(float),
+                                             index=wave, columns=[name])
+    wave_eff = {name: wave_eff}
+    fwhm = {name: width}
+    return throughput, wave_eff, fwhm
+
+
+def calc_MagAB(f_nu, throughput, wave):
+    c_aa_s = 2.998e18  # speed of light in angstroms/sec
+    num = np.trapz(f_nu[:, :, np.newaxis]
+                   * throughput[np.newaxis, :, :]
+                   * wave[np.newaxis, :, np.newaxis],
+                   x=wave, axis=1)
+    den = np.trapz(throughput[:, :]
+                   / wave[:, np.newaxis],
+                   x=wave, axis=0)
+    f = 1/c_aa_s * num[:, :]/den[np.newaxis, :]
+    m_AB = -2.5 * np.log10(f) - 48.6
+    return m_AB
 
 
 def convolve_spec(wave, spec, resolution, outwave, res_in=None):
@@ -105,9 +155,23 @@ def convolve_spec(wave, spec, resolution, outwave, res_in=None):
     return fspec(outwave)
 
 
-def calc_gradient(spectra, labels, symmetric=True, ref_included=True, v_micro_scaling=1e5):
+def doppler_shift(wave, spec, rv):
     """
 
+    :param wave:
+    :param spec:
+    :param rv:
+    :return:
+    """
+    c = 2.99792458e5  # km/s
+    doppler_factor = np.sqrt((1 - rv/c)/(1 + rv/c))
+    new_wavelength = wave * doppler_factor
+    return np.interp(new_wavelength, wave, spec)
+
+
+def calc_gradient(wave, spectra, labels, symmetric=True, ref_included=True, v_micro_scaling=1, d_rv=None):
+    """
+    :param wave:
     :param spectra:
     :param labels:
     :param symmetric:
@@ -142,8 +206,9 @@ def calc_gradient(spectra, labels, symmetric=True, ref_included=True, v_micro_sc
             raise e.GradientError(f"nspectra({nspectra - 1}) != nlabel({nlabels})"
                                   + f"or 2*nlabel({2 * nlabels})"
                                   + "\nCannot perform asymmetric gradient calculation")
-    dx[0] /= 100  # Scaling dX_Teff
-    dx[2] /= v_micro_scaling  # Scaling dX_v_micro
+    dx[labels.index == 'Teff'] /= 100  # Scaling dX_Teff
+    dx[labels.index == 'v_micro'] /= v_micro_scaling  # Scaling dX_v_micro
+    dx[labels.index == 'rv'] /= 10
     dx[dx == 0] = -np.inf
     return pd.DataFrame(grad / dx[:, np.newaxis], index=labels.index)
 

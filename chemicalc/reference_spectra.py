@@ -1,11 +1,15 @@
-from pathlib import Path
 import pandas as pd
+from scipy.interpolate import interp1d
 from mendeleev import element
-from chemicalc.utils import data_dir, convolve_spec, calc_gradient
+from chemicalc.utils import data_dir, doppler_shift, convolve_spec, calc_MagAB, calc_gradient
 from chemicalc.utils import download_package_files
 
 
-precomputed_res = {'high': 100000}
+precomputed_res = {'max': 300000,
+                   #'high': 100000,
+                   #'med': 50000,
+                   #'low': 25000
+                   }
 precomputed_id = {'high': '1MTnErqUtwQeilmS-y0DLwwRemq1rYzqj'}
 
 label_file = data_dir.joinpath('reference_labels.h5')
@@ -20,17 +24,17 @@ label_names = ['Teff', 'logg', 'v_micro'] + elements_included
 
 
 class ReferenceSpectra:
-    def __init__(self, reference: str, res='high', iron_scaled=False):
+    def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
-        self.reference_file = data_dir.joinpath(f'{reference}_{self.resolution["init"]:06}.h5')
-        if not self.reference_file.exists():
-            print('Downloading reference file---this may take a few minutes but is only necessary once')
-            download_package_files(id=precomputed_id[res],
-                                   destination=self.reference_file)
-        wave_df = pd.read_hdf(self.reference_file, 'highres_wavelength')
-        spec_df = pd.read_hdf(self.reference_file, reference)
-        label_df = pd.read_hdf(label_file, reference)
+        self.reference_file = f'reference_spectra_{self.resolution["init"]:06}.h5'
+        self.continuum_file = f'reference_continuum_{self.resolution["init"]:06}.h5'
+        wave_df = pd.read_hdf(data_dir + self.reference_file, 'highres_wavelength')
+        spec_df = pd.read_hdf(data_dir + self.reference_file, reference)
+        if not normalized:
+            cont_df = pd.read_hdf(data_dir + self.continuum_file, reference)
+            spec_df *= cont_df
+        label_df = pd.read_hdf(data_dir + 'reference_labels.h5', reference)
         label_df.index = label_names
         if not iron_scaled:
             label_df.loc[set(elements_included) ^ {'Fe'}] -= label_df.loc['Fe']
@@ -39,9 +43,21 @@ class ReferenceSpectra:
         self.spectra = dict(init=spec_df.to_numpy().T)
         self.labels = label_df
         self.gradients = {}
+        self.filters = {}
 
         self.nspectra = self.spectra['init'].shape[0]
         self.nlabels = self.labels.shape[0]
+
+    def add_rv_spec(self, d_rv):
+        self.labels.loc['RV'] = 0.0
+        self.labels['fffff'] = self.labels['aaaaa']
+        self.labels['ggggg'] = self.labels['aaaaa']
+        self.labels.loc['RV', 'fffff'] += d_rv
+        self.labels.loc['RV', 'ggggg'] -= d_rv
+        tmp1 = doppler_shift(self.wavelength['init'], self.spectra['init'][0], d_rv)
+        tmp2 = doppler_shift(self.wavelength['init'], self.spectra['init'][0], -d_rv)
+        self.spectra['init'] = np.append(self.spectra['init'], tmp1[np.newaxis, :], axis=0)
+        self.spectra['init'] = np.append(self.spectra['init'], tmp2[np.newaxis, :], axis=0)
 
     def convolve(self, instrument, name=None):
         if name is None:
@@ -55,11 +71,28 @@ class ReferenceSpectra:
         self.wavelength[name] = outwave
         self.resolution[name] = instrument.R_res
 
+    def calc_synth_phot(self, filter_set, name=None, spectrum_name='init'):
+        if name is None:
+            name = filter_set.name
+        if spectrum_name != 'init':
+            filter_interp = interp1d(filter_set.throughput.index.values, filter_set.throughput.values,
+                                     axis=0, fill_value=0, bounds_error=False)
+            throughput = filter_interp(self.wavelength[spectrum_name])
+        else:
+            throughput = filter_set.throughput.values
+        self.spectra[name] = calc_MagAB(f_nu=self.spectra[spectrum_name],
+                                        throughput=throughput,
+                                        wave=self.wavelength[spectrum_name])
+        self.wavelength[name] = np.array(list(filter_set.wave_eff.values()))
+        self.filters[name] = list(filter_set.throughput.columns)
+        self.resolution[name] = 0
+
     def calc_gradient(self, name: str, symmetric: bool = True,
-                      ref_included: bool = True, v_micro_scaling: float = 1e5):
-        self.gradients[name] = calc_gradient(self.spectra[name], self.labels,
+                      ref_included: bool = True, v_micro_scaling: float = 1,
+                      d_rv: bool = None):
+        self.gradients[name] = calc_gradient(self.wavelength[name], self.spectra[name], self.labels,
                                              symmetric=symmetric, ref_included=ref_included,
-                                             v_micro_scaling=v_micro_scaling)
+                                             v_micro_scaling=v_micro_scaling, d_rv=d_rv)
         self.gradients[name].columns = self.wavelength[name]
 
     def zero_gradients(self, name: str, labels: list):
