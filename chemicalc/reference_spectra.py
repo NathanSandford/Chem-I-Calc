@@ -39,7 +39,7 @@ class ReferenceSpectra:
         wave_df = pd.read_hdf(self.reference_file, 'highres_wavelength')
         spec_df = pd.read_hdf(self.reference_file, reference)
         if not normalized:
-            self.continuum_file = f'reference_continuum_{self.resolution["init"]:06}.h5'
+            self.continuum_file = data_dir.joinpath(f'reference_continuum_{self.resolution["init"]:06}.h5')
             if not self.reference_file.exists():
                 print('Downloading continuum file---this may take a few minutes but is only necessary once')
                 download_package_files(id=precomputed_cont_id[res],
