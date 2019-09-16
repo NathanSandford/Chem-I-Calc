@@ -345,14 +345,14 @@ def download_all_files(overwrite=True):
     from chemicalc.reference_spectra import label_file, label_id
     from chemicalc.reference_spectra import precomputed_res, precomputed_ref_id, precomputed_cont_id
 
-    if overwrite and filter_file.exists():
+    if filter_file.exists() and not overwrite:
         print(f'{filter_file} exists')
     else:
         print(f'Downloading {filter_file}')
         download_package_files(id=filter_id,
                                destination=filter_file)
 
-    if overwrite and label_file.exists():
+    if label_file.exists() and not overwrite:
         print(f'{label_file} exists')
     else:
         print(f'Downloading {label_file}.h5')
@@ -363,7 +363,7 @@ def download_all_files(overwrite=True):
         resolution = precomputed_res[res]
         reference_file = data_dir.joinpath(f'reference_spectra_{resolution:06}.h5')
         reference_id = precomputed_ref_id[res]
-        if overwrite and reference_file.exists():
+        if reference_file.exists() and not overwrite:
             print(f'{reference_file} exists')
         else:
             print(f'Downloading {reference_file}')
@@ -374,7 +374,7 @@ def download_all_files(overwrite=True):
         resolution = precomputed_res[res]
         continuum_file = data_dir.joinpath(f'reference_continuum_{resolution:06}.h5')
         continuum_id = precomputed_cont_id[res]
-        if overwrite and continuum_file.exists():
+        if continuum_file.exists() and not overwrite:
             print(f'{continuum_file} exists')
         else:
             print(f'Downloading {continuum_file}')
