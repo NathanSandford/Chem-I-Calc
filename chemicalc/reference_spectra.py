@@ -1,5 +1,6 @@
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from scipy.interpolate import interp1d
 from mendeleev import element
 from chemicalc.utils import data_dir, doppler_shift, convolve_spec, calc_MagAB, calc_gradient
@@ -43,9 +44,9 @@ class ReferenceSpectra:
                 print('Downloading continuum file---this may take a few minutes but is only necessary once')
                 download_package_files(id=precomputed_cont_id[res],
                                        destination=self.continuum_file)
-            cont_df = pd.read_hdf(data_dir + self.continuum_file, reference)
+            cont_df = pd.read_hdf(self.continuum_file, reference)
             spec_df *= cont_df
-        label_df = pd.read_hdf(data_dir + 'reference_labels.h5', reference)
+        label_df = pd.read_hdf(label_file, reference)
         label_df.index = label_names
         if not iron_scaled:
             label_df.loc[set(elements_included) ^ {'Fe'}] -= label_df.loc['Fe']
