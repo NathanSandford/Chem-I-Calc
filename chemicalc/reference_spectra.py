@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 from scipy.interpolate import interp1d
 from mendeleev import element
@@ -10,12 +11,14 @@ precomputed_res = {'max': 300000,
                    #'med': 50000,
                    #'low': 25000
                    }
-precomputed_id = {'high': '1MTnErqUtwQeilmS-y0DLwwRemq1rYzqj'}
+precomputed_ref_id = {'max': '1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2'}
+precomputed_cont_id = {'max': '1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU'}
 
 label_file = data_dir.joinpath('reference_labels.h5')
+label_id = '1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor'
 if not label_file.exists():
     print('Downloading label_file')
-    download_package_files(id='11r1UhJl0z8mNbZMaoAwgMtQDmMSjs86n',
+    download_package_files(id=label_id,
                            destination=label_file)
 
 reference_stars = list(pd.read_hdf(label_file, 'ref_list').values.flatten())
@@ -27,11 +30,19 @@ class ReferenceSpectra:
     def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
-        self.reference_file = f'reference_spectra_{self.resolution["init"]:06}.h5'
-        self.continuum_file = f'reference_continuum_{self.resolution["init"]:06}.h5'
+        self.reference_file = data_dir.joinpath(f'reference_spectra_{self.resolution["init"]:06}.h5')
+        if not self.reference_file.exists():
+            print('Downloading reference file---this may take a few minutes but is only necessary once')
+            download_package_files(id=precomputed_ref_id[res],
+                                   destination=self.reference_file)
         wave_df = pd.read_hdf(data_dir + self.reference_file, 'highres_wavelength')
         spec_df = pd.read_hdf(data_dir + self.reference_file, reference)
         if not normalized:
+            self.continuum_file = f'reference_continuum_{self.resolution["init"]:06}.h5'
+            if not self.reference_file.exists():
+                print('Downloading continuum file---this may take a few minutes but is only necessary once')
+                download_package_files(id=precomputed_cont_id[res],
+                                       destination=self.continuum_file)
             cont_df = pd.read_hdf(data_dir + self.continuum_file, reference)
             spec_df *= cont_df
         label_df = pd.read_hdf(data_dir + 'reference_labels.h5', reference)

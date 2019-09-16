@@ -4,7 +4,7 @@ from scipy.interpolate import interp1d
 from chemicalc.utils import generate_wavelength_template, load_filter_throughput, generate_tophat_throughput
 from chemicalc.exception import InstError
 
-
+filter_id = '1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP'
 sampX = 3  # Placeholder for Unknown Wavelength Sampling
 
 

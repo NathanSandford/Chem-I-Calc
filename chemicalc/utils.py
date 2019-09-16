@@ -10,7 +10,8 @@ from chemicalc import exception as e
 
 data_dir = Path(os.path.dirname(__file__)).joinpath('data')
 data_dir.mkdir(exist_ok=True)
-filter_file = data_dir + 'filters.h5'
+filter_file = Path(data_dir.joinpath('filters.h5'))
+filter_id = '1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP'
 
 
 def generate_wavelength_template(start_wavelength: float, end_wavelength: float,
@@ -66,10 +67,14 @@ def all_filters():
 
 
 def load_filter_throughput(filters):
-    throughput = pd.read_hdf(data_dir + 'filters.h5', 'throughput')[filters]
-    wave_eff = pd.read_hdf(data_dir + 'filters.h5', 'wave_eff', index='wave_eff')[filters]
+    if not filter_file.exists():
+        print('Downloading filters.h5')
+        download_package_files(id=filter_id,
+                               destination=filter_file)
+    throughput = pd.read_hdf(filter_file, 'throughput')[filters]
+    wave_eff = pd.read_hdf(filter_file, 'wave_eff', index='wave_eff')[filters]
     wave_eff = {fltr: wave_eff[fltr].values[0] for fltr in wave_eff}
-    fwhm = pd.read_hdf(data_dir + 'filters.h5', 'fwhm')[filters]
+    fwhm = pd.read_hdf(filter_file, 'fwhm')[filters]
     fwhm = {fltr: fwhm[fltr].values[0] for fltr in fwhm}
     return throughput, wave_eff, fwhm
 
@@ -334,3 +339,44 @@ def download_package_files(id, destination):
         response = session.get(url, params=params, stream=True)
 
     save_response_content(response, destination)
+
+
+def download_all_files(overwrite=True):
+    from chemicalc.reference_spectra import label_file, label_id
+    from chemicalc.reference_spectra import precomputed_res, precomputed_ref_id, precomputed_cont_id
+
+    if overwrite and filter_file.exists():
+        print(f'{filter_file} exists')
+    else:
+        print(f'Downloading {filter_file}')
+        download_package_files(id=filter_id,
+                               destination=filter_file)
+
+    if overwrite and label_file.exists():
+        print(f'{label_file} exists')
+    else:
+        print(f'Downloading {label_file}.h5')
+        download_package_files(id=label_id,
+                               destination=label_file)
+
+    for res in precomputed_res:
+        resolution = precomputed_res[res]
+        reference_file = data_dir.joinpath(f'reference_spectra_{resolution:06}.h5')
+        reference_id = precomputed_ref_id[res]
+        if overwrite and reference_file.exists():
+            print(f'{reference_file} exists')
+        else:
+            print(f'Downloading {reference_file}')
+            download_package_files(id=reference_id,
+                                   destination=reference_file)
+
+    for res in precomputed_res:
+        resolution = precomputed_res[res]
+        continuum_file = data_dir.joinpath(f'reference_continuum_{resolution:06}.h5')
+        continuum_id = precomputed_cont_id[res]
+        if overwrite and continuum_file.exists():
+            print(f'{continuum_file} exists')
+        else:
+            print(f'Downloading {continuum_file}')
+            download_package_files(id=continuum_id,
+                                   destination=continuum_file)
