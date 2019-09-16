@@ -80,7 +80,7 @@ def load_filter_throughput(filters):
 
 
 def generate_tophat_throughput(name, wave_eff, width, transmission):
-    wave = pd.read_hdf(data_dir + 'reference_spectra_300000.h5', 'highres_wavelength').values.flatten()
+    wave = pd.read_hdf(data_dir.joinpath('reference_spectra_300000.h5'), 'highres_wavelength').values.flatten()
     throughput = transmission * pd.DataFrame((np.abs(wave - wave_eff) <= width / 2).astype(float),
                                              index=wave, columns=[name])
     wave_eff = {name: wave_eff}
