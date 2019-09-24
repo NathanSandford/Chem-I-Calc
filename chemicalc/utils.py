@@ -54,15 +54,17 @@ def calc_f_nu(spectra, radius, dist=10):
     radius: radius of star in solar radii
     dist: distance to star in pc
     """
+    spectra = spectra.to_numpy().T
+    radius = np.array([radius])
     r_sun_cm = 6.957e10  # radius of the Sun in cm
     pc_cm = 3.086e18  # 1 parsec in cm
     f_nu0 = spectra * 4 * np.pi
     f_nu = f_nu0 * ((radius[:, np.newaxis] * r_sun_cm) / (dist * pc_cm)) ** 2
-    return f_nu
+    return pd.DataFrame(f_nu).T
 
 
 def all_filters():
-    tmp = pd.read_hdf(data_dir + 'filters.h5', 'fwhm')
+    tmp = pd.read_hdf(data_dir.joinpath('filters.h5'), 'fwhm')
     return list(tmp.columns)
 
 

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
 from mendeleev import element
-from chemicalc.utils import data_dir, doppler_shift, convolve_spec, calc_MagAB, calc_gradient
+from chemicalc.utils import data_dir, doppler_shift, convolve_spec, calc_f_nu, calc_MagAB, calc_gradient
 from chemicalc.utils import download_package_files
 
 
@@ -28,7 +28,7 @@ label_names = ['Teff', 'logg', 'v_micro'] + elements_included
 
 
 class ReferenceSpectra:
-    def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False):
+    def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False, radius=1, dist=10):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
         self.reference_file = data_dir.joinpath(f'reference_spectra_{self.resolution["init"]:06}.h5')
@@ -40,12 +40,13 @@ class ReferenceSpectra:
         spec_df = pd.read_hdf(self.reference_file, reference)
         if not normalized:
             self.continuum_file = data_dir.joinpath(f'reference_continuum_{self.resolution["init"]:06}.h5')
-            if not self.reference_file.exists():
+            if not self.continuum_file.exists():
                 print('Downloading continuum file---this may take a few minutes but is only necessary once')
                 download_package_files(id=precomputed_cont_id[res],
                                        destination=self.continuum_file)
             cont_df = pd.read_hdf(self.continuum_file, reference)
             spec_df *= cont_df
+            spec_df = calc_f_nu(spectra=spec_df, radius=radius, dist=dist)
         label_df = pd.read_hdf(label_file, reference)
         label_df.index = label_names
         if not iron_scaled:
