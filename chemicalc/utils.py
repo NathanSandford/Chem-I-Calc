@@ -13,6 +13,15 @@ data_dir.mkdir(exist_ok=True)
 filter_file = Path(data_dir.joinpath('filters.h5'))
 filter_id = '1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP'
 
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
+def find_nearest_idx(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
 
 def generate_wavelength_template(start_wavelength: float, end_wavelength: float,
                                  resolution: float, truncate: bool = False):
@@ -311,6 +320,15 @@ def kpc_to_mu(d: float):
     :return: distance modulus
     """
     return 5 * np.log10(d * 1e3 / 10)
+
+
+def mu_to_kpc(mu: float):
+    """
+
+    :param mu: distance modulus
+    :return: distance in kpc
+    """
+    return 1 / (1e3 / 10) * 10**(mu / 5)
 
 
 def download_package_files(id, destination):
