@@ -24,11 +24,12 @@ if not label_file.exists():
 
 reference_stars = list(pd.read_hdf(label_file, 'ref_list').values.flatten())
 elements_included = [x.symbol for x in element(list(range(3, 100)))]
-label_names = ['Teff', 'logg', 'v_micro'] + elements_included
+alpha_el = ['O', 'Ne', 'Mg', 'Si', 'S', 'Ar', 'Ca', 'Ti']
 
 
 class ReferenceSpectra:
-    def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False, radius=1, dist=10):
+    def __init__(self, reference: str, normalized=True, res='max', iron_scaled=False, alpha_included=False,
+                 radius=1, dist=10):
         self.reference = reference
         self.resolution = dict(init=precomputed_res[res])
         self.reference_file = data_dir.joinpath(f'reference_spectra_{self.resolution["init"]:06}.h5')
@@ -48,9 +49,16 @@ class ReferenceSpectra:
             spec_df *= cont_df
             spec_df = calc_f_nu(spectra=spec_df, radius=radius, dist=dist)
         label_df = pd.read_hdf(label_file, reference)
-        label_df.index = label_names
         if not iron_scaled:
             label_df.loc[set(elements_included) ^ {'Fe'}] -= label_df.loc['Fe']
+        if alpha_included:
+            print()
+            label_df = pd.concat([label_df.iloc[:3],
+                                  pd.DataFrame(label_df.loc[alpha_el].mean()).T,
+                                  label_df.iloc[3:]])
+            label_df.index = ['Teff', 'logg', 'v_micro', 'alpha'] + elements_included
+        else:
+            label_df.index = ['Teff', 'logg', 'v_micro'] + elements_included
 
         self.wavelength = dict(init=wave_df.to_numpy().T[0])
         self.spectra = dict(init=spec_df.to_numpy().T)
