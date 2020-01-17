@@ -17,9 +17,11 @@ keck_options = {'instrument': ['lris', 'deimos', 'hires'],
                 'grism (LRIS)': ['B300', 'B600'],
                 'binning (DEIMOS)': ['1x1'],
                 'binning (LRIS)': ['1x1', '2x1', '2x2', '3x1'],
+                'binning (ESI)': ['1x1', '2x2', '2x1', '3x1'],
                 'binning (HIRES)': ['1x1', '2x1', '2x2', '3x1'],
                 'slitwidth (DEIMOS)': ['0.75', '1.0', '1.5'],
                 'slitwidth (LRIS)': ['0.7', '1.0', '1.5'],
+                'slitwidth (ESI)': ['0.75', '0.3', '0.5', '1.0'],
                 'slitwidth (HIRES)': ["C5", "E4", "B2", "B5", "E5", "D3"],
                 'slitwidth arcsec (HIRES)': [1.15, 0.40, 0.57, 0.86, 0.80, 1.72],
                 'dichroic (LRIS)': ['D560'],
@@ -130,6 +132,48 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
         form['grating'] = self.grating
         form['grism'] = self.grism
         form['dichroic'] = self.dichroic
+        form['slitwidth'] = self.slitwidth
+        form['binning'] = self.binning
+        form['exptime'] = str(self.exptime)
+        form['mag'] = str(self.mag)
+        form['ffilter'] = self.filter
+        if self.magtype.lower() == 'vega':
+            form['mtype'] = '1'
+        elif self.magtype.lower() == 'ab':
+            form['mtype'] = '2'
+        form['seeing'] = str(self.seeing)
+        form['template'] = self.template
+        form['airmass'] = str(self.airmass)
+        form['redshift'] = str(self.redshift)
+        data = browser.submit_selected().json()
+        snr = np.array(data['s2n']).T
+        if type(wavelength) == np.ndarray:
+            snr_interpolator = interp1d(snr[0], snr[1])
+            return snr_interpolator(wavelength)
+        elif wavelength == 'default':
+            return snr
+        else:
+            raise e.S2NInputError("Wavelength input not recognized")
+
+
+class Sig2NoiseESI(Sig2NoiseWMKO):
+    def __init__(self, exptime, mag, template,
+                 magtype='Vega', band='Cousins_I.dat',
+                 dichroic='D560', slitwidth='0.75', binning='1x1',
+                 airmass=1.1, seeing=0.75, redshift=0):
+        Sig2NoiseWMKO.__init__(self, 'lris', exptime, mag, template, magtype, band, airmass, seeing, redshift)
+        if binning not in keck_options['binning (ESI)']:
+            raise e.S2NInputError(f"{binning} not one of {keck_options['binning (ESI)']}")
+        if slitwidth not in keck_options['slitwidth (ESI)']:
+            raise e.S2NInputError(f"{slitwidth} not one of {keck_options['slitwidth (ESI)']}")
+        self.binning = binning
+        self.slitwidth = slitwidth
+
+    def query_s2n(self, wavelength='default'):
+        url = 'http://etc.ucolick.org/web_s2n/esi'
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
         form['slitwidth'] = self.slitwidth
         form['binning'] = self.binning
         form['exptime'] = str(self.exptime)
