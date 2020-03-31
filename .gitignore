@@ -3,4 +3,5 @@
 chemicalc/data
 Chem_I-Calc.egg-info
 build
-*/.ipynb_checkpoints
+**/.ipynb_checkpoints
+.mypy_cache
