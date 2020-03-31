@@ -24,7 +24,7 @@ def find_nearest(array: np.ndarray, value: float) -> float:
 
 def find_nearest_idx(array: np.ndarray, value: float) -> int:
     array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
+    idx = int((np.abs(array - value)).argmin())
     return idx
 
 

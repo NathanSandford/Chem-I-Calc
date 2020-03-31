@@ -133,7 +133,7 @@ def plot_gradients(
 
     wave = star.wavelength[inst_name]
     if xlim is None:
-        xlim = [np.min(wave), np.max(wave)]
+        xlim = (np.min(wave), np.max(wave))
 
     fig = plt.figure(figsize=(panel_width, panel_height * nfigures))
     gs = GridSpec(nfigures, 1)
@@ -143,7 +143,6 @@ def plot_gradients(
     if include_spec:  # Plot spectrum in top panel
         ax = plt.subplot(gs[0, 0])
         ax.plot(wave, star.spectra[inst_name][0], c="k", lw=1)
-        ax.set_xlim(np.min(wave), np.max(wave))
         ax.set_xlim(xlim)
         ax.set_ylim(ylim_spec)
         ax.set_ylabel(r"$f_\mathrm{norm}$", size=ylabel_size)
@@ -167,8 +166,8 @@ def plot_gradients(
                 labelpad=ylabel_pad,
             )
             ax.text(
-                xlim[0] + inset_ylabel_xoffset,
-                ylim[0] + inset_ylabel_yoffset,
+                ax.get_xlim()[0] + inset_ylabel_xoffset,
+                ax.get_ylim()[0] + inset_ylabel_yoffset,
                 f"[{label}/H]",
                 fontsize=18,
             )

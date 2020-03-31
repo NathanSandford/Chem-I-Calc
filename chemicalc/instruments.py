@@ -8,6 +8,7 @@ from chemicalc.utils import (
     load_filter_throughput,
     generate_tophat_throughput,
 )
+from chemicalc.s2n import Sig2NoiseWMKO
 from chemicalc.exception import InstError
 
 filter_id = "1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP"
@@ -49,7 +50,7 @@ class InstConfig:
         if update_config:
             self.start_wavelength = self.wave[0]
             self.end_wavelength = self.wave[-1]
-            self.R_samp = "Custom"
+            self.R_samp = np.nan
         self.custom_wave = True
 
     def reset_wave(self, truncate: bool = False) -> None:
@@ -59,7 +60,7 @@ class InstConfig:
         :param bool truncate: truncate any pixels with lambda > ending wavelength.
         :return:
         """
-        if type(self.R_samp) not in [int, float]:
+        if not np.isfinite(self.R_samp):
             raise ValueError(f"R_samp must be an int or a float, not {self.R_samp}")
         self.wave = generate_wavelength_template(
             self.start_wavelength,
@@ -69,7 +70,7 @@ class InstConfig:
         )
         self.custom_wave = False
 
-    def set_snr(self, snr_input: Union[int, float, np.ndarray]) -> None:
+    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO]) -> None:
         """
         Sets S/N for instrument
         :param snr_input: Signal-to-Noise Ratio
@@ -81,21 +82,26 @@ class InstConfig:
             or (type(snr_input) == np.float64)
         ):
             self.snr = snr_input * np.ones_like(self.wave)
-        elif (type(snr_input) == np.ndarray) and (snr_input.ndim == 2):
-            snr_interpolator = interp1d(
-                snr_input[0], snr_input[1], bounds_error=False, fill_value="extrapolate"
-            )
-            self.snr = snr_interpolator(self.wave)
-        elif (type(snr_input) == np.ndarray) and (snr_input.ndim == 1):
-            fake_wave = np.linspace(
-                self.wave.min(), self.wave.max(), snr_input.shape[0]
-            )
-            snr_interpolator = interp1d(
-                fake_wave, snr_input, bounds_error=False, fill_value="extrapolate"
-            )
-            self.snr = snr_interpolator(self.wave)
-        else:
+        elif isinstance(snr_input, np.ndarray):
+            if snr_input.ndim == 2:
+                snr_interpolator = interp1d(
+                    snr_input[0], snr_input[1], bounds_error=False, fill_value="extrapolate"
+                )
+                self.snr = snr_interpolator(self.wave)
+            elif snr_input.ndim == 1:
+                fake_wave = np.linspace(
+                    self.wave.min(), self.wave.max(), snr_input.shape[0]
+                )
+                snr_interpolator = interp1d(
+                    fake_wave, snr_input, bounds_error=False, fill_value="extrapolate"
+                )
+                self.snr = snr_interpolator(self.wave)
+            else:
+                raise ValueError('S/N array must have ndim <= 2')
+        elif isinstance(snr_input, Sig2NoiseWMKO):
             self.snr = snr_input.query_s2n(wavelength=self.wave)
+        else:
+            raise ValueError('Cannot parse snr_input')
         self.snr[self.snr < 0] = 0
 
     def summary(self) -> None:
