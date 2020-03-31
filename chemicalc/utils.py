@@ -53,13 +53,13 @@ def generate_wavelength_template(
     returns = wavelength grid of given resolution between start and end wavelengths
     """
     # TODO: generate_wavelength_template doc-string
-    wavelength_template = [start_wavelength]
+    wavelength_tmp = [start_wavelength]
     wavelength_now = start_wavelength
 
     while wavelength_now < end_wavelength:
         wavelength_now += wavelength_now / resolution
-        wavelength_template.append(wavelength_now)
-    wavelength_template = np.array(wavelength_template)
+        wavelength_tmp.append(wavelength_now)
+    wavelength_template = np.array(wavelength_tmp)
 
     if truncate:
         wavelength_template = wavelength_template[:-1]

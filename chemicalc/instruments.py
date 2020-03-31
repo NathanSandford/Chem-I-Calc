@@ -85,7 +85,10 @@ class InstConfig:
         elif isinstance(snr_input, np.ndarray):
             if snr_input.ndim == 2:
                 snr_interpolator = interp1d(
-                    snr_input[0], snr_input[1], bounds_error=False, fill_value="extrapolate"
+                    snr_input[0],
+                    snr_input[1],
+                    bounds_error=False,
+                    fill_value="extrapolate",
                 )
                 self.snr = snr_interpolator(self.wave)
             elif snr_input.ndim == 1:
@@ -97,11 +100,11 @@ class InstConfig:
                 )
                 self.snr = snr_interpolator(self.wave)
             else:
-                raise ValueError('S/N array must have ndim <= 2')
+                raise ValueError("S/N array must have ndim <= 2")
         elif isinstance(snr_input, Sig2NoiseWMKO):
             self.snr = snr_input.query_s2n(wavelength=self.wave)
         else:
-            raise ValueError('Cannot parse snr_input')
+            raise ValueError("Cannot parse snr_input")
         self.snr[self.snr < 0] = 0
 
     def summary(self) -> None:
