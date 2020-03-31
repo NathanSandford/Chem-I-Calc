@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any, List, Union, cast
 from pathlib import Path
 import requests
 from tqdm import tqdm
@@ -16,14 +16,34 @@ filter_id: str = "1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP"
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 
 
-def find_nearest(array: np.ndarray, value: float) -> float:
-    array = np.asarray(array)
+def find_nearest(array: Union[List[float], np.ndarray], value: float) -> float:
+    """
+    ToDo: DocString
+    :param array:
+    :param value:
+    :return: 
+    """
+    if not isinstance(array, (np.ndarray, list)):
+        raise TypeError("array must be a np.ndarray or list")
+    if isinstance(array, list):
+        array = np.asarray(array)
+        array = cast(np.ndarray, array)
     idx = (np.abs(array - value)).argmin()
     return float(array[idx])
 
 
-def find_nearest_idx(array: np.ndarray, value: float) -> int:
-    array = np.asarray(array)
+def find_nearest_idx(array: Union[List[float], np.ndarray], value: float) -> int:
+    """
+    ToDo: DocString
+    :param array:
+    :param value:
+    :return:
+    """
+    if not isinstance(array, (np.ndarray, list)):
+        raise TypeError("array must be a np.ndarray or list")
+    if isinstance(array, list):
+        array = np.asarray(array)
+        array = cast(np.ndarray, array)
     idx = int((np.abs(array - value)).argmin())
     return idx
 
@@ -36,23 +56,12 @@ def generate_wavelength_template(
 ) -> np.ndarray:
     """
     Generate wavelength array with fixed resolution and wavelength sampling.
-    :param float start_wavelength:
-    :param float end_wavelength:
-    :param float resolution:
-    :param bool truncate:
-    :return:
+    :param float start_wavelength: minimum wavelength of spectra to include
+    :param float end_wavelength: maximum wavelength of spectra to include
+    :param float resolution: resolving power of instrument (R = lambda / delta lambda)
+    :param bool truncate: If true, drop final pixel for which lambda > end_wavelength
+    :return np.ndarray: wavelength grid of given resolution between start and end wavelengths
     """
-    """
-
-    args:
-    start_wavelength = minimum wavelength of spectra to include
-    end_wavelength = maximum wavelength of spectra to include
-    resolution = resolving power of instrument (R = lambda / delta lambda)
-    truncate = Boolean, if true, drop final pixel for which lambda > end_wavelength
-
-    returns = wavelength grid of given resolution between start and end wavelengths
-    """
-    # TODO: generate_wavelength_template doc-string
     wavelength_tmp = [start_wavelength]
     wavelength_now = start_wavelength
 
@@ -68,8 +77,11 @@ def generate_wavelength_template(
 
 def calc_f_nu(spectra, radius, dist=10):
     """
-    radius: radius of star in solar radii
-    dist: distance to star in pc
+    ToDo: DocString
+    :param spectra:
+    :param radius: radius of star in solar radii
+    :param dist: distance to star in pc
+    :return:
     """
     spectra = spectra.to_numpy().T
     if type(radius) in [float, int]:
@@ -262,7 +274,7 @@ def calc_crlb(
     chunk_size=10000,
 ):
     """
-
+    ToDo: DocString
     :param reference:
     :param instruments:
     :param priors:
@@ -332,7 +344,7 @@ def calc_crlb(
 
 def sort_crlb(crlb, cutoff, sort_by="default"):
     """
-
+    ToDo: DocString
     :param crlb:
     :param cutoff:
     :param sort_by:
@@ -361,21 +373,31 @@ def sort_crlb(crlb, cutoff, sort_by="default"):
     return crlb
 
 
-def kpc_to_mu(d: float):
+def kpc_to_mu(
+    d: Union[float, List[float], np.ndarray]
+) -> Union[np.float64, np.ndarray, Any]:
     """
-
+    ToDo: DocString
     :param d: distance in kpc
     :return: distance modulus
     """
+    if isinstance(d, list):
+        d = np.array(d)
+        d = cast(np.ndarray, d)
     return 5 * np.log10(d * 1e3 / 10)
 
 
-def mu_to_kpc(mu: float):
+def mu_to_kpc(
+    mu: Union[float, List[float], np.ndarray]
+) -> Union[float, np.float64, np.ndarray]:
     """
-
+    ToDo: DocString
     :param mu: distance modulus
     :return: distance in kpc
     """
+    if isinstance(mu, list):
+        mu = np.array(mu)
+        mu = cast(np.ndarray, mu)
     return 1 / (1e3 / 10) * 10 ** (mu / 5)
 
 
