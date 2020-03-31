@@ -71,13 +71,12 @@ will be expanded upon as the package grows in features.
 ## Collaborators
 - Dan Weisz
 - Yuan-Sen Ting
-- Hans-Walter Rix
 
 ## Attribution
-This work will be presented in an upcoming paper, Sandford et al. (in prep) 
+This work will be presented in an upcoming paper, Sandford et al. (submitted to ApJ) 
 
 ## Contributions & Bug Reports
 Like what this package is doing, but unsatisfied with some portion of it?
 I warmly welcome any and all contributions, particularly in feature additions,
 web deployment, bug fixes, and code optimizations. Don't hesitate to reach out to me if you have any
-ideas or contributions you would like to apply.
+ideas or contributions you would like to see included.
