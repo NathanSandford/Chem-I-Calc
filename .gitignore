@@ -1,7 +1,7 @@
 .idea
 */__pycache__
 chemicalc/data
-Chem_I-Calc.egg-info
 build
 **/.ipynb_checkpoints
 .mypy_cache
+/Chem_I_Calc.egg-info/
