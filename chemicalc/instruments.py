@@ -33,7 +33,8 @@ class InstConfig:
         self.wave = generate_wavelength_template(
             self.start_wavelength,
             self.end_wavelength,
-            self.R_res * self.R_samp,
+            self.R_res,
+            self.R_samp,
             truncate=truncate,
         )
         self.custom_wave = False
@@ -65,7 +66,8 @@ class InstConfig:
         self.wave = generate_wavelength_template(
             self.start_wavelength,
             self.end_wavelength,
-            self.R_res * self.R_samp,
+            self.R_res,
+            self.R_samp,
             truncate=truncate,
         )
         self.custom_wave = False
