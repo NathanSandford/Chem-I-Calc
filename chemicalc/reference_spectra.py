@@ -81,7 +81,7 @@ class ReferenceSpectra:
                 )
             cont_df = pd.read_hdf(self.continuum_file, reference)
             spec_df *= cont_df
-            spec_df = calc_f_nu(spectra=spec_df, radius=radius, dist=dist)
+            ###spec_df = calc_f_nu(spectra=spec_df, radius=radius, dist=dist)
         label_df = pd.read_hdf(label_file, reference)
         if not iron_scaled:
             label_df.loc[set(elements_included) ^ {"Fe"}] -= label_df.loc["Fe"]
@@ -169,14 +169,14 @@ class ReferenceSpectra:
             throughput = filter_interp(self.wavelength[spectrum_name])
         else:
             throughput = filter_set.throughput.values
-        self.spectra[name] = calc_MagAB(
-            f_nu=self.spectra[spectrum_name],
-            throughput=throughput,
-            wave=self.wavelength[spectrum_name],
-        )
-        self.wavelength[name] = np.array(list(filter_set.wave_eff.values()))
-        self.filters[name] = list(filter_set.throughput.columns)
-        self.resolution[name] = 0
+        #self.spectra[name] = calc_MagAB(
+        #    f_nu=self.spectra[spectrum_name],
+        #    throughput=throughput,
+        #    wave=self.wavelength[spectrum_name],
+        #)
+        #self.wavelength[name] = np.array(list(filter_set.wave_eff.values()))
+        #self.filters[name] = list(filter_set.throughput.columns)
+        #self.resolution[name] = 0
 
     def calc_gradient(
         self,
