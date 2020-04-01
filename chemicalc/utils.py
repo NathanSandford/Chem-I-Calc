@@ -19,9 +19,9 @@ alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 def find_nearest(array: Union[List[float], np.ndarray], value: float) -> float:
     """
     ToDo: DocString
-    :param array:
-    :param value:
-    :return: 
+    :param Union[List[float], np.ndarray] array: list or array of floats to search
+    :param float value: value that you wish to find
+    :return float: entry in array that is nearest to value
     """
     if not isinstance(array, (np.ndarray, list)):
         raise TypeError("array must be a np.ndarray or list")
@@ -35,9 +35,9 @@ def find_nearest(array: Union[List[float], np.ndarray], value: float) -> float:
 def find_nearest_idx(array: Union[List[float], np.ndarray], value: float) -> int:
     """
     ToDo: DocString
-    :param array:
-    :param value:
-    :return:
+    :param Union[List[float], np.ndarray] array: list or array of floats to search
+    :param float value: value that you wish to find
+    :return int: index of entry in array that is nearest to value
     """
     if not isinstance(array, (np.ndarray, list)):
         raise TypeError("array must be a np.ndarray or list")
@@ -52,6 +52,7 @@ def generate_wavelength_template(
     start_wavelength: float,
     end_wavelength: float,
     resolution: float,
+    res_sampling: float,
     truncate: bool = False,
 ) -> np.ndarray:
     """
@@ -59,14 +60,24 @@ def generate_wavelength_template(
     :param float start_wavelength: minimum wavelength of spectra to include
     :param float end_wavelength: maximum wavelength of spectra to include
     :param float resolution: resolving power of instrument (R = lambda / delta lambda)
+    :param float res_sampling: pixels per resolution element
     :param bool truncate: If true, drop final pixel for which lambda > end_wavelength
     :return np.ndarray: wavelength grid of given resolution between start and end wavelengths
     """
+    if not all(
+        isinstance(i, (int, float, np.float64))
+        for i in [start_wavelength, end_wavelength, resolution, res_sampling]
+    ):
+        raise TypeError("Input quantities must be int or float")
+    if not all(i > 0 for i in [start_wavelength, end_wavelength, resolution, res_sampling]):
+        raise ValueError("Input quantities must be > 0")
+    if start_wavelength > end_wavelength:
+        raise ValueError("start_wavelength greater than end_wavelength")
     wavelength_tmp = [start_wavelength]
     wavelength_now = start_wavelength
 
     while wavelength_now < end_wavelength:
-        wavelength_now += wavelength_now / resolution
+        wavelength_now += wavelength_now / (resolution * res_sampling)
         wavelength_tmp.append(wavelength_now)
     wavelength_template = np.array(wavelength_tmp)
 
@@ -381,6 +392,10 @@ def kpc_to_mu(
     :param d: distance in kpc
     :return: distance modulus
     """
+    if not isinstance(d, (int, float, np.ndarray, np.float64, list)):
+        raise TypeError(
+            "d must be int, float, np.float64, or np.ndarray/list of floats"
+        )
     if isinstance(d, list):
         d = np.array(d)
         d = cast(np.ndarray, d)
@@ -395,6 +410,10 @@ def mu_to_kpc(
     :param mu: distance modulus
     :return: distance in kpc
     """
+    if not isinstance(mu, (int, float, np.ndarray, np.float64, list)):
+        raise TypeError(
+            "mu must be int, float, np.float64, or np.ndarray/list of floats"
+        )
     if isinstance(mu, list):
         mu = np.array(mu)
         mu = cast(np.ndarray, mu)
