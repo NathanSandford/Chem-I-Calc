@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union, Optional
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -108,7 +108,7 @@ class ReferenceSpectra:
 
     def add_rv_spec(self, d_rv: float) -> None:
         """
-
+        ToDo: DocString
         :param float d_rv:
         :return:
         """
