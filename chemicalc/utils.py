@@ -394,11 +394,6 @@ def download_all_files(overwrite=True):
         precomputed_cont_id,
     )
 
-    if filter_file.exists() and not overwrite:
-        print(f"{filter_file} exists")
-    else:
-        print(f"Downloading {filter_file}")
-        download_package_files(id=filter_id, destination=filter_file)
 
     if label_file.exists() and not overwrite:
         print(f"{label_file} exists")
