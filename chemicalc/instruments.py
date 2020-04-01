@@ -9,7 +9,7 @@ from chemicalc.utils import (
 from chemicalc.s2n import Sig2NoiseWMKO
 from chemicalc.exception import InstError
 
-filter_id = "1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP"
+
 sampX = 3  # Placeholder for Unknown Wavelength Sampling
 
 
