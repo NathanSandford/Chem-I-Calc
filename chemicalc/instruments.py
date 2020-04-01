@@ -5,8 +5,6 @@ import pandas as pd
 from scipy.interpolate import interp1d
 from chemicalc.utils import (
     generate_wavelength_template,
-    load_filter_throughput,
-    generate_tophat_throughput,
 )
 from chemicalc.s2n import Sig2NoiseWMKO
 from chemicalc.exception import InstError

@@ -86,68 +86,6 @@ def generate_wavelength_template(
     return wavelength_template
 
 
-def calc_f_nu(spectra, radius, dist=10):
-    """
-    ToDo: DocString
-    :param spectra:
-    :param radius: radius of star in solar radii
-    :param dist: distance to star in pc
-    :return:
-    """
-    spectra = spectra.to_numpy().T
-    if type(radius) in [float, int]:
-        radius = np.repeat(radius, spectra.shape[0])
-    r_sun_cm = 6.957e10  # radius of the Sun in cm
-    pc_cm = 3.086e18  # 1 parsec in cm
-    f_nu0 = spectra * 4 * np.pi
-    f_nu = f_nu0 * ((radius[:, np.newaxis] * r_sun_cm) / (dist * pc_cm)) ** 2
-    return pd.DataFrame(f_nu).T
-
-
-def all_filters():
-    tmp = pd.read_hdf(data_dir.joinpath("filters.h5"), "fwhm")
-    return list(tmp.columns)
-
-
-def load_filter_throughput(filters):
-    if not filter_file.exists():
-        print("Downloading filters.h5")
-        download_package_files(id=filter_id, destination=filter_file)
-    throughput = pd.read_hdf(filter_file, "throughput")[filters]
-    wave_eff = pd.read_hdf(filter_file, "wave_eff", index="wave_eff")[filters]
-    wave_eff = {fltr: wave_eff[fltr].values[0] for fltr in wave_eff}
-    fwhm = pd.read_hdf(filter_file, "fwhm")[filters]
-    fwhm = {fltr: fwhm[fltr].values[0] for fltr in fwhm}
-    return throughput, wave_eff, fwhm
-
-
-def generate_tophat_throughput(name, wave_eff, width, transmission):
-    wave = pd.read_hdf(
-        data_dir.joinpath("reference_spectra_300000.h5"), "highres_wavelength"
-    ).values.flatten()
-    throughput = transmission * pd.DataFrame(
-        (np.abs(wave - wave_eff) <= width / 2).astype(float), index=wave, columns=[name]
-    )
-    wave_eff = {name: wave_eff}
-    fwhm = {name: width}
-    return throughput, wave_eff, fwhm
-
-
-def calc_MagAB(f_nu, throughput, wave):
-    c_aa_s = 2.998e18  # speed of light in angstroms/sec
-    num = np.trapz(
-        f_nu[:, :, np.newaxis]
-        * throughput[np.newaxis, :, :]
-        * wave[np.newaxis, :, np.newaxis],
-        x=wave,
-        axis=1,
-    )
-    den = np.trapz(throughput[:, :] / wave[:, np.newaxis], x=wave, axis=0)
-    f = 1 / c_aa_s * num[:, :] / den[np.newaxis, :]
-    m_AB = -2.5 * np.log10(f) - 48.6
-    return m_AB
-
-
 def convolve_spec(wave, spec, resolution, outwave, res_in=None):
     """
 

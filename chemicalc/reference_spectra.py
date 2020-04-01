@@ -8,8 +8,6 @@ from chemicalc.utils import (
     data_dir,
     doppler_shift,
     convolve_spec,
-    calc_f_nu,
-    calc_MagAB,
     calc_gradient,
 )
 from chemicalc.utils import download_package_files
