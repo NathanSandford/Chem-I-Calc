@@ -5,10 +5,6 @@ import chemicalc.reference_spectra as ref
 from chemicalc import utils as u
 
 
-def test_filter_file_exist():
-    assert u.filter_file.exists()
-
-
 def test_alpha_el():
     assert isinstance(u.alpha_el, list)
     assert u.alpha_el == ref.alpha_el

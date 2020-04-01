@@ -11,8 +11,6 @@ from chemicalc import exception as e
 
 data_dir: Path = Path(os.path.dirname(__file__)).joinpath("data")
 data_dir.mkdir(exist_ok=True)
-filter_file: Path = Path(data_dir.joinpath("filters.h5"))
-filter_id: str = "1oANYac-Xc4n1TfTWXVjhfETHHBSTlUJP"
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 
 
