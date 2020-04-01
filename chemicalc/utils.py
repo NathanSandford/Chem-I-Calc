@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, Union, cast
+from typing import Any, List, Union, Optional, cast
 from pathlib import Path
 import requests
 from tqdm import tqdm
@@ -63,11 +63,13 @@ def generate_wavelength_template(
     :return np.ndarray: wavelength grid of given resolution between start and end wavelengths
     """
     if not all(
-        isinstance(i, (int, float, np.float64))
+        isinstance(i, (int, float))
         for i in [start_wavelength, end_wavelength, resolution, res_sampling]
     ):
         raise TypeError("Input quantities must be int or float")
-    if not all(i > 0 for i in [start_wavelength, end_wavelength, resolution, res_sampling]):
+    if not all(
+        i > 0 for i in [start_wavelength, end_wavelength, resolution, res_sampling]
+    ):
         raise ValueError("Input quantities must be > 0")
     if start_wavelength > end_wavelength:
         raise ValueError("start_wavelength greater than end_wavelength")
@@ -84,24 +86,49 @@ def generate_wavelength_template(
     return wavelength_template
 
 
-def convolve_spec(wave, spec, resolution, outwave, res_in=None):
+def convolve_spec(
+    wave: np.ndarray,
+    spec: np.ndarray,
+    resolution: float,
+    outwave: np.ndarray,
+    res_in: Optional[float] = None,
+) -> np.ndarray:
     """
+    Convolves spectrum to lower resolution and samples onto a new wavelength grid
+    :param np.ndarray wave: input wavelength array
+    :param np.ndarray spec: input spectra array (may be 1 or 2 dimensional)
+    :param float resolution: Resolving power to convolve down to (R = lambda / delta lambda)
+    :param np.ndarray outwave: wavelength grid to sample onto
+    :param Optional[float] res_in: Resolving power of input spectra
+    :return np.ndarray: convolved spectra array
+    """
+    if not all(isinstance(i, np.ndarray) for i in [wave, spec, outwave]):
+        raise TypeError("wave, spec, and outwave must be np.ndarray")
+    if not isinstance(resolution, (int, float)):
+        raise TypeError("resolution must be an int or float")
+    if spec.ndim == 1:
+        if spec.shape[0] != wave.shape[0]:
+            raise ValueError("spec and wave must be the same length")
+    elif spec.ndim == 2:
+        if spec.shape[1] != wave.shape[0]:
+            raise ValueError("spec and wave must be the same length")
+    if not (wave.min() < outwave.min() and wave.max() > outwave.max()):
+        raise ValueError("outwave extends beyond input wave")
+    if not np.all(np.diff(wave) > 0):
+        raise ValueError("wave must be sorted")
+    if not np.all(np.diff(outwave) > 0):
+        raise ValueError("outwave must be sorted")
 
-    :param wave:
-    :param spec:
-    :param resolution:
-    :param outwave:
-    :param res_in:
-    :return:
-    """
-    # TODO: convolve_spec doc-string
     sigma_to_fwhm = 2.355
-
     width = resolution * sigma_to_fwhm
     sigma_out = (resolution * sigma_to_fwhm) ** -1
     if res_in is None:
-        sigma_in = 0
+        sigma_in = 0.0
     else:
+        if not isinstance(res_in, (int, float)):
+            raise TypeError("res_in must be an int or float")
+        if res_in < resolution:
+            raise ValueError("Cannot convolve to a higher resolution")
         sigma_in = (res_in * sigma_to_fwhm) ** -1
 
     # Trim Wavelength Range
@@ -112,8 +139,10 @@ def convolve_spec(wave, spec, resolution, outwave, res_in=None):
     wave = wave[mask]
     if spec.ndim == 1:
         spec = spec[mask]
-    else:
+    elif spec.ndim == 2:
         spec = spec[:, mask]
+    else:
+        raise ValueError("spec cannot have more than 2 dimensions")
 
     # Make Convolution Grid
     wmin, wmax = wave.min(), wave.max()
@@ -140,14 +169,24 @@ def convolve_spec(wave, spec, resolution, outwave, res_in=None):
     return fspec(outwave)
 
 
-def doppler_shift(wave, spec, rv):
+def doppler_shift(wave: np.ndarray, spec: np.ndarray, rv: float) -> np.ndarray:
     """
-
-    :param wave:
-    :param spec:
-    :param rv:
-    :return:
+    ToDo: Unit Tests
+    ToDo: Fix Boundary Issues
+    Apply doppler shift to spectra and resample onto original wavelength grid
+    :param np.ndarray wave: input wavelength array
+    :param np.ndarray spec: input spectra array
+    :param float rv: Radial Velocity (km/s)
+    :return np.ndarray: Doppler shifted spectra array
     """
+    if not all(isinstance(i, np.ndarray) for i in [wave, spec]):
+        raise TypeError("wave and spec must be np.ndarray")
+    if not isinstance(rv, (int, float)):
+        raise TypeError("rv must be an int or float")
+    if not np.all(np.diff(wave) > 0):
+        raise ValueError("wave must be sorted")
+    if rv < 0:
+        raise ValueError("rv must be > 0")
     c = 2.99792458e5  # km/s
     doppler_factor = np.sqrt((1 - rv / c) / (1 + rv / c))
     new_wavelength = wave * doppler_factor
@@ -155,24 +194,20 @@ def doppler_shift(wave, spec, rv):
 
 
 def calc_gradient(
-    wave,
-    spectra,
-    labels,
-    symmetric=True,
-    ref_included=True,
-    v_micro_scaling=1,
-    d_rv=None,
-):
+    spectra: np.ndarray,
+    labels: np.ndarray,
+    symmetric: bool = True,
+    ref_included: bool = True,
+) -> pd.DataFrame:
     """
-    :param wave:
-    :param spectra:
-    :param labels:
-    :param symmetric:
-    :param ref_included:
-    :param v_micro_scaling:
-    :return:
+    ToDo: Unit Tests
+    Calculates partial derivatives of spectra wrt to each label
+    :param np.ndarray spectra: input spectra array
+    :param np.ndarray labels: input label array
+    :param bool symmetric: If true, calculates symmetric gradient about reference
+    :param bool ref_included: Is spectra[0] the reference spectrum?
+    :return pd.DataFrame: Partial derivatives of spectra wrt each label
     """
-    # TODO: calc_gradient doc-string
     nspectra = spectra.shape[0]
     nlabels = labels.shape[0]
     if ref_included:
@@ -206,7 +241,6 @@ def calc_gradient(
                 + "\nCannot perform asymmetric gradient calculation"
             )
     dx[labels.index == "Teff"] /= 100  # Scaling dX_Teff
-    dx[labels.index == "v_micro"] /= v_micro_scaling  # Scaling dX_v_micro
     dx[labels.index == "rv"] /= 10
     dx[dx == 0] = -np.inf
     return pd.DataFrame(grad / dx[:, np.newaxis], index=labels.index)
@@ -216,19 +250,20 @@ def calc_crlb(
     reference,
     instruments,
     priors=None,
-    use_alpha=False,
-    output_fisher=False,
-    chunk_size=10000,
+    use_alpha: bool=False,
+    output_fisher: bool=False,
+    chunk_size: float = 10000,
 ):
     """
     ToDo: DocString
+    ToDo: Unit Tests
     :param reference:
     :param instruments:
     :param priors:
-    :param output_fisher:
+    :param bool output_fisher:
+    :param float chunk_size:
     :return:
     """
-    # TODO: calc_crlb doc-string
     if type(instruments) is not list:
         instruments = [instruments]
     grad_list = []
@@ -292,6 +327,7 @@ def calc_crlb(
 def sort_crlb(crlb, cutoff, sort_by="default"):
     """
     ToDo: DocString
+    ToDo: Unit Tests
     :param crlb:
     :param cutoff:
     :param sort_by:
@@ -324,14 +360,16 @@ def kpc_to_mu(
     d: Union[float, List[float], np.ndarray]
 ) -> Union[np.float64, np.ndarray, Any]:
     """
-    ToDo: DocString
-    :param d: distance in kpc
-    :return: distance modulus
+    Converts kpc to distance modulus
+    :param Union[float, List[float], np.ndarray] d: distance in kpc
+    :return Union[np.float64, np.ndarray, Any]: distance modulus
     """
-    if not isinstance(d, (int, float, np.ndarray, np.float64, list)):
+    if not isinstance(d, (int, float, np.ndarray, list)):
         raise TypeError(
-            "d must be int, float, np.float64, or np.ndarray/list of floats"
+            "d must be int, float, or np.ndarray/list of floats"
         )
+    if d <= 0:
+        raise ValueError("d must be > 0")
     if isinstance(d, list):
         d = np.array(d)
         d = cast(np.ndarray, d)
@@ -342,13 +380,13 @@ def mu_to_kpc(
     mu: Union[float, List[float], np.ndarray]
 ) -> Union[float, np.float64, np.ndarray]:
     """
-    ToDo: DocString
-    :param mu: distance modulus
-    :return: distance in kpc
+    Converts distance modulus to kpc
+    :param Union[float, List[float], np.ndarray] mu: distance modulus
+    :return Union[float, np.float64, np.ndarray]: distance in kpc
     """
-    if not isinstance(mu, (int, float, np.ndarray, np.float64, list)):
+    if not isinstance(mu, (int, float, np.ndarray, list)):
         raise TypeError(
-            "mu must be int, float, np.float64, or np.ndarray/list of floats"
+            "mu must be int, float, or np.ndarray/list of floats"
         )
     if isinstance(mu, list):
         mu = np.array(mu)
@@ -393,7 +431,6 @@ def download_all_files(overwrite=True):
         precomputed_ref_id,
         precomputed_cont_id,
     )
-
 
     if label_file.exists() and not overwrite:
         print(f"{label_file} exists")
