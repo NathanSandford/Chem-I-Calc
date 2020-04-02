@@ -1,5 +1,4 @@
 import pytest
-
 import os
 from pathlib import Path
 
@@ -154,6 +153,7 @@ def test_doppler_shift():
     spec = star.spectra["init"][0]
     shifted_spec = u.doppler_shift(wave, spec, 10)
     assert shifted_spec.shape == spec.shape
+    # ToDo: UnitTests
     #assert np.all(
     #    np.load(test_file_dir.joinpath("doppler_spec.npy")) == shifted_spec
     #)
@@ -167,15 +167,30 @@ def test_doppler_shift():
 
 
 def test_calc_grad():
-    pass
-
-
-def test_calc_crlb():
-    pass
-
-
-def test_sort_crlb():
-    pass
+    star = ref.ReferenceSpectra(reference="RGB_m1.5", res="max")
+    spec = star.spectra["init"]
+    labels = star.labels
+    sym_grad = u.calc_gradient(spectra=spec, labels=labels, symmetric=True, ref_included=True)
+    sym_grad_noref = u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=True, ref_included=False)
+    asym_grad = u.calc_gradient(spectra=spec, labels=labels, symmetric=False, ref_included=True)
+    asym_grad_noref = u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=False, ref_included=False)
+    # ToDo: UnitTests
+    with pytest.raises(TypeError):
+        u.calc_gradient(spectra='str', labels=labels, symmetric=True, ref_included=True)
+        u.calc_gradient(spectra=spec, labels='str', symmetric=True, ref_included=True)
+    with pytest.raises(ValueError):
+        # Ref included, but ref_included=False
+        u.calc_gradient(spectra=spec, labels=labels, symmetric=True, ref_included=False)
+        u.calc_gradient(spectra=spec, labels=labels, symmetric=False, ref_included=False)
+        # symmetric gradient w/o necessary spectra
+        u.calc_gradient(spectra=spec[::2], labels=labels.iloc[:,::2], symmetric=True, ref_included=True)
+        u.calc_gradient(spectra=spec[::2], labels=labels.iloc[:, ::2], symmetric=True, ref_included=False)
+        u.calc_gradient(spectra=spec[::2], labels=labels.iloc[:, ::2], symmetric=False, ref_included=False)
+        # Ref not included, but ref_included=True
+        u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=True, ref_included=True)
+        u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=False, ref_included=True)
+        u.calc_gradient(spectra=spec[1::2], labels=labels.iloc[:, 1::2], symmetric=True, ref_included=True)
+        u.calc_gradient(spectra=spec[1::2], labels=labels.iloc[:, 1::2], symmetric=False, ref_included=True)
 
 
 def test_kpc_to_mu():
