@@ -146,37 +146,6 @@ class ReferenceSpectra:
         self.wavelength[name] = outwave
         self.resolution[name] = instrument.R_res
 
-    def calc_synth_phot(
-        self, filter_set, name: Optional[str] = None, spectrum_name="init"
-    ) -> None:
-        """
-
-        :param filter_set:
-        :param name:
-        :param str spectrum_name:
-        :return:
-        """
-        if name is None:
-            name = filter_set.name
-        if spectrum_name != "init":
-            filter_interp = interp1d(
-                filter_set.throughput.index.values,
-                filter_set.throughput.values,
-                axis=0,
-                fill_value=0,
-                bounds_error=False,
-            )
-            throughput = filter_interp(self.wavelength[spectrum_name])
-        else:
-            throughput = filter_set.throughput.values
-        #self.spectra[name] = calc_MagAB(
-        #    f_nu=self.spectra[spectrum_name],
-        #    throughput=throughput,
-        #    wave=self.wavelength[spectrum_name],
-        #)
-        #self.wavelength[name] = np.array(list(filter_set.wave_eff.values()))
-        #self.filters[name] = list(filter_set.throughput.columns)
-        #self.resolution[name] = 0
 
     def calc_gradient(
         self,
@@ -196,13 +165,10 @@ class ReferenceSpectra:
         :return:
         """
         self.gradients[name] = calc_gradient(
-            self.wavelength[name],
-            self.spectra[name],
-            self.labels,
+            spectra=self.spectra[name],
+            labels=self.labels,
             symmetric=symmetric,
             ref_included=ref_included,
-            v_micro_scaling=v_micro_scaling,
-            d_rv=d_rv,
         )
         self.gradients[name].columns = self.wavelength[name]
 
