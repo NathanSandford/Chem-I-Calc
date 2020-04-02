@@ -1,5 +1,6 @@
 import os
-from typing import Any, List, Union, Optional, cast
+from typing import Any, List, Tuple, Dict, Union, Optional, cast
+from warnings import warn
 from pathlib import Path
 import requests
 from tqdm import tqdm
@@ -8,6 +9,7 @@ import pandas as pd
 from numpy.fft import rfftfreq
 from scipy.interpolate import interp1d
 from chemicalc import exception as e
+
 
 data_dir: Path = Path(os.path.dirname(__file__)).joinpath("data")
 data_dir.mkdir(exist_ok=True)
@@ -166,10 +168,12 @@ def convolve_spec(
 
     # Interpolate onto outwave
     fspec = interp1d(wave, spec_conv, bounds_error=False, fill_value="extrapolate")
-    return fspec(outwave)
+    return np.ndarray(fspec(outwave))
 
 
-def doppler_shift(wave: np.ndarray, spec: np.ndarray, rv: float) -> np.ndarray:
+def doppler_shift(
+    wave: np.ndarray, spec: np.ndarray, rv: float, bounds_warning: bool = True
+) -> np.ndarray:
     """
     ToDo: Unit Tests
     ToDo: Fix Boundary Issues
@@ -177,6 +181,7 @@ def doppler_shift(wave: np.ndarray, spec: np.ndarray, rv: float) -> np.ndarray:
     :param np.ndarray wave: input wavelength array
     :param np.ndarray spec: input spectra array
     :param float rv: Radial Velocity (km/s)
+    :param bool bounds_warning: warn about boundary issues?
     :return np.ndarray: Doppler shifted spectra array
     """
     if not all(isinstance(i, np.ndarray) for i in [wave, spec]):
@@ -190,12 +195,25 @@ def doppler_shift(wave: np.ndarray, spec: np.ndarray, rv: float) -> np.ndarray:
     c = 2.99792458e5  # km/s
     doppler_factor = np.sqrt((1 - rv / c) / (1 + rv / c))
     new_wavelength = wave * doppler_factor
-    return np.interp(new_wavelength, wave, spec)
+    shifted_spec = np.ndarray(np.interp(new_wavelength, wave, spec))
+    shifted_spec[(wave < new_wavelength.min()) | (wave > new_wavelength.max())] = np.nan
+    if bounds_warning:
+        if rv > 0:
+            warn(
+                f"Spectra for wavelengths below {new_wavelength.min()} are undefined; set to np.nan",
+                UserWarning,
+            )
+        if rv < 0:
+            warn(
+                f"Spectra for wavelengths above {new_wavelength.max()} are undefined; set to np.nan",
+                UserWarning,
+            )
+    return shifted_spec
 
 
 def calc_gradient(
     spectra: np.ndarray,
-    labels: np.ndarray,
+    labels: pd.DataFrame,
     symmetric: bool = True,
     ref_included: bool = True,
 ) -> pd.DataFrame:
@@ -203,11 +221,15 @@ def calc_gradient(
     ToDo: Unit Tests
     Calculates partial derivatives of spectra wrt to each label
     :param np.ndarray spectra: input spectra array
-    :param np.ndarray labels: input label array
+    :param pd.DataFrame labels: input label array
     :param bool symmetric: If true, calculates symmetric gradient about reference
     :param bool ref_included: Is spectra[0] the reference spectrum?
     :return pd.DataFrame: Partial derivatives of spectra wrt each label
     """
+    if not isinstance(spectra, np.ndarray):
+        raise TypeError("spectra must be np.ndarray")
+    if not isinstance(labels, pd.DataFrame):
+        raise TypeError("labels must be pd.DataFrame")
     nspectra = spectra.shape[0]
     nlabels = labels.shape[0]
     if ref_included:
@@ -216,7 +238,7 @@ def calc_gradient(
         skip = 0
     if symmetric:
         if nspectra - skip != 2 * nlabels:
-            raise e.GradientError(
+            raise ValueError(
                 f"nspectra({nspectra-skip}) != 2*nlabel({2*nlabels})"
                 + "\nCannot perform symmetric gradient calculation"
             )
@@ -224,7 +246,7 @@ def calc_gradient(
         grad = spectra[1::2] - spectra[2::2]
     else:
         if not ref_included:
-            raise e.GradientError(
+            raise ValueError(
                 f"Reference Spectra must be included at index 0"
                 + "to calculate asymmetric gradients"
             )
@@ -235,7 +257,7 @@ def calc_gradient(
             dx = np.diag(labels.iloc[:, 0].values - labels.iloc[:, 1::2].values).copy()
             grad = spectra[0] - spectra[1::2]
         else:
-            raise e.GradientError(
+            raise ValueError(
                 f"nspectra({nspectra - 1}) != nlabel({nlabels})"
                 + f"or 2*nlabel({2 * nlabels})"
                 + "\nCannot perform asymmetric gradient calculation"
@@ -244,116 +266,6 @@ def calc_gradient(
     dx[labels.index == "rv"] /= 10
     dx[dx == 0] = -np.inf
     return pd.DataFrame(grad / dx[:, np.newaxis], index=labels.index)
-
-
-def calc_crlb(
-    reference,
-    instruments,
-    priors=None,
-    use_alpha: bool=False,
-    output_fisher: bool=False,
-    chunk_size: float = 10000,
-):
-    """
-    ToDo: DocString
-    ToDo: Unit Tests
-    :param reference:
-    :param instruments:
-    :param priors:
-    :param bool output_fisher:
-    :param float chunk_size:
-    :return:
-    """
-    if type(instruments) is not list:
-        instruments = [instruments]
-    grad_list = []
-    snr_list = []
-    for instrument in instruments:
-        grad_backup = reference.gradients[instrument.name].copy()
-        if use_alpha:
-            assert (
-                "alpha" in reference.labels.index
-            ), "alpha not included in reference file"
-            reference.zero_gradients(name=instrument.name, labels=alpha_el)
-        elif not use_alpha and "alpha" in reference.labels.index:
-            reference.zero_gradients(name=instrument.name, labels=["alpha"])
-        grad_list.append(reference.gradients[instrument.name].values)
-        snr_list.append(instrument.snr)
-        reference.gradients[instrument.name] = grad_backup
-    grad = np.concatenate(grad_list, axis=1)
-    snr2 = np.concatenate(snr_list, axis=0) ** 2
-
-    if chunk_size is not None:
-        n_chunks = int(np.ceil(grad.shape[1] / chunk_size))
-        fisher_mat = np.zeros((grad.shape[0], grad.shape[0]))
-        for i in range(n_chunks):
-            grad_tmp = grad[:, i * chunk_size : (i + 1) * chunk_size]
-            snr2_tmp = np.diag(snr2[i * chunk_size : (i + 1) * chunk_size])
-            fisher_mat += (grad_tmp.dot(snr2_tmp)).dot(grad_tmp.T)
-    else:
-        fisher_mat = (grad.dot(np.diag(snr2))).dot(grad.T)
-    diag_val = np.abs(np.diag(fisher_mat)) < 1.0
-    fisher_mat[diag_val, :] = 0.0
-    fisher_mat[:, diag_val] = 0.0
-    fisher_mat[diag_val, diag_val] = 10.0 ** -6
-    fisher_df = pd.DataFrame(
-        fisher_mat, columns=reference.labels.index, index=reference.labels.index
-    )
-
-    if priors:
-        for label in priors:
-            prior = priors[label]
-            if prior is None:
-                continue
-            if label == "Teff":
-                prior /= 100
-            if prior == 0:
-                fisher_df.loc[label, :] = 0
-                fisher_df.loc[:, label] = 0
-                fisher_df.loc[label, label] = 1e-6
-            else:
-                fisher_df.loc[label, label] += prior ** (-2)
-
-    crlb = pd.DataFrame(
-        np.sqrt(np.diag(np.linalg.pinv(fisher_df))), index=reference.labels.index
-    )
-
-    if output_fisher:
-        return crlb, fisher_df
-    else:
-        return crlb
-
-
-def sort_crlb(crlb, cutoff, sort_by="default"):
-    """
-    ToDo: DocString
-    ToDo: Unit Tests
-    :param crlb:
-    :param cutoff:
-    :param sort_by:
-    :return:
-    """
-    crlb_temp = crlb[:3].copy()
-    crlb[crlb > cutoff] = np.NaN
-    crlb[:3] = crlb_temp
-
-    if sort_by == "default":
-        sort_by_index = np.sum(pd.isna(crlb)).idxmin()
-    else:
-        if sort_by == list(crlb.columns):
-            sort_by_index = sort_by
-        else:
-            assert False, f"{sort_by} not in CR_Gradients_File"
-
-    valid_ele = np.concatenate(
-        [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
-    )
-    valid_ele_sorted = np.concatenate(
-        [crlb.index[:3], crlb.loc[valid_ele][3:].sort_values(sort_by_index).index]
-    )
-
-    crlb = crlb.loc[valid_ele_sorted]
-    return crlb
 
 
 def kpc_to_mu(
@@ -365,14 +277,12 @@ def kpc_to_mu(
     :return Union[np.float64, np.ndarray, Any]: distance modulus
     """
     if not isinstance(d, (int, float, np.ndarray, list)):
-        raise TypeError(
-            "d must be int, float, or np.ndarray/list of floats"
-        )
-    if d <= 0:
-        raise ValueError("d must be > 0")
+        raise TypeError("d must be int, float, or np.ndarray/list of floats")
     if isinstance(d, list):
         d = np.array(d)
         d = cast(np.ndarray, d)
+    if np.any(d <= 0):
+        raise ValueError("d must be > 0")
     return 5 * np.log10(d * 1e3 / 10)
 
 
@@ -385,9 +295,7 @@ def mu_to_kpc(
     :return Union[float, np.float64, np.ndarray]: distance in kpc
     """
     if not isinstance(mu, (int, float, np.ndarray, list)):
-        raise TypeError(
-            "mu must be int, float, or np.ndarray/list of floats"
-        )
+        raise TypeError("mu must be int, float, or np.ndarray/list of floats")
     if isinstance(mu, list):
         mu = np.array(mu)
         mu = cast(np.ndarray, mu)
