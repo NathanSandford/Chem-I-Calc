@@ -16,6 +16,10 @@ or directly from Github with
 ```
 pip install git+https://github.com/NathanSandford/Chem-I-Calc
 ```
+*Warning:* I'm currently (in early April 2020) refactoring the code a fair amount as I improve
+the documentation and write unit tests. I should be doing this refactoring on another branch,
+but alas, I didn't think of it when I started. As such the master branch is a little unstable
+right now. It will hopefully settle down by the end of the month. 
 
 ## Getting Started
 ### Initial file downloads
