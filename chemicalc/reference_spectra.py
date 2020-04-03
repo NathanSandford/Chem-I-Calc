@@ -1,22 +1,21 @@
-from typing import Dict, List, Union, Optional, TYPE_CHECKING
+from typing import Dict, List, Union, Optional
 from pathlib import Path
 import pandas as pd
 import numpy as np
 from mendeleev import element
 from chemicalc.utils import (
-    data_dir,
     doppler_shift,
     convolve_spec,
     calc_gradient,
+)
+from chemicalc.file_mgmt import (
+    data_dir,
     download_package_files,
+    precomputed_res,
+    precomputed_ref_id,
+    precomputed_label_id,
 )
 
-
-precomputed_res: List = [300000]
-precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
-precomputed_cont_id: Dict[float, str] = {300000: "1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU"}
-
-label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
 
 elements_included: List[str] = [x.symbol for x in element(list(range(3, 100)))]
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
@@ -29,7 +28,7 @@ class ReferenceSpectra:
         init_res: float = precomputed_res[0],
         scale_by_iron: bool = True,
         alpha_included: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         ToDo: Unit Tests
@@ -51,15 +50,15 @@ class ReferenceSpectra:
         self.reference = reference
         self.resolution = {"init": init_res}
 
-        if 'ref_spec_file' in kwargs:
-            self.ref_spec_file = Path(kwargs['ref_spec_file'])
+        if "ref_spec_file" in kwargs:
+            self.ref_spec_file = Path(kwargs["ref_spec_file"])
             if not self.ref_spec_file.exists():
                 raise ValueError(f"ref_spec_file {self.ref_spec_file} does not exist")
         else:
             if not self.resolution["init"] in precomputed_res:
                 raise ValueError(f"{self.resolution} not a precomputed resolution")
             self.ref_spec_file = data_dir.joinpath(
-                f'reference_spectra_{init_res:06}.h5'
+                f"reference_spectra_{init_res:06}.h5"
             )
             if not self.ref_spec_file.exists():
                 print(
@@ -69,20 +68,30 @@ class ReferenceSpectra:
                     id=precomputed_ref_id[init_res], destination=self.ref_spec_file
                 )
 
-        if 'ref_label_file' in kwargs:
-            self.ref_label_file = Path(kwargs['ref_label_file'])
+        if "ref_label_file" in kwargs:
+            self.ref_label_file = Path(kwargs["ref_label_file"])
             if not self.ref_label_file.exists():
                 raise ValueError(f"ref_label_file {self.ref_label_file} does not exist")
         else:
             self.ref_label_file = data_dir.joinpath("reference_labels.h5")
             if not self.ref_label_file.exists():
-                print("Downloading label_file---this should be quick and is only necessary once")
-                download_package_files(id=label_id, destination=self.ref_label_file)
+                print(
+                    "Downloading label_file---this should be quick and is only necessary once"
+                )
+                download_package_files(
+                    id=precomputed_label_id, destination=self.ref_label_file
+                )
 
-        ref_list_spec = list(pd.DataFrame(pd.read_hdf(self.ref_spec_file, "ref_list")).values.flatten())
-        ref_list_label = list(pd.DataFrame(pd.read_hdf(self.ref_label_file, "ref_list")).values.flatten())
+        ref_list_spec = list(
+            pd.DataFrame(pd.read_hdf(self.ref_spec_file, "ref_list")).values.flatten()
+        )
+        ref_list_label = list(
+            pd.DataFrame(pd.read_hdf(self.ref_label_file, "ref_list")).values.flatten()
+        )
         if not (reference in ref_list_spec) and (reference in ref_list_label):
-            raise ValueError(f"{reference} is not included in ref_label_file and/or ref_spec_file")
+            raise ValueError(
+                f"{reference} is not included in ref_label_file and/or ref_spec_file"
+            )
 
         wave_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, "highres_wavelength"))
         spec_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, reference))
@@ -128,7 +137,9 @@ class ReferenceSpectra:
         if symmetric:
             self.labels["ggggg"] = self.labels["aaaaa"]
             self.labels.loc["RV", "ggggg"] -= d_rv
-            tmp2 = doppler_shift(self.wavelength["init"], self.spectra["init"][0], -d_rv)
+            tmp2 = doppler_shift(
+                self.wavelength["init"], self.spectra["init"][0], -d_rv
+            )
             self.spectra["init"] = np.append(
                 self.spectra["init"], tmp2[np.newaxis, :], axis=0
             )
@@ -155,10 +166,7 @@ class ReferenceSpectra:
         self.resolution[name] = instrument.R_res
 
     def calc_gradient(
-        self,
-        name: str,
-        symmetric: bool = True,
-        ref_included: bool = True,
+        self, name: str, symmetric: bool = True, ref_included: bool = True,
     ) -> None:
         """
         ToDo: Unit Tests
