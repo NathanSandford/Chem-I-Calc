@@ -27,7 +27,7 @@ def test_calc_crlb():
         # Missing Instrument
         crlb.calc_crlb(star, missing_inst, None, False, False, 10000)
         # Nonexistent Prior Label
-        crlb.calc_crlb(star, test_inst, {'label': 1.0}, False, False, 10000)
+        crlb.calc_crlb(star, test_inst, {'non-existent label': 1.0}, False, False, 10000)
     with pytest.raises(ValueError):
         # Missing Alpha
         crlb.calc_crlb(star, test_inst, None, True, False, 10000)
