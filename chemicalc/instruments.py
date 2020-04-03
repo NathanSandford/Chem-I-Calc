@@ -7,10 +7,9 @@ from chemicalc.utils import (
     generate_wavelength_template,
 )
 from chemicalc.s2n import Sig2NoiseWMKO
-from chemicalc.exception import InstError
 
 
-sampX = 3  # Placeholder for Unknown Wavelength Sampling
+sampX: float = 3  # Placeholder for Unknown Wavelength Sampling
 
 
 class InstConfig:
