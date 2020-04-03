@@ -1,8 +1,10 @@
 from typing import Any, List, Tuple, Dict, Union, Optional, cast
+from warnings import warn
 import numpy as np
 import pandas as pd
 from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
+
 
 def calc_crlb(
     reference: ReferenceSpectra,
@@ -18,6 +20,7 @@ def calc_crlb(
     :param ReferenceSpectra reference: reference star object
     :param Union[InstConfig, List[InstConfig]] instruments: instrument object or list of instrument objects
     :param Optional[Dict['str', float]] priors: 1-sigma Gaussian priors for labels
+    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
     :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs. If output_fisher=True, also returns FIM
@@ -26,6 +29,8 @@ def calc_crlb(
         raise TypeError("reference must be a chemicalc.reference_spectra.ReferenceSpectra object")
     if type(instruments) is not list:
         instruments = [instruments]
+    if chunk_size < 1000:
+        warn(f"chunk_size of {chunk_size} seems a little small...", UserWarning)
     grad_list = []
     snr_list = []
     for instrument in instruments:
@@ -63,13 +68,13 @@ def calc_crlb(
         fisher_mat, columns=reference.labels.index, index=reference.labels.index
     )
 
-    if not isinstance(priors, (None, dict)):
-        raise TypeError("priors must be None or a dictionary of {label: prior}")
     if priors:
+        if not isinstance(priors, dict):
+            raise TypeError("priors must be None or a dictionary of {label: prior}")
         for label in priors:
             prior = priors[label]
-            if not isinstance(prior, (None, (int, float))):
-                raise TypeError("prior dict entries must be None, int, or float")
+            if not isinstance(prior, (int, float)):
+                raise TypeError("prior dict entries must be int, or float")
             if label not in reference.labels.index:
                 raise KeyError(f"{label} is not included in reference")
             if prior is None:
@@ -96,13 +101,19 @@ def calc_crlb(
 def sort_crlb(crlb: pd.DataFrame, cutoff: float, sort_by: str = "default") -> pd.DataFrame:
     """
     ToDo: Unit Tests
-    ToDo: Catch TypeErrors
     Sorts CRLB dataframe by decreasing precision of labels and removes labels with precisions worse than cutoff.
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
     :param str sort_by: Name of dataframe column to sort labels by. Default uses the column with the most labels below the cutoff
     :return pd.DataFrame: Sorted CRLB dataframe
     """
+    if not isinstance(crlb, pd.DataFrame):
+        raise TypeError("crlb must be pd.DataFrame")
+    if not isinstance(cutoff, (int, float)):
+        raise TypeError("cutoff must be int or float")
+    if not isinstance(sort_by, str):
+        raise TypeError(f"sort_by must be str in {list(crlb.columns)} or 'default'")
+
     crlb_temp = crlb[:3].copy()
     crlb[crlb > cutoff] = np.NaN
     crlb[:3] = crlb_temp
@@ -113,7 +124,7 @@ def sort_crlb(crlb: pd.DataFrame, cutoff: float, sort_by: str = "default") -> pd
         if sort_by == list(crlb.columns):
             sort_by_index = sort_by
         else:
-            assert False, f"{sort_by} not in CR_Gradients_File"
+            raise KeyError(f"{sort_by} not in CR_Gradients_File \n Try 'default' or one of {list(crlb.columns)}")
 
     valid_ele = np.concatenate(
         [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
@@ -123,4 +134,6 @@ def sort_crlb(crlb: pd.DataFrame, cutoff: float, sort_by: str = "default") -> pd
     )
 
     crlb = crlb.loc[valid_ele_sorted]
+    if len(crlb.index) == 3:
+        warn(f"No elements w/ CRLBs < cutoff ({cutoff})", UserWarning)
     return crlb
