@@ -1,34 +1,25 @@
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, TYPE_CHECKING
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from scipy.interpolate import interp1d
 from mendeleev import element
 from chemicalc.utils import (
     data_dir,
     doppler_shift,
     convolve_spec,
     calc_gradient,
+    download_package_files,
 )
-from chemicalc.utils import download_package_files
+if TYPE_CHECKING:
+    from chemicalc.instruments import InstConfig
 
 
-precomputed_res: Dict[str, float] = {
-    "max": 300000,
-    #'high': 100000,
-    #'med': 50000,
-    #'low': 25000
-}
-precomputed_ref_id: Dict[str, str] = {"max": "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
-precomputed_cont_id: Dict[str, str] = {"max": "1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU"}
+precomputed_res: List = [300000]
+precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
+precomputed_cont_id: Dict[float, str] = {300000: "1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU"}
 
-label_file: Path = data_dir.joinpath("reference_labels.h5")
 label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
-if not label_file.exists():
-    print("Downloading label_file")
-    download_package_files(id=label_id, destination=label_file)
 
-reference_stars: List[str] = list(pd.read_hdf(label_file, "ref_list").values.flatten())
 elements_included: List[str] = [x.symbol for x in element(list(range(3, 100)))]
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 
@@ -37,53 +28,68 @@ class ReferenceSpectra:
     def __init__(
         self,
         reference: str,
-        normalized: bool = True,
-        res: str = "max",
-        iron_scaled: bool = False,
+        init_res: float = precomputed_res[0],
+        scale_by_iron: bool = True,
         alpha_included: bool = False,
-        radius: float = 1,
-        dist: float = 10,
+        **kwargs
     ) -> None:
         """
+        ToDo: Unit Tests
+        Object for spectra of a specific reference star
+        :param str reference: Name of reference star to load (e.g., 'RGB_m1.5')
+        :param str init_res: Initial resolution of high-res reference spectra. Only 300000 is presently included for default spectra. Can be approximate if using custom reference spectra.
+        :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
+        :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters and before the other elements (i.e., between v_micro and Li)
+        :param kwargs: see below
 
-        :param str reference:
-        :param bool normalized:
-        :param str res:
-        :param bool iron_scaled:
-        :param bool alpha_included:
-        :param float radius:
-        :param float dist:
+        Keyword Arguments:
+        :key str ref_spec_file: Full path to file of reference spectra
+        :key str ref_label_file: Full path to file of reference spectra labels
         """
+        if not isinstance(reference, str):
+            raise TypeError("reference must be str")
+        if not isinstance(init_res, (int, float)):
+            raise TypeError("init_res must be float")
         self.reference = reference
-        self.resolution = dict(init=precomputed_res[res])
-        self.reference_file = data_dir.joinpath(
-            f'reference_spectra_{self.resolution["init"]:06}.h5'
-        )
-        if not self.reference_file.exists():
-            print(
-                "Downloading reference file---this may take a few minutes but is only necessary once"
+        self.resolution = {"init": init_res}
+
+        if 'ref_spec_file' in kwargs:
+            self.ref_spec_file = Path(kwargs['ref_spec_file'])
+            if not self.ref_spec_file.exists():
+                raise ValueError(f"ref_spec_file {self.ref_spec_file} does not exist")
+        else:
+            if not self.resolution["init"] in precomputed_res:
+                raise ValueError(f"{self.resolution} not a precomputed resolution")
+            self.ref_spec_file = data_dir.joinpath(
+                f'reference_spectra_{init_res:06}.h5'
             )
-            download_package_files(
-                id=precomputed_ref_id[res], destination=self.reference_file
-            )
-        wave_df = pd.read_hdf(self.reference_file, "highres_wavelength")
-        spec_df = pd.read_hdf(self.reference_file, reference)
-        if not normalized:
-            self.continuum_file = data_dir.joinpath(
-                f'reference_continuum_{self.resolution["init"]:06}.h5'
-            )
-            if not self.continuum_file.exists():
+            if not self.ref_spec_file.exists():
                 print(
-                    "Downloading continuum file---this may take a few minutes but is only necessary once"
+                    "Downloading reference file---this may take a few minutes but is only necessary once"
                 )
                 download_package_files(
-                    id=precomputed_cont_id[res], destination=self.continuum_file
+                    id=precomputed_ref_id[init_res], destination=self.ref_spec_file
                 )
-            cont_df = pd.read_hdf(self.continuum_file, reference)
-            spec_df *= cont_df
-            ###spec_df = calc_f_nu(spectra=spec_df, radius=radius, dist=dist)
-        label_df = pd.read_hdf(label_file, reference)
-        if not iron_scaled:
+
+        if 'ref_label_file' in kwargs:
+            self.ref_label_file = Path(kwargs['ref_label_file'])
+            if not self.ref_label_file.exists():
+                raise ValueError(f"ref_label_file {self.ref_label_file} does not exist")
+        else:
+            self.ref_label_file = data_dir.joinpath("reference_labels.h5")
+            if not self.ref_label_file.exists():
+                print("Downloading label_file---this should be quick and is only necessary once")
+                download_package_files(id=label_id, destination=self.ref_label_file)
+
+        ref_list_spec = list(pd.DataFrame(pd.read_hdf(self.ref_spec_file, "ref_list")).values.flatten())
+        ref_list_label = list(pd.DataFrame(pd.read_hdf(self.ref_label_file, "ref_list")).values.flatten())
+        if not (reference in ref_list_spec) and (reference in ref_list_label):
+            raise ValueError(f"{reference} is not included in ref_label_file and/or ref_spec_file")
+
+        wave_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, "highres_wavelength"))
+        spec_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, reference))
+        label_df = pd.DataFrame(pd.read_hdf(self.ref_label_file, reference))
+        if scale_by_iron:
             label_df.loc[set(elements_included) ^ {"Fe"}] -= label_df.loc["Fe"]
         if alpha_included:
             label_df = pd.concat(
@@ -106,31 +112,35 @@ class ReferenceSpectra:
         self.nspectra = self.spectra["init"].shape[0]
         self.nlabels = self.labels.shape[0]
 
-    def add_rv_spec(self, d_rv: float) -> None:
+    def add_rv_spec(self, d_rv: float, symmetric: bool = True) -> None:
         """
-        ToDo: DocString
-        :param float d_rv:
+        ToDo: Unit Tests
+        Adds spectra and labels corresponding to a small doppler shift of the reference spectra. Assumes that the first spectra in ref_spec_file is a reference w/ no offsets to any labels
+        :param float d_rv: small doppler shift in km/s
+        :param bool symmetric: if True, applies both positive and negative doppler shifts
         :return:
         """
         self.labels.loc["RV"] = 0.0
         self.labels["fffff"] = self.labels["aaaaa"]
-        self.labels["ggggg"] = self.labels["aaaaa"]
         self.labels.loc["RV", "fffff"] += d_rv
-        self.labels.loc["RV", "ggggg"] -= d_rv
         tmp1 = doppler_shift(self.wavelength["init"], self.spectra["init"][0], d_rv)
-        tmp2 = doppler_shift(self.wavelength["init"], self.spectra["init"][0], -d_rv)
         self.spectra["init"] = np.append(
             self.spectra["init"], tmp1[np.newaxis, :], axis=0
         )
-        self.spectra["init"] = np.append(
-            self.spectra["init"], tmp2[np.newaxis, :], axis=0
-        )
+        if symmetric:
+            self.labels["ggggg"] = self.labels["aaaaa"]
+            self.labels.loc["RV", "ggggg"] -= d_rv
+            tmp2 = doppler_shift(self.wavelength["init"], self.spectra["init"][0], -d_rv)
+            self.spectra["init"] = np.append(
+                self.spectra["init"], tmp2[np.newaxis, :], axis=0
+            )
 
-    def convolve(self, instrument, name: str = None) -> None:
+    def convolve(self, instrument: InstConfig, name: Optional[str] = None) -> None:
         """
-
-        :param instrument:
-        :param str name:
+        ToDo: Unit Tests
+        Convolves spectra to instrument resolution and samples onto instrument's wavelength grid
+        :param InstConfig instrument: Instrument object to convolve and sample spectra onto
+        :param str name: Name to give spectra. If None, defaults to name of instrument
         :return:
         """
         if name is None:
@@ -146,22 +156,18 @@ class ReferenceSpectra:
         self.wavelength[name] = outwave
         self.resolution[name] = instrument.R_res
 
-
     def calc_gradient(
         self,
         name: str,
         symmetric: bool = True,
         ref_included: bool = True,
-        v_micro_scaling: float = 1,
-        d_rv: bool = None,
     ) -> None:
         """
-
-        :param name:
-        :param symmetric:
-        :param ref_included:
-        :param v_micro_scaling:
-        :param d_rv:
+        ToDo: Unit Tests
+        Calculates gradients of the reference spectra with respect to each label.
+        :param str name: Name of convolved spectra to calculate gradient for
+        :param bool symmetric: If True, calculates symmetric gradient around reference labels
+        :param bool ref_included: If True, expects first spectra to be reference spectra w/ no offsets to any labels. Required for symmetric=False.
         :return:
         """
         self.gradients[name] = calc_gradient(
@@ -174,23 +180,25 @@ class ReferenceSpectra:
 
     def zero_gradients(self, name: str, labels: List[str]):
         """
-
-        :param name:
-        :param labels:
+        ToDo: Unit Tests
+        :param name: Name of spectra to apply gradient zeroing to
+        :param labels: List of labels for which to zero gradients
         :return:
         """
         self.gradients[name].loc[labels] = 0
 
     def get_names(self) -> List[str]:
         """
-
-        :return:
+        ToDo: Unit Tests
+        Get names of all spectra contained in this object
+        :return List[str]: List of spectra names that this object contains.
         """
         return list(self.spectra.keys())
 
     def reset(self) -> None:
         """
-
+        ToDo: Unit Tests
+        Resets object to only the initial high-res spectra
         :return:
         """
         init_resolution = self.resolution["init"]
