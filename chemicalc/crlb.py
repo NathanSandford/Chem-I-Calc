@@ -27,7 +27,7 @@ def calc_crlb(
     """
     if not isinstance(reference, ReferenceSpectra):
         raise TypeError("reference must be a chemicalc.reference_spectra.ReferenceSpectra object")
-    if type(instruments) is not list:
+    if not isinstance(instruments, list):
         instruments = [instruments]
     if chunk_size < 1000:
         warn(f"chunk_size of {chunk_size} seems a little small...", UserWarning)
