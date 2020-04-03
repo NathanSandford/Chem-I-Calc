@@ -1,7 +1,6 @@
 from typing import Union
 import copy
 import numpy as np
-import pandas as pd
 from scipy.interpolate import interp1d
 from chemicalc.utils import (
     generate_wavelength_template,
