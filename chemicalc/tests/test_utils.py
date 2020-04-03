@@ -8,6 +8,8 @@ from chemicalc import utils as u
 
 test_file_dir = Path(os.path.dirname(__file__)).joinpath("files")
 
+# ToDo: Clean up with @pytest.mark.parametrize()
+
 
 def test_alpha_el():
     assert isinstance(u.alpha_el, list)
@@ -60,7 +62,7 @@ def test_gen_wave_template():
 
 
 def test_convolve_spec():
-    star = ref.ReferenceSpectra(reference="RGB_m1.5", res="max")
+    star = ref.ReferenceSpectra(reference="RGB_m1.5")
     wave = star.wavelength["init"]
     spec = star.spectra["init"]
     outwave = np.load(test_file_dir.joinpath("wave.npy"))
@@ -148,7 +150,7 @@ def test_convolve_spec():
 
 
 def test_doppler_shift():
-    star = ref.ReferenceSpectra(reference="RGB_m1.5", res="max")
+    star = ref.ReferenceSpectra(reference="RGB_m1.5")
     wave = star.wavelength["init"]
     spec = star.spectra["init"][0]
     shifted_spec = u.doppler_shift(wave, spec, 10)
@@ -167,13 +169,12 @@ def test_doppler_shift():
 
 
 def test_calc_grad():
-    star = ref.ReferenceSpectra(reference="RGB_m1.5", res="max")
+    star = ref.ReferenceSpectra(reference="RGB_m1.5")
     spec = star.spectra["init"]
     labels = star.labels
     sym_grad = u.calc_gradient(spectra=spec, labels=labels, symmetric=True, ref_included=True)
     sym_grad_noref = u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=True, ref_included=False)
     asym_grad = u.calc_gradient(spectra=spec, labels=labels, symmetric=False, ref_included=True)
-    asym_grad_noref = u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=False, ref_included=False)
     # ToDo: UnitTests
     with pytest.raises(TypeError):
         u.calc_gradient(spectra='str', labels=labels, symmetric=True, ref_included=True)
@@ -191,6 +192,8 @@ def test_calc_grad():
         u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=False, ref_included=True)
         u.calc_gradient(spectra=spec[1::2], labels=labels.iloc[:, 1::2], symmetric=True, ref_included=True)
         u.calc_gradient(spectra=spec[1::2], labels=labels.iloc[:, 1::2], symmetric=False, ref_included=True)
+        # Ref not included, but asymmetric gradient attempted
+        u.calc_gradient(spectra=spec[1:], labels=labels.iloc[:, 1:], symmetric=False, ref_included=False)
 
 
 def test_kpc_to_mu():
