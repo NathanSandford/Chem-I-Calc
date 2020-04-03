@@ -10,8 +10,6 @@ from chemicalc.utils import (
     calc_gradient,
     download_package_files,
 )
-if TYPE_CHECKING:
-    from chemicalc.instruments import InstConfig
 
 
 precomputed_res: List = [300000]
@@ -135,7 +133,7 @@ class ReferenceSpectra:
                 self.spectra["init"], tmp2[np.newaxis, :], axis=0
             )
 
-    def convolve(self, instrument: InstConfig, name: Optional[str] = None) -> None:
+    def convolve(self, instrument, name: Optional[str] = None) -> None:
         """
         ToDo: Unit Tests
         Convolves spectra to instrument resolution and samples onto instrument's wavelength grid
