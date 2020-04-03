@@ -168,7 +168,7 @@ def convolve_spec(
 
     # Interpolate onto outwave
     fspec = interp1d(wave, spec_conv, bounds_error=False, fill_value="extrapolate")
-    return np.ndarray(fspec(outwave))
+    return fspec(outwave)
 
 
 def doppler_shift(
@@ -195,7 +195,7 @@ def doppler_shift(
     c = 2.99792458e5  # km/s
     doppler_factor = np.sqrt((1 - rv / c) / (1 + rv / c))
     new_wavelength = wave * doppler_factor
-    shifted_spec = np.ndarray(np.interp(new_wavelength, wave, spec))
+    shifted_spec = np.interp(new_wavelength, wave, spec)
     shifted_spec[(wave < new_wavelength.min()) | (wave > new_wavelength.max())] = np.nan
     if bounds_warning:
         if rv > 0:
@@ -242,12 +242,12 @@ def calc_gradient(
                 f"nspectra({nspectra-skip}) != 2*nlabel({2*nlabels})"
                 + "\nCannot perform symmetric gradient calculation"
             )
-        dx = np.diag(labels.iloc[:, 1::2].values - labels.iloc[:, 2::2].values).copy()
-        grad = spectra[1::2] - spectra[2::2]
+        dx = np.diag(labels.iloc[:, skip::2].values - labels.iloc[:, (skip+1)::2].values).copy()
+        grad = spectra[skip::2] - spectra[(skip+1)::2]
     else:
         if not ref_included:
             raise ValueError(
-                f"Reference Spectra must be included at index 0"
+                f"Reference Spectra must be included at index 0 "
                 + "to calculate asymmetric gradients"
             )
         if nspectra - 1 == nlabels:
@@ -258,7 +258,7 @@ def calc_gradient(
             grad = spectra[0] - spectra[1::2]
         else:
             raise ValueError(
-                f"nspectra({nspectra - 1}) != nlabel({nlabels})"
+                f"nspectra({nspectra - 1}) != nlabel({nlabels}) "
                 + f"or 2*nlabel({2 * nlabels})"
                 + "\nCannot perform asymmetric gradient calculation"
             )
@@ -365,3 +365,11 @@ def download_all_files(overwrite=True):
         else:
             print(f"Downloading {continuum_file}")
             download_package_files(id=continuum_id, destination=continuum_file)
+
+
+def check_label_format():
+    raise NotImplementedError("Coming soon!")
+
+
+def check_spec_format():
+    raise NotImplementedError("Coming soon!")
