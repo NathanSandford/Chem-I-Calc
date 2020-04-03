@@ -94,7 +94,7 @@ def convolve_spec(
     resolution: float,
     outwave: np.ndarray,
     res_in: Optional[float] = None,
-) -> np.ndarray:
+) -> Union[np.ndarray, Any]:
     """
     Convolves spectrum to lower resolution and samples onto a new wavelength grid
     :param np.ndarray wave: input wavelength array
@@ -102,7 +102,7 @@ def convolve_spec(
     :param float resolution: Resolving power to convolve down to (R = lambda / delta lambda)
     :param np.ndarray outwave: wavelength grid to sample onto
     :param Optional[float] res_in: Resolving power of input spectra
-    :return np.ndarray: convolved spectra array
+    :return Union[np.ndarray, Any]: convolved spectra array
     """
     if not all(isinstance(i, np.ndarray) for i in [wave, spec, outwave]):
         raise TypeError("wave, spec, and outwave must be np.ndarray")
@@ -173,7 +173,7 @@ def convolve_spec(
 
 def doppler_shift(
     wave: np.ndarray, spec: np.ndarray, rv: float, bounds_warning: bool = True
-) -> np.ndarray:
+) -> Union[np.ndarray, Any]:
     """
     ToDo: Unit Tests
     ToDo: Fix Boundary Issues
@@ -182,7 +182,7 @@ def doppler_shift(
     :param np.ndarray spec: input spectra array
     :param float rv: Radial Velocity (km/s)
     :param bool bounds_warning: warn about boundary issues?
-    :return np.ndarray: Doppler shifted spectra array
+    :return Union[np.ndarray, Any]: Doppler shifted spectra array
     """
     if not all(isinstance(i, np.ndarray) for i in [wave, spec]):
         raise TypeError("wave and spec must be np.ndarray")
