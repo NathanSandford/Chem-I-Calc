@@ -80,6 +80,9 @@ class Sig2NoiseWMKO:
         self.seeing = seeing
         self.redshift = redshift
 
+    def query_s2n(self, wavelength="default"):
+        raise NotImplementedError("No generic S/N query, see specific instrument children classes")
+
 
 class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
     def __init__(
