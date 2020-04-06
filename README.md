@@ -27,9 +27,13 @@ These calculations require high-resolution (R~100,000) spectra in order to calcu
 spectral gradients for a wide variety of instrumental configurations. The files that
 include this data are too large to host on either Github or PyPi, instead, the first time
 the app looks for this data, the data is downloaded from a Google Drive, which may take
-2-10 minutes depending on your internet connectivity. As chunks of the data are downloaded,
-it will display in the terminal/notebook output. The label file is about 50 chunks and the
-spectra file is about 26,600 chunks.
+10-60 minutes depending on your internet connectivity. As chunks of the data are downloaded,
+it will display in the terminal/notebook output. The label file is about 80 chunks and the
+spectra file is about 265,000 chunks.
+
+Alternatively, you can download the files directly from the following links and place them
+in <installation-directory>/chemicalc/data/ //
+*Links Coming Soon*
 
 ### Interactive GUI
 Chem-I-Calc will eventually include a web-hosted applet for quick and easy
