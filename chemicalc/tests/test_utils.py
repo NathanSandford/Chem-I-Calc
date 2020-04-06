@@ -116,20 +116,6 @@ def test_convolve_spec():
             wave=wave,
             spec=spec,
             resolution=6500,
-            outwave=np.arange(2000, 4000, 1),
-            res_in=res_in,
-        )
-        u.convolve_spec(
-            wave=wave,
-            spec=spec,
-            resolution=6500,
-            outwave=np.arange(15000, 20000, 1),
-            res_in=res_in,
-        )
-        u.convolve_spec(
-            wave=wave,
-            spec=spec,
-            resolution=6500,
             outwave=np.random.permutation(wave),
             res_in=res_in,
         )
