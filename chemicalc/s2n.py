@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import mechanicalsoup
-from chemicalc import exception as e
-from chemicalc.utils import data_dir
+from chemicalc.file_mgmt import data_dir
 
 keck_options = {
     "instrument": ["lris", "deimos", "hires"],
@@ -65,11 +64,11 @@ class Sig2NoiseWMKO:
                 f"{instrument} not one of {keck_options['instrument']}"
             )
         if magtype not in keck_options["mag type"]:
-            raise e.S2NInputError(f"{magtype} not one of {keck_options['mag type']}")
+            raise KeyError(f"{magtype} not one of {keck_options['mag type']}")
         if band not in keck_options["filter"]:
-            raise e.S2NInputError(f"{band} not one of {keck_options['filter']}")
+            raise KeyError(f"{band} not one of {keck_options['filter']}")
         if template not in keck_options["template"]:
-            raise e.S2NInputError(f"{template} not one of {keck_options['template']}")
+            raise KeyError(f"{template} not one of {keck_options['template']}")
         self.instrument = instrument
         self.mag = mag
         self.magtype = magtype
@@ -113,19 +112,19 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
             redshift,
         )
         if grating not in keck_options["grating (DEIMOS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{grating} not one of {keck_options['grating (DEIMOS)']}"
             )
         if binning not in keck_options["binning (DEIMOS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{binning} not one of {keck_options['binning (DEIMOS)']}"
             )
         if slitwidth not in keck_options["slitwidth (DEIMOS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (DEIMOS)']}"
             )
         if cwave not in keck_options["central wavelength (DEIMOS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{cwave} not one of {keck_options['central wavelength (DEIMOS)']}"
             )
         self.grating = grating
@@ -161,7 +160,7 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
         elif wavelength == "default":
             return snr
         else:
-            raise e.S2NInputError("Wavelength input not recognized")
+            raise ValueError("Wavelength input not recognized")
 
 
 class Sig2NoiseLRIS(Sig2NoiseWMKO):
@@ -194,21 +193,21 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
             redshift,
         )
         if grating not in keck_options["grating (LRIS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{grating} not one of {keck_options['grating (LRIS)']}"
             )
         if grism not in keck_options["grism (LRIS)"]:
-            raise e.S2NInputError(f"{grism} not one of {keck_options['grism (LRIS)']}")
+            raise KeyError(f"{grism} not one of {keck_options['grism (LRIS)']}")
         if binning not in keck_options["binning (LRIS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{binning} not one of {keck_options['binning (LRIS)']}"
             )
         if slitwidth not in keck_options["slitwidth (LRIS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (LRIS)']}"
             )
         if dichroic not in keck_options["dichroic (LRIS)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{dichroic} not one of {keck_options['dichroic (LRIS)']}"
             )
         self.grating = grating
@@ -246,7 +245,7 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
         elif wavelength == "default":
             return snr
         else:
-            raise e.S2NInputError("Wavelength input not recognized")
+            raise ValueError("Wavelength input not recognized")
 
 
 class Sig2NoiseESI(Sig2NoiseWMKO):
@@ -277,11 +276,11 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
             redshift,
         )
         if binning not in keck_options["binning (ESI)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{binning} not one of {keck_options['binning (ESI)']}"
             )
         if slitwidth not in keck_options["slitwidth (ESI)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (ESI)']}"
             )
         self.binning = binning
@@ -313,7 +312,7 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
         elif wavelength == "default":
             return snr
         else:
-            raise e.S2NInputError("Wavelength input not recognized")
+            raise ValueError("Wavelength input not recognized")
 
 
 class Sig2NoiseHIRES(Sig2NoiseWMKO):
@@ -343,11 +342,11 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             redshift,
         )
         if binning not in keck_options["binning (HIRES)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{binning} not one of {keck_options['binning (HIRES)']}"
             )
         if slitwidth not in keck_options["slitwidth (HIRES)"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (HIRES)']}"
             )
         self.binning = binning
@@ -379,7 +378,7 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
         elif wavelength == "default":
             return snr
         else:
-            raise e.S2NInputError("Wavelength input not recognized")
+            raise ValueError("Wavelength input not recognized")
 
 
 def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
@@ -403,10 +402,8 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
         bounds_error=False,
         fill_value="extrapolate",
     )
-
     log_S_0_red = np.genfromtxt(etc_file_dir.joinpath("MODS_red_S_0.txt")).T
     log_S_0_blue = np.genfromtxt(etc_file_dir.joinpath("MODS_blue_S_0.txt")).T
-
     g = np.zeros_like(wave)
     if mode == "dichroic":
         log_S_0_r = interp1d(
@@ -436,7 +433,6 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
             * A_per_pix_blue
         )
         snr = np.max([snr_red, snr_blue], axis=0)
-
     elif mode == "direct":
         if side == "red":
             log_S_0_r = interp1d(
