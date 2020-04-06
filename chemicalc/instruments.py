@@ -130,40 +130,40 @@ class InstConfig:
 
 
 class DEIMOS(InstConfig):
-    def __init__(self, name, res, samp, start, end) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+    def __init__(self, name, res, samp, start, end, truncate=False) -> None:
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = "WMKO"
         self.instrument = "DEIMOS"
         self.mode = "Multi-Object Spectrograph"
 
 
 class LRIS(InstConfig):
-    def __init__(self, name, res, samp, start, end) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+    def __init__(self, name, res, samp, start, end, truncate=False) -> None:
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = "WMKO"
         self.instrument = "LRIS"
         self.mode = "Multi-Object Spectrograph"
 
 
 class HIRES(InstConfig):
-    def __init__(self, name, res, samp, start, end) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+    def __init__(self, name, res, samp, start, end, truncate=False) -> None:
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = "WMKO"
         self.instrument = "HIRES"
         self.mode = "Echelle Spectrograph"
 
 
 class MIKE(InstConfig):
-    def __init__(self, name, res, samp, start, end) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+    def __init__(self, name, res, samp, start, end, truncate=False) -> None:
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = "Magellan"
         self.instrument = "MIKE"
         self.mode = "Echelle Spectrograph"
 
 
 class M2FS(InstConfig):
-    def __init__(self, name, res, samp, start, end) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+    def __init__(self, name, res, samp, start, end, truncate=False) -> None:
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = "Magellan"
         self.instrument = "M2FS"
         self.mode = "Multi-Object Spectrograph"
@@ -171,9 +171,9 @@ class M2FS(InstConfig):
 
 class MiscInstrument(InstConfig):
     def __init__(
-        self, name, res, samp, start, end, facility=None, instrument=None, mode=None
+        self, name, res, samp, start, end, truncate=False, facility=None, instrument=None, mode=None
     ) -> None:
-        InstConfig.__init__(self, name, res, samp, start, end)
+        InstConfig.__init__(self, name, res, samp, start, end, truncate)
         self.facility = facility
         self.instrument = instrument
         self.mode = mode
