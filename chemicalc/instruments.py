@@ -288,7 +288,9 @@ class AllInstruments:
                 "Binospec 1000", res=3900, samp=3, start=3900, end=5400
             ),
             # # # VLT # # #
-            "MUSE": MiscInstrument("MUSE (nominal)", res=2500, samp=sampX, start=4800, end=9300),
+            "MUSE (nominal)": MiscInstrument("MUSE (nominal)", res=2500, samp=sampX, start=4800, end=9300),
+            "MUSE (extended)": MiscInstrument("MUSE (extended)", res=2500, samp=sampX, start=4650, end=9300),
+            "BlueMUSE": MiscInstrument("BlueMUSE", res=4000, samp=sampX, start=3500, end=6000),
             "XSHOOTER (UVB)": MiscInstrument(
                 "XSHOOTER (UVB)", res=6700, samp=5, start=3000, end=5500
             ),
