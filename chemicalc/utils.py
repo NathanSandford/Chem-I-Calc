@@ -108,7 +108,9 @@ def convolve_spec(
         if spec.shape[1] != wave.shape[0]:
             raise ValueError("spec and wave must be the same length")
     if not (wave.min() < outwave.min() and wave.max() > outwave.max()):
-        raise ValueError("outwave extends beyond input wave")
+        warn(
+            f"outwave ({outwave.min(), outwave.max()}) extends beyond input wave ({wave.min(), wave.max()})"
+        )
     if not np.all(np.diff(wave) > 0):
         raise ValueError("wave must be sorted")
     if not np.all(np.diff(outwave) > 0):
@@ -235,8 +237,10 @@ def calc_gradient(
                 f"nspectra({nspectra-skip}) != 2*nlabel({2*nlabels})"
                 + "\nCannot perform symmetric gradient calculation"
             )
-        dx = np.diag(labels.iloc[:, skip::2].values - labels.iloc[:, (skip+1)::2].values).copy()
-        grad = spectra[skip::2] - spectra[(skip+1)::2]
+        dx = np.diag(
+            labels.iloc[:, skip::2].values - labels.iloc[:, (skip + 1) :: 2].values
+        ).copy()
+        grad = spectra[skip::2] - spectra[(skip + 1) :: 2]
     else:
         if not ref_included:
             raise ValueError(
