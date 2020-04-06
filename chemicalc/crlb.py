@@ -6,6 +6,17 @@ from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
 
 
+def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
+    """
+    Initialized CRLB dataframe with indices corresponding to all the labels included
+    :param ReferenceSpectra reference: reference star object
+    :return pd.DataFrame: Empty CRLB dataframe
+    """
+    if not isinstance(reference, ReferenceSpectra):
+        raise TypeError("reference must be a chemicalc.reference_spectra.ReferenceSpectra object")
+    return pd.DataFrame(index=reference.labels.index)
+
+
 def calc_crlb(
     reference: ReferenceSpectra,
     instruments: Union[InstConfig, List[InstConfig]],
