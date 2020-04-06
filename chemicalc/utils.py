@@ -109,7 +109,8 @@ def convolve_spec(
             raise ValueError("spec and wave must be the same length")
     if not (wave.min() < outwave.min() and wave.max() > outwave.max()):
         warn(
-            f"outwave ({outwave.min(), outwave.max()}) extends beyond input wave ({wave.min(), wave.max()})"
+            f"outwave ({outwave.min(), outwave.max()}) extends beyond input wave ({wave.min(), wave.max()})",
+            UserWarning
         )
     if not np.all(np.diff(wave) > 0):
         raise ValueError("wave must be sorted")
