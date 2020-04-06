@@ -372,12 +372,12 @@ class AllInstruments:
             "DESI (i)": MiscInstrument(
                 "DESI (i)", res=4500, samp=3, start=6560, end=9800
             ),
-            "R100": MiscInstrument("R100", res=1e2, samp=sampX, start=3001, end=17999),
+            "R100": MiscInstrument("R100", res=1e2, samp=sampX, start=3000, end=18000),
             "R1000": MiscInstrument(
-                "R1000", res=1e3, samp=sampX, start=3001, end=17999
+                "R1000", res=1e3, samp=sampX, start=3000, end=18000
             ),
             "R10000": MiscInstrument(
-                "R10000", res=1e4, samp=sampX, start=3001, end=17999
+                "R10000", res=1e4, samp=sampX, start=3000, end=18000
             ),
         }
 
