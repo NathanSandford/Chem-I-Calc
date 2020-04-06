@@ -1,7 +1,8 @@
 .idea
 **/__pycache__
 **/.DS_Store
-chemicalc/data
+chemicalc/data/filters.h5
+chemicalc/data/reference_*
 build
 **/.ipynb_checkpoints
 .mypy_cache
