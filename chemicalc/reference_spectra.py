@@ -15,6 +15,7 @@ from chemicalc.file_mgmt import (
     precomputed_res,
     precomputed_ref_id,
     precomputed_label_id,
+    precomputed_alpha_included
 )
 
 
@@ -93,7 +94,11 @@ class ReferenceSpectra:
             raise ValueError(
                 f"{reference} is not included in ref_label_file and/or ref_spec_file"
             )
-
+        else:
+            if alpha_included and not reference in precomputed_alpha_included:
+                raise ValueError(
+                    f"alpha offsets not currently included for {reference}"
+                )
         wave_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, "highres_wavelength"))
         spec_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, reference))
         label_df = pd.DataFrame(pd.read_hdf(self.ref_label_file, reference))

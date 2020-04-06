@@ -14,6 +14,20 @@ precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3
 precomputed_cont_id: Dict[float, str] = {300000: "1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU"}
 precomputed_label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
 
+precomputed_alpha_included: List[str] = [
+    "MSTO_m1.5",
+    "RGB_m1.0",
+    "RGB_m1.5",
+    "RGB_m2.0",
+    "RGB_m2.5",
+    "TRGB_m1.5",
+    "Ph_k0i_m0.0",
+    "Ph_k0i_m1.0",
+    "Ph_k5iii_m0.0",
+    "Ph_k5iii_m1.0",
+]
+
+
 def download_package_files(id, destination):
     """
 
@@ -21,6 +35,7 @@ def download_package_files(id, destination):
     :param destination:
     :return:
     """
+
     def get_confirm_token(response):
         for key, value in response.cookies.items():
             if key.startswith("download_warning"):
