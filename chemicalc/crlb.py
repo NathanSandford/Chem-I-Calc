@@ -13,7 +13,9 @@ def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
     :return pd.DataFrame: Empty CRLB dataframe
     """
     if not isinstance(reference, ReferenceSpectra):
-        raise TypeError("reference must be a chemicalc.reference_spectra.ReferenceSpectra object")
+        raise TypeError(
+            "reference must be a chemicalc.reference_spectra.ReferenceSpectra object"
+        )
     return pd.DataFrame(index=reference.labels.index)
 
 
@@ -37,7 +39,9 @@ def calc_crlb(
     :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs. If output_fisher=True, also returns FIM
     """
     if not isinstance(reference, ReferenceSpectra):
-        raise TypeError("reference must be a chemicalc.reference_spectra.ReferenceSpectra object")
+        raise TypeError(
+            "reference must be a chemicalc.reference_spectra.ReferenceSpectra object"
+        )
     if not isinstance(instruments, list):
         instruments = [instruments]
     if chunk_size < 1000:
@@ -46,9 +50,13 @@ def calc_crlb(
     snr_list = []
     for instrument in instruments:
         if not isinstance(instrument, InstConfig):
-            raise TypeError("instruments must be chemicalc.instruments.InstConfig objects")
+            raise TypeError(
+                "instruments must be chemicalc.instruments.InstConfig objects"
+            )
         if instrument.name not in reference.gradients.keys():
-            raise KeyError(f"Reference star does not have gradients for {instrument.name}")
+            raise KeyError(
+                f"Reference star does not have gradients for {instrument.name}"
+            )
         grad_backup = reference.gradients[instrument.name].copy()
         if use_alpha and "alpha" not in reference.labels.index:
             raise ValueError("alpha not included in reference file")
@@ -109,7 +117,12 @@ def calc_crlb(
         return crlb
 
 
-def sort_crlb(crlb: pd.DataFrame, cutoff: float, sort_by: str = "default") -> pd.DataFrame:
+def sort_crlb(
+    crlb: pd.DataFrame,
+    cutoff: float,
+    sort_by: str = "default",
+    fancy_labels: bool = False,
+) -> pd.DataFrame:
     """
     ToDo: Unit Tests
     Sorts CRLB dataframe by decreasing precision of labels and removes labels with precisions worse than cutoff.
@@ -124,27 +137,29 @@ def sort_crlb(crlb: pd.DataFrame, cutoff: float, sort_by: str = "default") -> pd
         raise TypeError("cutoff must be int or float")
     if not isinstance(sort_by, str):
         raise TypeError(f"sort_by must be str in {list(crlb.columns)} or 'default'")
-
     crlb_temp = crlb[:3].copy()
     crlb[crlb > cutoff] = np.NaN
     crlb[:3] = crlb_temp
-
     if sort_by == "default":
         sort_by_index = np.sum(pd.isna(crlb)).idxmin()
     else:
         if sort_by == list(crlb.columns):
             sort_by_index = sort_by
         else:
-            raise KeyError(f"{sort_by} not in CR_Gradients_File \n Try 'default' or one of {list(crlb.columns)}")
-
+            raise KeyError(
+                f"{sort_by} not in CR_Gradients_File \n Try 'default' or one of {list(crlb.columns)}"
+            )
     valid_ele = np.concatenate(
         [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
     )
     valid_ele_sorted = np.concatenate(
         [crlb.index[:3], crlb.loc[valid_ele][3:].sort_values(sort_by_index).index]
     )
-
     crlb = crlb.loc[valid_ele_sorted]
     if len(crlb.index) == 3:
         warn(f"No elements w/ CRLBs < cutoff ({cutoff})", UserWarning)
+    if fancy_labels:
+        crlb.index = [r"$T_{eff}$ (100 K)", r"$\log(g)$", r"$v_{micro}$ (km/s)"] + list(
+            crlb.index[3:]
+        )
     return crlb
