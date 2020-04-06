@@ -1,4 +1,5 @@
 from typing import Dict, List, Union, Optional
+from warnings import warn
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -107,6 +108,17 @@ class ReferenceSpectra:
                 ]
             )
             label_df.index = ["Teff", "logg", "v_micro", "alpha"] + elements_included
+            if (
+                np.abs(
+                    label_df.loc["alpha"][[4, 6, 7]].max() - label_df.loc["alpha"][0]
+                )
+                < 0.001
+            ):
+                warn(
+                    "Expected offset in alpha not found. Are you sure this reference spectra includes alpha gradients?"
+                    + "\nIf so, they must come immediately after v_micro offsets in both the label and spectra files.",
+                    UserWarning,
+                )
         else:
             label_df.index = ["Teff", "logg", "v_micro"] + elements_included
 
