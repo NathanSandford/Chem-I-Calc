@@ -251,6 +251,9 @@ class AllInstruments:
             "KCWI Large BH3": MiscInstrument(
                 "KCWI Large BH3", res=2000, samp=sampX, start=4700, end=5600
             ),  # dlambda = 470-530
+            "FOBOS": MiscInstrument(
+                "FOBOS", res=3500, samp=sampX, start=3100, end=10000
+            ),
             # # # Magellan # # #
             'MIKE 1" (r)': MIKE(
                 'MIKE 1" (r)', res=22000, samp=3, start=5000, end=10000
