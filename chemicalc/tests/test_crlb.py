@@ -10,6 +10,12 @@ test_file_dir = Path(os.path.dirname(__file__)).joinpath("files")
 # ToDo: Clean up with @pytest.mark.parametrize()
 
 
+@pytest.mark.skip(reason="Test not implemented")
+def test_init_crlb():
+    # ToDo: Implement Tests
+    pass
+
+
 @pytest.mark.xfail(reason="Test not implemented fully")
 def test_calc_crlb():
     star = ref.ReferenceSpectra(reference="RGB_m1.5")
