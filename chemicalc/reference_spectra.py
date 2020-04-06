@@ -56,7 +56,7 @@ class ReferenceSpectra:
                 raise ValueError(f"ref_spec_file {self.ref_spec_file} does not exist")
         else:
             if not self.resolution["init"] in precomputed_res:
-                raise ValueError(f"{self.resolution} not a precomputed resolution")
+                raise ValueError(f"{init_res} not a precomputed resolution")
             self.ref_spec_file = data_dir.joinpath(
                 f"reference_spectra_{init_res:06}.h5"
             )
