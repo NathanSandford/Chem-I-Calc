@@ -62,7 +62,7 @@ def test_gen_wave_template():
 
 
 def test_convolve_spec():
-    star = ref.ReferenceSpectra(reference="RGB_m1.5")
+    star = ref.ReferenceSpectra(reference="RGB_m1.5", alpha_included=True)
     wave = star.wavelength["init"]
     spec = star.spectra["init"]
     outwave = np.load(test_file_dir.joinpath("wave.npy"))
@@ -155,7 +155,7 @@ def test_doppler_shift():
 
 
 def test_calc_grad():
-    star = ref.ReferenceSpectra(reference="RGB_m1.5")
+    star = ref.ReferenceSpectra(reference="RGB_m1.5", alpha_included=True)
     spec = star.spectra["init"]
     labels = star.labels
     sym_grad = u.calc_gradient(spectra=spec, labels=labels, symmetric=True, ref_included=True)
