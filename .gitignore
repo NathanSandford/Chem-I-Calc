@@ -2,8 +2,14 @@
 **/__pycache__
 **/.DS_Store
 chemicalc/data/filters.h5
-chemicalc/data/reference_*
+chemicalc/data/reference_spectra_300000.h5
+chemicalc/data/reference_continuum_300000.h5
 build
 **/.ipynb_checkpoints
 .mypy_cache
 /Chem_I_Calc.egg-info/
+/docs/_build/
+/docs/_static/
+/docs/_templates/
+/docs/make.bat
+/docs/Makefile
