@@ -15,7 +15,6 @@ def calc_crlb(
     chunk_size: int = 10000,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     """
-    ToDo: Unit Tests
     Calculates the CRLB and FIM
     :param ReferenceSpectra reference: reference star object
     :param Union[InstConfig, List[InstConfig]] instruments: instrument object or list of instrument objects
@@ -124,7 +123,6 @@ def sort_crlb(
     fancy_labels: bool = False,
 ) -> pd.DataFrame:
     """
-    ToDo: Unit Tests
     Sorts CRLB dataframe by decreasing precision of labels and removes labels with precisions worse than cutoff.
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
