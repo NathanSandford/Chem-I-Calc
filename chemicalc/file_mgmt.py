@@ -80,13 +80,13 @@ def download_all_files(overwrite=True):
         else:
             print(f"Downloading {reference_file}")
             download_package_files(id=reference_id, destination=reference_file)
-        continuum_file = data_dir.joinpath(f"reference_continuum_{resolution:06}.h5")
-        continuum_id = precomputed_cont_id[res]
-        if continuum_file.exists() and not overwrite:
-            print(f"{continuum_file} exists")
-        else:
-            print(f"Downloading {continuum_file}")
-            download_package_files(id=continuum_id, destination=continuum_file)
+        #continuum_file = data_dir.joinpath(f"reference_continuum_{resolution:06}.h5")
+        #continuum_id = precomputed_cont_id[res]
+        #if continuum_file.exists() and not overwrite:
+        #    print(f"{continuum_file} exists")
+        #else:
+        #    print(f"Downloading {continuum_file}")
+        #    download_package_files(id=continuum_id, destination=continuum_file)
 
 
 def check_label_format():
