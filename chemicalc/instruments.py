@@ -38,6 +38,7 @@ class InstConfig:
 
     def set_custom_wave(self, wave: np.ndarray, update_config: bool = True) -> None:
         """
+        Sets instrument wavelength array to input array
 
         :param np.ndarray wave: Array of wavelengths
         :param bool update_config: update instrument's beginning and ending wavelength config
@@ -54,6 +55,7 @@ class InstConfig:
         """
         Reset wavelength based on instrument configuration
         (beginning and ending wavelengths, resolving power, and sampling of the resolution element).
+
         :param bool truncate: truncate any pixels with lambda > ending wavelength.
         :return:
         """
@@ -71,6 +73,7 @@ class InstConfig:
     def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO]) -> None:
         """
         Sets S/N for instrument
+
         :param snr_input: Signal-to-Noise Ratio
         :return:
         """
@@ -107,7 +110,8 @@ class InstConfig:
 
     def summary(self) -> None:
         """
-        Prints summary of instrument configuration. Does not update if
+        Prints summary of instrument configuration.
+
         :return:
         """
         if self.custom_wave == True:
@@ -389,6 +393,7 @@ class AllInstruments:
     def list_spectrographs(self) -> None:
         """
         Lists names of all predefined instruments
+
         :return:
         """
         print(list(self.spectrographs.keys()))
@@ -396,6 +401,7 @@ class AllInstruments:
     def get_spectrograph(self, name: str) -> InstConfig:
         """
         Get InstConfig object of a predefined instrument
+
         :param str name: name of spectrograph
         :return: Predefined InstConfig
         """
