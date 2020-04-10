@@ -33,8 +33,8 @@ class ReferenceSpectra:
         **kwargs,
     ) -> None:
         """
-        ToDo: Unit Tests
         Object for spectra of a specific reference star
+
         :param str reference: Name of reference star to load (e.g., 'RGB_m1.5')
         :param str init_res: Initial resolution of high-res reference spectra. Only 300000 is presently included for default spectra. Can be approximate if using custom reference spectra.
         :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
@@ -138,8 +138,9 @@ class ReferenceSpectra:
 
     def add_rv_spec(self, d_rv: float, symmetric: bool = True) -> None:
         """
-        ToDo: Unit Tests
-        Adds spectra and labels corresponding to a small doppler shift of the reference spectra. Assumes that the first spectra in ref_spec_file is a reference w/ no offsets to any labels
+        Adds spectra and labels corresponding to a small doppler shift of the reference spectra.
+        Assumes that the first spectra in ref_spec_file is a reference w/ no offsets to any labels.
+
         :param float d_rv: small doppler shift in km/s
         :param bool symmetric: if True, applies both positive and negative doppler shifts
         :return:
@@ -163,8 +164,8 @@ class ReferenceSpectra:
 
     def convolve(self, instrument, name: Optional[str] = None) -> None:
         """
-        ToDo: Unit Tests
         Convolves spectra to instrument resolution and samples onto instrument's wavelength grid
+
         :param InstConfig instrument: Instrument object to convolve and sample spectra onto
         :param str name: Name to give spectra. If None, defaults to name of instrument
         :return:
@@ -186,8 +187,8 @@ class ReferenceSpectra:
         self, name: str, symmetric: bool = True, ref_included: bool = True,
     ) -> None:
         """
-        ToDo: Unit Tests
         Calculates gradients of the reference spectra with respect to each label.
+
         :param str name: Name of convolved spectra to calculate gradient for
         :param bool symmetric: If True, calculates symmetric gradient around reference labels
         :param bool ref_included: If True, expects first spectra to be reference spectra w/ no offsets to any labels. Required for symmetric=False.
@@ -201,27 +202,28 @@ class ReferenceSpectra:
         )
         self.gradients[name].columns = self.wavelength[name]
 
-    def zero_gradients(self, name: str, labels: List[str]):
+    def zero_gradients(self, name: str, labels: Union[str, List[str]]):
         """
-        ToDo: Unit Tests
-        :param name: Name of spectra to apply gradient zeroing to
-        :param labels: List of labels for which to zero gradients
+        Sets gradient of labels to zero
+
+        :param str name: Name of spectra to apply gradient zeroing to
+        :param Union[str,List[str]] labels: List of labels for which to zero gradients
         :return:
         """
         self.gradients[name].loc[labels] = 0
 
     def get_names(self) -> List[str]:
         """
-        ToDo: Unit Tests
         Get names of all spectra contained in this object
+
         :return List[str]: List of spectra names that this object contains.
         """
         return list(self.spectra.keys())
 
     def reset(self) -> None:
         """
-        ToDo: Unit Tests
         Resets object to only the initial high-res spectra
+
         :return:
         """
         init_resolution = self.resolution["init"]
@@ -234,6 +236,7 @@ class ReferenceSpectra:
 
         init_spectra = self.spectra["init"]
         self.spectra.clear()
+        self.spectra["init"] = init_spectra
         self.spectra["init"] = init_spectra
 
         del self.gradients
