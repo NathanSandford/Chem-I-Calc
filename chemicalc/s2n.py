@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import mechanicalsoup
+import requests
+import json
+from chemicalc.utils import decode_base64_dict
 from chemicalc.file_mgmt import data_dir
 
 keck_options = {
@@ -43,6 +46,16 @@ keck_options = {
     "dichroic (LRIS)": ["D560"],
     "central wavelength (DEIMOS)": ["5000", "6000", "7000", "8000"],
 }
+mse_options = {
+    "spec_mode": ["LR", "MR", "HR"],
+    "airmass": ["1.0", "1.2", "1.5"],
+    "filter": ["u", "g", "r", "i", "z", "Y", "J"],
+    "src_type": ["extended", "point"],
+    "template": ["o5v", "o9v", "b1v", "b2ic", "b3v", "b8v", "b9iii", "b9v", "a0iii", "a0v", "a2v",
+                 "f0v", "g0i", "g2v", "g5iii", "k2v", "k7v", "m2v" , "flat", "WD",
+                 "LBG_EW_le_0", "LBG_EW_0_20", "LBG_EW_ge_20", "qso1", "qso2", "elliptical", "spiral_Sc", "HII", "PN"]
+
+}
 etc_file_dir = data_dir.joinpath("etc_files")
 
 
@@ -60,7 +73,7 @@ class Sig2NoiseWMKO:
         redshift=0,
     ):
         if instrument not in keck_options["instrument"]:
-            raise e.S2NInputError(
+            raise KeyError(
                 f"{instrument} not one of {keck_options['instrument']}"
             )
         if magtype not in keck_options["mag type"]:
@@ -469,3 +482,112 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
                 * A_per_pix_blue
             )
     return np.array([wave, snr])
+
+class Sig2NoiseMSE():
+    def __init__(
+            self,
+            exptime,
+            mag,
+            template,
+            spec_mode='LR',
+            filter="g",
+            airmass="1.2",
+            seeing=0.5,
+            skymag=20.7,
+            src_type="point",
+            redshift=0,
+    ):
+        self.url_base = 'http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py'
+        # Hard Coded Values
+        self.sessionID = 1234
+        self.coating = 'ZeCoat'
+        self.fibdiam = 1
+        self.spatbin = 2
+        self.specbin = 1
+        self.meth = 'getSNR'
+        self.snr_value = 10
+        # Check Values
+        if template not in mse_options["template"]:
+            raise KeyError(f"{template} not one of {mse_options['template']}")
+        if spec_mode not in mse_options["spec_mode"]:
+            raise KeyError(f"{spec_mode} not one of {mse_options['spec_mode']}")
+        if filter not in mse_options["filter"]:
+            raise KeyError(f"{filter} not one of {mse_options['filter']}")
+        if airmass not in mse_options["airmass"]:
+            raise KeyError(f"{airmass} not one of {mse_options['airmass']}")
+        if src_type not in mse_options["src_type"]:
+            raise KeyError(f"{src_type} not one of {mse_options['src_type']}")
+        self.exptime = exptime
+        self.mag = mag
+        self.template = template
+        self.spec_mode = spec_mode
+        self.filter = filter
+        self.airmass = airmass
+        self.seeing = seeing
+        self.skymag = skymag
+        self.src_type = src_type
+        self.redshift = redshift
+
+        def query_s2n(self, wavelength="default", smoothed=False,):
+            url = f"{self.url_base}?" \
+                  + f"sessionID={self.sessionID}&" \
+                  + f"coating={self.coating}&" \
+                  + f"seeing={self.seeing:1.2f}&" \
+                  + f"airmass={self.airmass:1.1f}&" \
+                  + f"skymag={self.skymag:2.1f}&" \
+                  + f"spectro={self.spec_mode}&" \
+                  + f"fibdiam={self.fibdiam}&" \
+                  + f"spatbin={self.spatbin}&" \
+                  + f"specbin={self.specbin}&" \
+                  + f"meth={self.meth}&" \
+                  + f"etime={self.exptime}&" \
+                  + f"snr={self.snr_value}&" \
+                  + f"src_type={self.src_type}&" \
+                  + f"tgtmag={self.mag:2.1f}&" \
+                  + f"redshift={self.redshift}&" \
+                  + f"band={self.filter}&" \
+                  + f"template={self.template}"
+            response = requests.post(url)
+            # Parse HTML response
+            r = response.text.split('docs_json = \'')[1].split('\';')[0]
+            model = json.loads(r)
+            key = list(model.keys())[0]
+            model_dict = model[key]
+            model_pass1 = [_ for _ in model_dict['roots']['references'] if 'data' in _['attributes'].keys()]
+            model_pass2 = [_ for _ in model_pass1 if '__ndarray__' in _['attributes']['data']['x']]
+            x = {}
+            y = {}
+            for i, tmp in enumerate(model_pass2):
+                x_str = tmp['attributes']['data']['x']
+                x[i] = decode_base64_dict(x_str)
+                y_str = tmp['attributes']['data']['y']
+                y[i] = decode_base64_dict(y_str)
+            # Sort Arrays
+            order = np.argsort([array[0] for i, array in x.items()])
+            x = {i: x[j] for i, j in enumerate(order)}
+            y = {i: y[j] for i, j in enumerate(order)}
+            x = {i: x[2 * i] for i in range(int(len(x) / 2))}
+            if smoothed:
+                y = {i: (y[2 * i] if (np.mean(y[2 * i]) > np.mean(y[2 * i + 1])) else y[2 * i + 1]) for i in
+                     range(int(len(y) / 2))}
+            else:
+                y = {i: (y[2 * i] if (np.mean(y[2 * i]) < np.mean(y[2 * i + 1])) else y[2 * i + 1]) for i in
+                     range(int(len(y) / 2))}
+            y[0] = y[0][x[0] < x[1].min()]
+            x[0] = x[0][x[0] < x[1].min()]
+            y[1] = y[1][x[1] < x[2].min()]
+            x[1] = x[1][x[1] < x[2].min()]
+            y[2] = y[2][x[2] < x[3].min()]
+            x[2] = x[2][x[2] < x[3].min()]
+            filler_x = np.linspace(x[3].max(), x[4].min(), 100)
+            filler_y = np.zeros(100)
+            x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
+            y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
+            snr = np.vstack([x, y])
+            if type(wavelength) == np.ndarray:
+                snr_interpolator = interp1d(snr[0], snr[1])
+                return snr_interpolator(wavelength)
+            elif wavelength == "default":
+                return snr
+            else:
+                raise ValueError("Wavelength input not recognized")
