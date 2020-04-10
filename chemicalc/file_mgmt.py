@@ -11,7 +11,6 @@ ref_label_file = data_dir.joinpath("reference_labels.h5")
 
 precomputed_res: List = [300000]
 precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
-precomputed_cont_id: Dict[float, str] = {300000: "1Fhx1KM8b6prtCGOZ3NazVeDQY-x9gOOU"}
 precomputed_label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
 
 precomputed_alpha_included: List[str] = [
@@ -28,11 +27,30 @@ precomputed_alpha_included: List[str] = [
 ]
 
 
-def download_package_files(id, destination):
+def check_label_format(labelfile: str) -> None:
     """
+    Warning: Not Implemented Yet
 
-    :param id:
-    :param destination:
+    :return:
+    """
+    raise NotImplementedError("Coming soon!")
+
+
+def check_spec_format(specfile: str) -> None:
+    """
+    Warning: Not Implemented Yet
+
+    :return:
+    """
+    raise NotImplementedError("Coming soon!")
+
+
+def download_package_files(id: str, destination: Union[str, Path]) -> None:
+    """
+    Download large file from Google Drive
+
+    :param str id: Google Drive file ID
+    :param Union[str,Path] destination: Path to download location
     :return:
     """
 
@@ -59,10 +77,11 @@ def download_package_files(id, destination):
     save_response_content(response, destination)
 
 
-def download_all_files(overwrite=True):
+def download_all_files(overwrite: bool = True) -> None:
     """
+    Downloads all external files
 
-    :param overwrite:
+    :param bool overwrite: Overwrite existing files
     :return:
     """
     if ref_label_file.exists() and not overwrite:
@@ -80,18 +99,3 @@ def download_all_files(overwrite=True):
         else:
             print(f"Downloading {reference_file}")
             download_package_files(id=reference_id, destination=reference_file)
-        #continuum_file = data_dir.joinpath(f"reference_continuum_{resolution:06}.h5")
-        #continuum_id = precomputed_cont_id[res]
-        #if continuum_file.exists() and not overwrite:
-        #    print(f"{continuum_file} exists")
-        #else:
-        #    print(f"Downloading {continuum_file}")
-        #    download_package_files(id=continuum_id, destination=continuum_file)
-
-
-def check_label_format():
-    raise NotImplementedError("Coming soon!")
-
-
-def check_spec_format():
-    raise NotImplementedError("Coming soon!")
