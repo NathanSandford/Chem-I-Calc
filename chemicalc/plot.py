@@ -107,22 +107,22 @@ def plot_gradients(
     :param chemicalc.reference_spectra.ReferenceSpectra star: Reference star object
     :param str inst_name: Instrument name
     :param List[str] labels: List of labels
-    :param panel_height: Height of each subplot
-    :param panel_width: Width of figure
-    :param inset_ylabel: Include label as inset annotation instead of in y-axis (better for large #s of labels)
-    :param inset_ylabel_xoffset: Relative x position of label annotation
-    :param inset_ylabel_yoffset: Relative y position of label annotation
-    :param xlim: Bounds on the x-axis
-    :param ylim: Bounds on the y-axis (for gradients)
-    :param ylim_spec: Bounds on the y-axis (for the spetrum if included)
-    :param yticks: Manual y-axis ticks (for gradients)
-    :param yticks_spec: Manual y-axis ticks (for the spetrum if included)
-    :param xtick_size: Fontsize of x-axis tick labels
-    :param ytick_size: Fontsize of y-axis tick labels
-    :param xlabel_size: Fontsize of x-axis labels
-    :param ylabel_size: Fontsize of y-axis labels
-    :param ylabel_pad: Pad between placeholder y-axis label and y-axis when using inset_ylabel
-    :param include_spec: Include spectrum in top panel
+    :param float panel_height: Height of each subplot
+    :param float panel_width: Width of figure
+    :param bool inset_ylabel: Include label as inset annotation instead of in y-axis (better for large #s of labels)
+    :param float inset_ylabel_xoffset: Relative x position of label annotation
+    :param float inset_ylabel_yoffset: Relative y position of label annotation
+    :param Optional[Tuple[float,float]] xlim: Bounds on the x-axis
+    :param Optional[Tuple[float,float]] ylim: Bounds on the y-axis (for gradients)
+    :param Tuple[float,float] ylim_spec: Bounds on the y-axis (for the spetrum if included)
+    :param Optional[List[float]] yticks: Manual y-axis ticks (for gradients)
+    :param Optional[List[float]] yticks_spec: Manual y-axis ticks (for the spetrum if included)
+    :param float xtick_size: Fontsize of x-axis tick labels
+    :param float ytick_size: Fontsize of y-axis tick labels
+    :param float xlabel_size: Fontsize of x-axis labels
+    :param float ylabel_size: Fontsize of y-axis labels
+    :param float ylabel_pad: Pad between placeholder y-axis label and y-axis when using inset_ylabel
+    :param bool include_spec: Include spectrum in top panel
     :return:
     """
     nlabels = len(labels)
@@ -283,7 +283,7 @@ def plot_crlb(
         # Plot cutoff line
         ax.axhline(cutoff, ls="--", lw=1, c="k")
         plt.text(
-            s="0.3 dex",
+            s=f"{cutoff:01.1f} dex",
             x=nlabs - cutoff_label_xoffset,
             y=cutoff + cutoff_label_yoffset,
             fontsize=12,
