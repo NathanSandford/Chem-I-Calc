@@ -6,6 +6,20 @@ from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
 
 
+def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
+    """
+    Initialized CRLB dataframe with indices corresponding to all the labels included
+
+    :param ReferenceSpectra reference: reference star object
+    :return pd.DataFrame: Empty CRLB dataframe
+    """
+    if not isinstance(reference, ReferenceSpectra):
+        raise TypeError(
+            "reference must be a chemicalc.reference_spectra.ReferenceSpectra object"
+        )
+    return pd.DataFrame(index=reference.labels.index)
+
+
 def calc_crlb(
     reference: ReferenceSpectra,
     instruments: Union[InstConfig, List[InstConfig]],
@@ -16,9 +30,10 @@ def calc_crlb(
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     """
     Calculates the CRLB and FIM
+
     :param ReferenceSpectra reference: reference star object
-    :param Union[InstConfig, List[InstConfig]] instruments: instrument object or list of instrument objects
-    :param Optional[Dict['str', float]] priors: 1-sigma Gaussian priors for labels
+    :param Union[InstConfig,List[InstConfig]] instruments: instrument object or list of instrument objects
+    :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
     :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
@@ -103,19 +118,6 @@ def calc_crlb(
         return crlb
 
 
-def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
-    """
-    Initialized CRLB dataframe with indices corresponding to all the labels included
-    :param ReferenceSpectra reference: reference star object
-    :return pd.DataFrame: Empty CRLB dataframe
-    """
-    if not isinstance(reference, ReferenceSpectra):
-        raise TypeError(
-            "reference must be a chemicalc.reference_spectra.ReferenceSpectra object"
-        )
-    return pd.DataFrame(index=reference.labels.index)
-
-
 def sort_crlb(
     crlb: pd.DataFrame,
     cutoff: float,
@@ -124,6 +126,7 @@ def sort_crlb(
 ) -> pd.DataFrame:
     """
     Sorts CRLB dataframe by decreasing precision of labels and removes labels with precisions worse than cutoff.
+
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
     :param str sort_by: Name of dataframe column to sort labels by. Default uses the column with the most labels below the cutoff
