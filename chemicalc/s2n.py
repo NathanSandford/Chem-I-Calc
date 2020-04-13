@@ -813,6 +813,20 @@ def calculate_fobos_snr(
 def calculate_bluemuse_snr(wave, flux, exptime, nexp,
                            airmass=1.0, seeing=0.8, moon='d', pointsource=True,
                            nspatial=3, nspectral=1):
+    """
+    This code is adapted from https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC
+    :param wave:
+    :param flux:
+    :param exptime:
+    :param nexp:
+    :param airmass:
+    :param seeing:
+    :param moon:
+    :param pointsource:
+    :param nspatial:
+    :param nspectral:
+    :return:
+    """
     blueMUSE_etc_dir = etc_file_dir.joinpath('blueMUSE')
     ron = 3.0  # readout noise (e-)
     dcurrent = 3.0  # dark current (e-/pixel/s)
@@ -823,7 +837,7 @@ def calculate_bluemuse_snr(wave, flux, exptime, nexp,
     lmax = 6000.0  # maximum wavelength
     lstep = 0.66  # spectral sampling (Angstroms)
     lsf = lstep * 2.0  # in Angstroms
-    musetrans = np.loadtxt(blueMUSE_etc_dir.joinpath('/NewBlueMUSE_noatm.txt'))
+    musetrans = np.loadtxt(blueMUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt'))
     wmusetrans = musetrans[:, 0] * 10.0  # in Angstroms
     valmusetrans = musetrans[:, 1]
     tarea = 485000.0  # squared centimeters
@@ -879,17 +893,17 @@ def calculate_bluemuse_snr(wave, flux, exptime, nexp,
 
     # sky spectrum (grey moon)
     if (moon == 'g'):
-        skyemtable = np.loadtxt('radiance_airmass1.0_0.5moon.txt')
+        skyemtable = np.loadtxt(blueMUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'))
         skyemw = skyemtable[:, 0] * 10.0  # in Angstroms
         skyemflux = skyemtable[:, 1] * airmass  # in photons / s / m2 / micron / arcsec2 approximated at given airmass
     else:  # dark conditions - no moon
-        skyemtable = np.loadtxt(blueMUSE_etc_dir.joinpath('/radiance_airmass1.0_newmoon.txt'))  # sky spectrum (grey) - 0.5 FLI
+        skyemtable = np.loadtxt(blueMUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'))  # sky spectrum (grey) - 0.5 FLI
         skyemw = skyemtable[:, 0] * 10.0  # in Angstroms
         skyemflux = skyemtable[:, 1] * airmass  # in photons / s / m2 / micron / arcsec2
     # Interpolate sky spectrum at instrumental wavelengths
     sky = np.interp(wrange, skyemw, skyemflux)
     # loads sky transmission
-    atmtrans = np.loadtxt(blueMUSE_etc_dir.joinpath('/transmission_airmass1.txt'))
+    atmtrans = np.loadtxt(blueMUSE_etc_dir.joinpath('transmission_airmass1.txt'))
     atmtransw = atmtrans[:, 0] * 10.0  # In Angstroms
     atmtransval = atmtrans[:, 1]
     atm = np.interp(wrange, atmtransw, atmtransval)
