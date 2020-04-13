@@ -657,6 +657,7 @@ def calculate_fobos_snr(
     airmass: float = 1.0,
     snr_units: str = "pixel",
     sky_err: float = 0.1,
+    print_summary: bool = True,
 ):
     """
     This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/python/enyo/scripts/fobos_etc.py
@@ -680,6 +681,7 @@ def calculate_fobos_snr(
     :param airmass:
     :param snr_units:
     :param sky_err:
+    :param print_summary:
     :return:
     """
     if sky_err < 0 or sky_err > 1:
@@ -717,6 +719,7 @@ def calculate_fobos_snr(
         redshift=redshift,
         resolution=resolution,
     )
+    t = time.perf_counter()
     # Get the source distribution.  If the source is uniform, onsky is None.
     onsky = get_source_distribution(fwhm, uniform, sersic)
     # Get the sky spectrum
@@ -777,4 +780,30 @@ def calculate_fobos_snr(
     )
     # Construct the S/N spectrum
     snr = obs.snr(sky_sub=True, sky_err=sky_err)
+    snr_label = 'S/N per {0}'.format('R element' if snr_units == 'resolution'
+                                         else snr_units)
+    if print_summary:
+        # Report
+        g = efficiency.FilterResponse(band='g')
+        r = efficiency.FilterResponse(band='r')
+        iband = efficiency.FilterResponse(band='i')
+        print('-'*70)
+        print('{0:^70}'.format('FOBOS S/N Calculation (v0.2)'))
+        print('-'*70)
+        print('Compute time: {0} seconds'.format(time.perf_counter() - t))
+        print('Object g- and r-band AB magnitude: {0:.1f} {1:.1f}'.format(
+                        spec.magnitude(band=g), spec.magnitude(band=r)))
+        print('Sky g- and r-band AB surface brightness: {0:.1f} {1:.1f}'.format(
+                        sky_spectrum.magnitude(band=g), sky_spectrum.magnitude(band=r)))
+        print('Exposure time: {0:.1f} (s)'.format(time))
+        if not uniform:
+            print('Aperture Loss: {0:.1f}%'.format((1-obs.aperture_factor)*100))
+        print('Extraction Loss: {0:.1f}%'.format((1-obs.extraction.spatial_efficiency)*100))
+        print('Median {0}: {1:.1f}'.format(snr_label, np.median(snr.flux)))
+        print('g-band weighted mean {0} {1:.1f}'.format(snr_label,
+                    np.sum(g(snr.wave)*snr.flux)/np.sum(g(snr.wave))))
+        print('r-band weighted mean {0} {1:.1f}'.format(snr_label,
+                    np.sum(r(snr.wave)*snr.flux)/np.sum(r(snr.wave))))
+        print('i-band weighted mean {0} {1:.1f}'.format(snr_label,
+                    np.sum(iband(snr.wave)*snr.flux)/np.sum(iband(snr.wave))))
     return np.vstack([snr.wave, snr.flux])
