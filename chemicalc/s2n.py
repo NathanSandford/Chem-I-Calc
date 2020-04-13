@@ -808,3 +808,112 @@ def calculate_fobos_snr(
         print('i-band weighted mean {0} {1:.1f}'.format(snr_label,
                     np.sum(iband(snr.wave)*snr.flux)/np.sum(iband(snr.wave))))
     return np.vstack([snr.wave, snr.flux])
+
+
+def calculate_bluemuse_snr(wave, flux, exptime, nexp,
+                           airmass=1.0, seeing=0.8, moon='d', pointsource=True,
+                           nspatial=3, nspectral=1):
+    blueMUSE_etc_dir = etc_file_dir.joinpath('blueMUSE')
+    ron = 3.0  # readout noise (e-)
+    dcurrent = 3.0  # dark current (e-/pixel/s)
+    spaxel = 0.3  # spaxel scale (arcsecs)
+    fins = 0.2  # Instrument image quality (arcsecs)
+    nbiases = 11  # number of biases used in calibration
+    lmin = 3500.0  # minimum wavelength
+    lmax = 6000.0  # maximum wavelength
+    lstep = 0.66  # spectral sampling (Angstroms)
+    lsf = lstep * 2.0  # in Angstroms
+    musetrans = np.loadtxt(blueMUSE_etc_dir.joinpath('/NewBlueMUSE_noatm.txt'))
+    wmusetrans = musetrans[:, 0] * 10.0  # in Angstroms
+    valmusetrans = musetrans[:, 1]
+    tarea = 485000.0  # squared centimeters
+    teldiam = 8.20  # diameter in meters
+    h = 6.626196e-27  # erg.s
+
+    wrange = np.arange(lmin, lmax, lstep)
+    waveinput = wave
+    fluxinput = flux
+    flux = np.interp(wrange, waveinput, fluxinput)
+
+    pixelarea = nspatial * nspatial * spaxel * spaxel  # in arcsec^2
+    npixels = nspatial * nspatial * nspectral
+
+    # Compute image quality as a function of seeing, airmass and wavelength
+    iq = np.zeros(wrange.shape)
+    frac = np.zeros(wrange.shape)
+    snratio = np.zeros(wrange.shape)
+    sky = np.zeros(wrange.shape)
+    skyelectrons = np.zeros(wrange.shape)
+    shape = np.array((101, 101))  # in 0.05 arcsec pixels
+    yy, xx = np.mgrid[:shape[0], :shape[1]]
+
+    def moffat(p, q):
+        xdiff = p - 50.0
+        ydiff = q - 50.0
+        return (norm * (1 + (xdiff / a) ** 2 + (ydiff / a) ** 2) ** (-n))
+
+    posmin = 50 - int(nspatial * spaxel / 2.0 / 0.05)  # in 0.05 arcsec pixels
+    posmax = posmin + int(nspatial * spaxel / 0.05)  # in 0.05 arcsec pixels
+
+    # For point sources compute the fraction of the total flux of the source
+    if (pointsource):
+        for k in range(wrange.shape[0]):
+            # All of this is based on ESO atmosphere turbulence model (ETC)
+            ftel = 0.0000212 * wrange[k] / teldiam  # Diffraction limit in arcsec
+            r0 = 0.100 * (seeing ** -1) * (wrange[k] / 5000.0) ** 1.2 * (airmass) ** -0.6  # Fried parameter in meters
+            fkolb = -0.981644
+            if (r0 < 5.4):
+                fatm = seeing * (airmass ** 0.6) * (wrange[k] / 5000.0) ** (-0.2) * np.sqrt(
+                    (1. + fkolb * 2.183 * (r0 / 46.0) ** 0.356))
+            else:
+                fatm = 0.0
+            # Full image quality FWHM in arcsecs
+            iq[k] = np.sqrt(fatm * fatm + ftel * ftel + fins * fins)
+            fwhm = iq[k] / 0.05  # FWHM of PSF in 0.05 arcsec pixels
+            n = 2.5
+            a = fwhm / (2 * np.sqrt(2 ** (1.0 / n) - 1.0))
+            norm = (n - 1) / (np.pi * a * a)
+            psf = moffat(yy, xx)
+            # fraction of spatial PSF within extraction aperture
+            frac[k] = np.sum(psf[posmin:posmax, posmin:posmax])
+
+    # sky spectrum (grey moon)
+    if (moon == 'g'):
+        skyemtable = np.loadtxt('radiance_airmass1.0_0.5moon.txt')
+        skyemw = skyemtable[:, 0] * 10.0  # in Angstroms
+        skyemflux = skyemtable[:, 1] * airmass  # in photons / s / m2 / micron / arcsec2 approximated at given airmass
+    else:  # dark conditions - no moon
+        skyemtable = np.loadtxt(blueMUSE_etc_dir.joinpath('/radiance_airmass1.0_newmoon.txt'))  # sky spectrum (grey) - 0.5 FLI
+        skyemw = skyemtable[:, 0] * 10.0  # in Angstroms
+        skyemflux = skyemtable[:, 1] * airmass  # in photons / s / m2 / micron / arcsec2
+    # Interpolate sky spectrum at instrumental wavelengths
+    sky = np.interp(wrange, skyemw, skyemflux)
+    # loads sky transmission
+    atmtrans = np.loadtxt(blueMUSE_etc_dir.joinpath('/transmission_airmass1.txt'))
+    atmtransw = atmtrans[:, 0] * 10.0  # In Angstroms
+    atmtransval = atmtrans[:, 1]
+    atm = np.interp(wrange, atmtransw, atmtransval)
+    # Interpolate transmission including sky transmission at corresponding airmass
+    # Note: ESO ETC includes a 60% margin for MUSE
+    transm = np.interp(wrange, wmusetrans, valmusetrans) * (atm ** (airmass))
+    transmnoatm = np.interp(wrange, wmusetrans, valmusetrans)
+
+    dit=exptime
+    ndit=nexp
+    for k in range(wrange.shape[0]):
+        kmin = 1 + np.max([-1, int(k - nspectral / 2)])
+        kmax = 1 + np.min([wrange.shape[0] - 1, int(k + nspectral / 2)])
+
+        if (pointsource):
+            signal = (np.sum(flux[kmin:kmax] * transm[kmin:kmax] * frac[kmin:kmax]) * lstep / (
+                        h * 3e18 / wrange[k])) * tarea * dit * ndit  # in electrons
+        else:  # extended source, flux is per arcsec2
+            signal = (np.sum(flux[kmin:kmax] * transm[kmin:kmax]) * lstep / (
+                        h * 3e18 / wrange[k])) * tarea * dit * ndit * pixelarea  # in electrons
+        skysignal = (np.sum(sky[kmin:kmax] * transmnoatm[kmin:kmax]) * lstep / 10000.0) * (
+                    tarea / 10000.0) * dit * ndit * pixelarea  # lstep converted in microns, tarea in m2                                  #in electrons
+        skyelectrons[k] = skysignal
+        noise = np.sqrt(ron * ron * npixels * (1.0 + 1.0 / nbiases) * ndit + dcurrent * (
+                    dit * ndit / 3600.0) * npixels + signal + skysignal)  # in electrons
+        snratio[k] = signal / noise
+    return np.vstack([wrange, snratio])
