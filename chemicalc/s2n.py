@@ -1,5 +1,6 @@
 from typing import Optional, Union, Tuple
 import os
+import time
 import numpy as np
 from scipy.interpolate import interp1d
 import mechanicalsoup
@@ -652,7 +653,7 @@ def calculate_fobos_snr(
     emline: Optional[str] = None,
     sersic: Optional[Tuple[float, float, float, float]] = None,
     uniform: bool = False,
-    time: float = 3600.0,
+    exptime: float = 3600.0,
     fwhm: float = 0.65,
     airmass: float = 1.0,
     snr_units: str = "pixel",
@@ -676,7 +677,7 @@ def calculate_fobos_snr(
     :param emline:
     :param sersic:
     :param uniform:
-    :param time:
+    :param exptime:
     :param fwhm:
     :param airmass:
     :param snr_units:
@@ -768,7 +769,7 @@ def calculate_fobos_snr(
         telescope,
         sky_spectrum,
         fiber,
-        time,
+        exptime,
         det,
         system_throughput=system_throughput,
         atmospheric_throughput=atmospheric_throughput,
@@ -795,7 +796,7 @@ def calculate_fobos_snr(
                         spec.magnitude(band=g), spec.magnitude(band=r)))
         print('Sky g- and r-band AB surface brightness: {0:.1f} {1:.1f}'.format(
                         sky_spectrum.magnitude(band=g), sky_spectrum.magnitude(band=r)))
-        print('Exposure time: {0:.1f} (s)'.format(time))
+        print('Exposure time: {0:.1f} (s)'.format(exptime))
         if not uniform:
             print('Aperture Loss: {0:.1f}%'.format((1-obs.aperture_factor)*100))
         print('Extraction Loss: {0:.1f}%'.format((1-obs.extraction.spatial_efficiency)*100))
