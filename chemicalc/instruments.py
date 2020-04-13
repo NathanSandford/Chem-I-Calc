@@ -102,7 +102,7 @@ class InstConfig:
                 self.snr = snr_interpolator(self.wave)
             else:
                 raise ValueError("S/N array must have ndim <= 2")
-        elif isinstance(snr_input, Sig2NoiseWMKO, Sig2NoiseMSE):
+        elif isinstance(snr_input, (Sig2NoiseWMKO, Sig2NoiseMSE)):
             self.snr = snr_input.query_s2n(wavelength=self.wave)
         else:
             raise ValueError("Cannot parse snr_input")
