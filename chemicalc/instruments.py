@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from chemicalc.utils import (
     generate_wavelength_template,
 )
-from chemicalc.s2n import Sig2NoiseWMKO
+from chemicalc.s2n import Sig2NoiseWMKO, Sig2NoiseMSE
 
 
 sampX: float = 3  # Placeholder for Unknown Wavelength Sampling
@@ -102,7 +102,7 @@ class InstConfig:
                 self.snr = snr_interpolator(self.wave)
             else:
                 raise ValueError("S/N array must have ndim <= 2")
-        elif isinstance(snr_input, Sig2NoiseWMKO):
+        elif isinstance(snr_input, Sig2NoiseWMKO, Sig2NoiseMSE):
             self.snr = snr_input.query_s2n(wavelength=self.wave)
         else:
             raise ValueError("Cannot parse snr_input")
