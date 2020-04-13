@@ -1,3 +1,5 @@
+from typing import Optional, Union, Tuple
+import os
 import numpy as np
 from scipy.interpolate import interp1d
 import mechanicalsoup
@@ -5,6 +7,15 @@ import requests
 import json
 from chemicalc.utils import decode_base64_dict
 from chemicalc.file_mgmt import data_dir
+from enyo.etc import spectrum, efficiency, telescopes, aperture, detector, extract
+from enyo.etc.observe import Observation
+from enyo.scripts.fobos_etc import (
+    get_wavelength_vector,
+    read_emission_line_database,
+    get_spectrum,
+    get_source_distribution,
+)
+
 
 keck_options = {
     "instrument": ["lris", "deimos", "hires"],
@@ -51,10 +62,37 @@ mse_options = {
     "airmass": ["1.0", "1.2", "1.5"],
     "filter": ["u", "g", "r", "i", "z", "Y", "J"],
     "src_type": ["extended", "point"],
-    "template": ["o5v", "o9v", "b1v", "b2ic", "b3v", "b8v", "b9iii", "b9v", "a0iii", "a0v", "a2v",
-                 "f0v", "g0i", "g2v", "g5iii", "k2v", "k7v", "m2v" , "flat", "WD",
-                 "LBG_EW_le_0", "LBG_EW_0_20", "LBG_EW_ge_20", "qso1", "qso2", "elliptical", "spiral_Sc", "HII", "PN"]
-
+    "template": [
+        "o5v",
+        "o9v",
+        "b1v",
+        "b2ic",
+        "b3v",
+        "b8v",
+        "b9iii",
+        "b9v",
+        "a0iii",
+        "a0v",
+        "a2v",
+        "f0v",
+        "g0i",
+        "g2v",
+        "g5iii",
+        "k2v",
+        "k7v",
+        "m2v",
+        "flat",
+        "WD",
+        "LBG_EW_le_0",
+        "LBG_EW_0_20",
+        "LBG_EW_ge_20",
+        "qso1",
+        "qso2",
+        "elliptical",
+        "spiral_Sc",
+        "HII",
+        "PN",
+    ],
 }
 etc_file_dir = data_dir.joinpath("etc_files")
 
@@ -73,9 +111,7 @@ class Sig2NoiseWMKO:
         redshift=0,
     ):
         if instrument not in keck_options["instrument"]:
-            raise KeyError(
-                f"{instrument} not one of {keck_options['instrument']}"
-            )
+            raise KeyError(f"{instrument} not one of {keck_options['instrument']}")
         if magtype not in keck_options["mag type"]:
             raise KeyError(f"{magtype} not one of {keck_options['mag type']}")
         if band not in keck_options["filter"]:
@@ -93,7 +129,9 @@ class Sig2NoiseWMKO:
         self.redshift = redshift
 
     def query_s2n(self, wavelength="default"):
-        raise NotImplementedError("No generic S/N query, see specific instrument children classes")
+        raise NotImplementedError(
+            "No generic S/N query, see specific instrument children classes"
+        )
 
 
 class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
@@ -125,13 +163,9 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
             redshift,
         )
         if grating not in keck_options["grating (DEIMOS)"]:
-            raise KeyError(
-                f"{grating} not one of {keck_options['grating (DEIMOS)']}"
-            )
+            raise KeyError(f"{grating} not one of {keck_options['grating (DEIMOS)']}")
         if binning not in keck_options["binning (DEIMOS)"]:
-            raise KeyError(
-                f"{binning} not one of {keck_options['binning (DEIMOS)']}"
-            )
+            raise KeyError(f"{binning} not one of {keck_options['binning (DEIMOS)']}")
         if slitwidth not in keck_options["slitwidth (DEIMOS)"]:
             raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (DEIMOS)']}"
@@ -206,23 +240,15 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
             redshift,
         )
         if grating not in keck_options["grating (LRIS)"]:
-            raise KeyError(
-                f"{grating} not one of {keck_options['grating (LRIS)']}"
-            )
+            raise KeyError(f"{grating} not one of {keck_options['grating (LRIS)']}")
         if grism not in keck_options["grism (LRIS)"]:
             raise KeyError(f"{grism} not one of {keck_options['grism (LRIS)']}")
         if binning not in keck_options["binning (LRIS)"]:
-            raise KeyError(
-                f"{binning} not one of {keck_options['binning (LRIS)']}"
-            )
+            raise KeyError(f"{binning} not one of {keck_options['binning (LRIS)']}")
         if slitwidth not in keck_options["slitwidth (LRIS)"]:
-            raise KeyError(
-                f"{slitwidth} not one of {keck_options['slitwidth (LRIS)']}"
-            )
+            raise KeyError(f"{slitwidth} not one of {keck_options['slitwidth (LRIS)']}")
         if dichroic not in keck_options["dichroic (LRIS)"]:
-            raise KeyError(
-                f"{dichroic} not one of {keck_options['dichroic (LRIS)']}"
-            )
+            raise KeyError(f"{dichroic} not one of {keck_options['dichroic (LRIS)']}")
         self.grating = grating
         self.grism = grism
         self.binning = binning
@@ -289,13 +315,9 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
             redshift,
         )
         if binning not in keck_options["binning (ESI)"]:
-            raise KeyError(
-                f"{binning} not one of {keck_options['binning (ESI)']}"
-            )
+            raise KeyError(f"{binning} not one of {keck_options['binning (ESI)']}")
         if slitwidth not in keck_options["slitwidth (ESI)"]:
-            raise KeyError(
-                f"{slitwidth} not one of {keck_options['slitwidth (ESI)']}"
-            )
+            raise KeyError(f"{slitwidth} not one of {keck_options['slitwidth (ESI)']}")
         self.binning = binning
         self.slitwidth = slitwidth
 
@@ -355,9 +377,7 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             redshift,
         )
         if binning not in keck_options["binning (HIRES)"]:
-            raise KeyError(
-                f"{binning} not one of {keck_options['binning (HIRES)']}"
-            )
+            raise KeyError(f"{binning} not one of {keck_options['binning (HIRES)']}")
         if slitwidth not in keck_options["slitwidth (HIRES)"]:
             raise KeyError(
                 f"{slitwidth} not one of {keck_options['slitwidth (HIRES)']}"
@@ -483,28 +503,29 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
             )
     return np.array([wave, snr])
 
-class Sig2NoiseMSE():
+
+class Sig2NoiseMSE:
     def __init__(
-            self,
-            exptime,
-            mag,
-            template,
-            spec_mode='LR',
-            filter="g",
-            airmass="1.2",
-            seeing=0.5,
-            skymag=20.7,
-            src_type="point",
-            redshift=0,
+        self,
+        exptime,
+        mag,
+        template,
+        spec_mode="LR",
+        filter="g",
+        airmass="1.2",
+        seeing=0.5,
+        skymag=20.7,
+        src_type="point",
+        redshift=0,
     ):
-        self.url_base = 'http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py'
+        self.url_base = "http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py"
         # Hard Coded Values
         self.sessionID = 1234
-        self.coating = 'ZeCoat'
+        self.coating = "ZeCoat"
         self.fibdiam = 1
         self.spatbin = 2
         self.specbin = 1
-        self.meth = 'getSNR'
+        self.meth = "getSNR"
         self.snr_value = 10
         # Check Values
         if template not in mse_options["template"]:
@@ -528,39 +549,49 @@ class Sig2NoiseMSE():
         self.src_type = src_type
         self.redshift = redshift
 
-        def query_s2n(self, wavelength="default", smoothed=False,):
-            url = f"{self.url_base}?" \
-                  + f"sessionID={self.sessionID}&" \
-                  + f"coating={self.coating}&" \
-                  + f"seeing={self.seeing:1.2f}&" \
-                  + f"airmass={self.airmass:1.1f}&" \
-                  + f"skymag={self.skymag:2.1f}&" \
-                  + f"spectro={self.spec_mode}&" \
-                  + f"fibdiam={self.fibdiam}&" \
-                  + f"spatbin={self.spatbin}&" \
-                  + f"specbin={self.specbin}&" \
-                  + f"meth={self.meth}&" \
-                  + f"etime={self.exptime}&" \
-                  + f"snr={self.snr_value}&" \
-                  + f"src_type={self.src_type}&" \
-                  + f"tgtmag={self.mag:2.1f}&" \
-                  + f"redshift={self.redshift}&" \
-                  + f"band={self.filter}&" \
-                  + f"template={self.template}"
+        def query_s2n(
+            self, wavelength="default", smoothed=False,
+        ):
+            url = (
+                f"{self.url_base}?"
+                + f"sessionID={self.sessionID}&"
+                + f"coating={self.coating}&"
+                + f"seeing={self.seeing:1.2f}&"
+                + f"airmass={self.airmass:1.1f}&"
+                + f"skymag={self.skymag:2.1f}&"
+                + f"spectro={self.spec_mode}&"
+                + f"fibdiam={self.fibdiam}&"
+                + f"spatbin={self.spatbin}&"
+                + f"specbin={self.specbin}&"
+                + f"meth={self.meth}&"
+                + f"etime={self.exptime}&"
+                + f"snr={self.snr_value}&"
+                + f"src_type={self.src_type}&"
+                + f"tgtmag={self.mag:2.1f}&"
+                + f"redshift={self.redshift}&"
+                + f"band={self.filter}&"
+                + f"template={self.template}"
+            )
             response = requests.post(url)
             # Parse HTML response
-            r = response.text.split('docs_json = \'')[1].split('\';')[0]
+            r = response.text.split("docs_json = '")[1].split("';")[0]
             model = json.loads(r)
             key = list(model.keys())[0]
             model_dict = model[key]
-            model_pass1 = [_ for _ in model_dict['roots']['references'] if 'data' in _['attributes'].keys()]
-            model_pass2 = [_ for _ in model_pass1 if '__ndarray__' in _['attributes']['data']['x']]
+            model_pass1 = [
+                _
+                for _ in model_dict["roots"]["references"]
+                if "data" in _["attributes"].keys()
+            ]
+            model_pass2 = [
+                _ for _ in model_pass1 if "__ndarray__" in _["attributes"]["data"]["x"]
+            ]
             x = {}
             y = {}
             for i, tmp in enumerate(model_pass2):
-                x_str = tmp['attributes']['data']['x']
+                x_str = tmp["attributes"]["data"]["x"]
                 x[i] = decode_base64_dict(x_str)
-                y_str = tmp['attributes']['data']['y']
+                y_str = tmp["attributes"]["data"]["y"]
                 y[i] = decode_base64_dict(y_str)
             # Sort Arrays
             order = np.argsort([array[0] for i, array in x.items()])
@@ -568,11 +599,23 @@ class Sig2NoiseMSE():
             y = {i: y[j] for i, j in enumerate(order)}
             x = {i: x[2 * i] for i in range(int(len(x) / 2))}
             if smoothed:
-                y = {i: (y[2 * i] if (np.mean(y[2 * i]) > np.mean(y[2 * i + 1])) else y[2 * i + 1]) for i in
-                     range(int(len(y) / 2))}
+                y = {
+                    i: (
+                        y[2 * i]
+                        if (np.mean(y[2 * i]) > np.mean(y[2 * i + 1]))
+                        else y[2 * i + 1]
+                    )
+                    for i in range(int(len(y) / 2))
+                }
             else:
-                y = {i: (y[2 * i] if (np.mean(y[2 * i]) < np.mean(y[2 * i + 1])) else y[2 * i + 1]) for i in
-                     range(int(len(y) / 2))}
+                y = {
+                    i: (
+                        y[2 * i]
+                        if (np.mean(y[2 * i]) < np.mean(y[2 * i + 1]))
+                        else y[2 * i + 1]
+                    )
+                    for i in range(int(len(y) / 2))
+                }
             y[0] = y[0][x[0] < x[1].min()]
             x[0] = x[0][x[0] < x[1].min()]
             y[1] = y[1][x[1] < x[2].min()]
@@ -591,3 +634,123 @@ class Sig2NoiseMSE():
                 return snr
             else:
                 raise ValueError("Wavelength input not recognized")
+
+
+def calculate_fobos_snr(
+    spec_file: Optional[str] = None,
+    spec_wave: Union[str, float] = "WAVE",
+    spec_wave_units: str = "angstrom",
+    spec_flux: Union[str, float] = "FLUX",
+    spec_flux_units: Optional[str] = None,
+    spec_res_indx: Optional[Union[str, float]] = None,
+    spec_res_value: Optional[float] = None,
+    spec_table: Optional[Union[str, float]] = None,
+    mag: float = 24.0,
+    mag_band: str = "g",
+    mag_system: str = "AB",
+    redshift: float = 0.0,
+    emline: Optional[str] = None,
+    sersic: Optional[Tuple[float, float, float, float]] = None,
+    uniform: bool = False,
+    time: float = 3600.0,
+    fwhm: float = 0.65,
+    airmass: float = 1.0,
+    snr_units: str = "pixel",
+    sky_err: float = 0.1,
+):
+    if sky_err < 0 or sky_err > 1:
+        raise ValueError("--sky_err option must provide a value between 0 and 1.")
+    # Constants:
+    resolution = 3500.0  # lambda/dlambda
+    fiber_diameter = 0.8  # Arcsec
+    rn = 2.0  # Detector readnoise (e-)
+    dark = 0.0  # Detector dark-current (e-/s)
+    # Temporary numbers that assume a given spectrograph PSF and LSF.
+    # Assume 3 pixels per spectral and spatial FWHM.
+    spatial_fwhm = 3.0
+    spectral_fwhm = 3.0
+    # Get source spectrum in 1e-17 erg/s/cm^2/angstrom. Currently, the
+    # source spectrum is assumed to be
+    #   - normalized by the total integral of the source flux
+    #   - independent of position within the source
+    wavelengths = [3100, 10000, 4e-5]
+    wave = get_wavelength_vector(wavelengths[0], wavelengths[1], wavelengths[2])
+    emline_db = None if emline is None else read_emission_line_database(emline)
+    spec = get_spectrum(
+        wave,
+        mag,
+        mag_band=mag_band,
+        mag_system=mag_system,
+        spec_file=spec_file,
+        spec_wave=spec_wave,
+        spec_wave_units=spec_wave_units,
+        spec_flux=spec_flux,
+        spec_flux_units=spec_flux_units,
+        spec_res_indx=spec_res_indx,
+        spec_res_value=spec_res_value,
+        spec_table=spec_table,
+        emline_db=emline_db,
+        redshift=redshift,
+        resolution=resolution,
+    )
+    # Get the source distribution.  If the source is uniform, onsky is None.
+    onsky = get_source_distribution(fwhm, uniform, sersic)
+    # Get the sky spectrum
+    sky_spectrum = spectrum.MaunakeaSkySpectrum()
+    # Get the atmospheric throughput
+    atmospheric_throughput = efficiency.AtmosphericThroughput(airmass=airmass)
+    # Set the telescope. Defines the aperture area and throughput
+    # (nominally 3 aluminum reflections for Keck)
+    telescope = telescopes.KeckTelescope()
+    # Define the observing aperture; fiber diameter is in arcseconds,
+    # center is 0,0 to put the fiber on the target center. "resolution"
+    # sets the resolution of the fiber rendering; it has nothing to do
+    # with spatial or spectral resolution of the instrument
+    fiber = aperture.FiberAperture(0, 0, fiber_diameter, resolution=100)
+    # Get the spectrograph throughput (circa June 2018; TODO: needs to
+    # be updated). Includes fibers + foreoptics + FRD + spectrograph +
+    # detector QE (not sure about ADC). Because this is the total
+    # throughput, define a generic efficiency object.
+    thru_db = np.genfromtxt(
+        os.path.join(os.environ["ENYO_DIR"], "data/efficiency", "fobos_throughput.db")
+    )
+    spectrograph_throughput = efficiency.Efficiency(thru_db[:, 1], wave=thru_db[:, 0])
+    # System efficiency combines the spectrograph and the telescope
+    system_throughput = efficiency.SystemThroughput(
+        wave=spec.wave,
+        spectrograph=spectrograph_throughput,
+        telescope=telescope.throughput,
+    )
+    # Instantiate the detector; really just a container for the rn and
+    # dark current for now. QE is included in fobos_throughput.db file,
+    # so I set it to 1 here.
+    det = detector.Detector(rn=rn, dark=dark, qe=1.0)
+    # Extraction: makes simple assumptions about the detector PSF for
+    # each fiber spectrum and mimics a "perfect" extraction, including
+    # an assumption of no cross-talk between fibers. Ignore the
+    # "spectral extraction".
+    extraction = extract.Extraction(
+        det,
+        spatial_fwhm=spatial_fwhm,
+        spatial_width=1.5 * spatial_fwhm,
+        spectral_fwhm=spectral_fwhm,
+        spectral_width=spectral_fwhm,
+    )
+    # Perform the observation
+    obs = Observation(
+        telescope,
+        sky_spectrum,
+        fiber,
+        time,
+        det,
+        system_throughput=system_throughput,
+        atmospheric_throughput=atmospheric_throughput,
+        airmass=airmass,
+        onsky_source_distribution=onsky,
+        source_spectrum=spec,
+        extraction=extraction,
+        snr_units=snr_units,
+    )
+    # Construct the S/N spectrum
+    snr = obs.snr(sky_sub=True, sky_err=sky_err)
+    return np.vstack([snr.wave, snr.flux])
