@@ -550,91 +550,91 @@ class Sig2NoiseMSE:
         self.src_type = src_type
         self.redshift = redshift
 
-        def query_s2n(
-            self, wavelength="default", smoothed=False,
-        ):
-            url = (
-                f"{self.url_base}?"
-                + f"sessionID={self.sessionID}&"
-                + f"coating={self.coating}&"
-                + f"seeing={self.seeing:1.2f}&"
-                + f"airmass={self.airmass:1.1f}&"
-                + f"skymag={self.skymag:2.1f}&"
-                + f"spectro={self.spec_mode}&"
-                + f"fibdiam={self.fibdiam}&"
-                + f"spatbin={self.spatbin}&"
-                + f"specbin={self.specbin}&"
-                + f"meth={self.meth}&"
-                + f"etime={self.exptime}&"
-                + f"snr={self.snr_value}&"
-                + f"src_type={self.src_type}&"
-                + f"tgtmag={self.mag:2.1f}&"
-                + f"redshift={self.redshift}&"
-                + f"band={self.filter}&"
-                + f"template={self.template}"
-            )
-            response = requests.post(url)
-            # Parse HTML response
-            r = response.text.split("docs_json = '")[1].split("';")[0]
-            model = json.loads(r)
-            key = list(model.keys())[0]
-            model_dict = model[key]
-            model_pass1 = [
-                _
-                for _ in model_dict["roots"]["references"]
-                if "data" in _["attributes"].keys()
-            ]
-            model_pass2 = [
-                _ for _ in model_pass1 if "__ndarray__" in _["attributes"]["data"]["x"]
-            ]
-            x = {}
-            y = {}
-            for i, tmp in enumerate(model_pass2):
-                x_str = tmp["attributes"]["data"]["x"]
-                x[i] = decode_base64_dict(x_str)
-                y_str = tmp["attributes"]["data"]["y"]
-                y[i] = decode_base64_dict(y_str)
-            # Sort Arrays
-            order = np.argsort([array[0] for i, array in x.items()])
-            x = {i: x[j] for i, j in enumerate(order)}
-            y = {i: y[j] for i, j in enumerate(order)}
-            x = {i: x[2 * i] for i in range(int(len(x) / 2))}
-            if smoothed:
-                y = {
-                    i: (
-                        y[2 * i]
-                        if (np.mean(y[2 * i]) > np.mean(y[2 * i + 1]))
-                        else y[2 * i + 1]
-                    )
-                    for i in range(int(len(y) / 2))
-                }
-            else:
-                y = {
-                    i: (
-                        y[2 * i]
-                        if (np.mean(y[2 * i]) < np.mean(y[2 * i + 1]))
-                        else y[2 * i + 1]
-                    )
-                    for i in range(int(len(y) / 2))
-                }
-            y[0] = y[0][x[0] < x[1].min()]
-            x[0] = x[0][x[0] < x[1].min()]
-            y[1] = y[1][x[1] < x[2].min()]
-            x[1] = x[1][x[1] < x[2].min()]
-            y[2] = y[2][x[2] < x[3].min()]
-            x[2] = x[2][x[2] < x[3].min()]
-            filler_x = np.linspace(x[3].max(), x[4].min(), 100)
-            filler_y = np.zeros(100)
-            x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
-            y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
-            snr = np.vstack([x, y])
-            if type(wavelength) == np.ndarray:
-                snr_interpolator = interp1d(snr[0], snr[1])
-                return snr_interpolator(wavelength)
-            elif wavelength == "default":
-                return snr
-            else:
-                raise ValueError("Wavelength input not recognized")
+    def query_s2n(
+        self, wavelength="default", smoothed=False,
+    ):
+        url = (
+            f"{self.url_base}?"
+            + f"sessionID={self.sessionID}&"
+            + f"coating={self.coating}&"
+            + f"seeing={self.seeing:1.2f}&"
+            + f"airmass={self.airmass:1.1f}&"
+            + f"skymag={self.skymag:2.1f}&"
+            + f"spectro={self.spec_mode}&"
+            + f"fibdiam={self.fibdiam}&"
+            + f"spatbin={self.spatbin}&"
+            + f"specbin={self.specbin}&"
+            + f"meth={self.meth}&"
+            + f"etime={self.exptime}&"
+            + f"snr={self.snr_value}&"
+            + f"src_type={self.src_type}&"
+            + f"tgtmag={self.mag:2.1f}&"
+            + f"redshift={self.redshift}&"
+            + f"band={self.filter}&"
+            + f"template={self.template}"
+        )
+        response = requests.post(url)
+        # Parse HTML response
+        r = response.text.split("docs_json = '")[1].split("';")[0]
+        model = json.loads(r)
+        key = list(model.keys())[0]
+        model_dict = model[key]
+        model_pass1 = [
+            _
+            for _ in model_dict["roots"]["references"]
+            if "data" in _["attributes"].keys()
+        ]
+        model_pass2 = [
+            _ for _ in model_pass1 if "__ndarray__" in _["attributes"]["data"]["x"]
+        ]
+        x = {}
+        y = {}
+        for i, tmp in enumerate(model_pass2):
+            x_str = tmp["attributes"]["data"]["x"]
+            x[i] = decode_base64_dict(x_str)
+            y_str = tmp["attributes"]["data"]["y"]
+            y[i] = decode_base64_dict(y_str)
+        # Sort Arrays
+        order = np.argsort([array[0] for i, array in x.items()])
+        x = {i: x[j] for i, j in enumerate(order)}
+        y = {i: y[j] for i, j in enumerate(order)}
+        x = {i: x[2 * i] for i in range(int(len(x) / 2))}
+        if smoothed:
+            y = {
+                i: (
+                    y[2 * i]
+                    if (np.mean(y[2 * i]) > np.mean(y[2 * i + 1]))
+                    else y[2 * i + 1]
+                )
+                for i in range(int(len(y) / 2))
+            }
+        else:
+            y = {
+                i: (
+                    y[2 * i]
+                    if (np.mean(y[2 * i]) < np.mean(y[2 * i + 1]))
+                    else y[2 * i + 1]
+                )
+                for i in range(int(len(y) / 2))
+            }
+        y[0] = y[0][x[0] < x[1].min()]
+        x[0] = x[0][x[0] < x[1].min()]
+        y[1] = y[1][x[1] < x[2].min()]
+        x[1] = x[1][x[1] < x[2].min()]
+        y[2] = y[2][x[2] < x[3].min()]
+        x[2] = x[2][x[2] < x[3].min()]
+        filler_x = np.linspace(x[3].max(), x[4].min(), 100)
+        filler_y = np.zeros(100)
+        x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
+        y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
+        snr = np.vstack([x, y])
+        if type(wavelength) == np.ndarray:
+            snr_interpolator = interp1d(snr[0], snr[1])
+            return snr_interpolator(wavelength)
+        elif wavelength == "default":
+            return snr
+        else:
+            raise ValueError("Wavelength input not recognized")
 
 
 def calculate_fobos_snr(
