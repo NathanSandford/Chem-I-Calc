@@ -658,6 +658,30 @@ def calculate_fobos_snr(
     snr_units: str = "pixel",
     sky_err: float = 0.1,
 ):
+    """
+    This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/python/enyo/scripts/fobos_etc.py
+    :param spec_file:
+    :param spec_wave:
+    :param spec_wave_units:
+    :param spec_flux:
+    :param spec_flux_units:
+    :param spec_res_indx:
+    :param spec_res_value:
+    :param spec_table:
+    :param mag:
+    :param mag_band:
+    :param mag_system:
+    :param redshift:
+    :param emline:
+    :param sersic:
+    :param uniform:
+    :param time:
+    :param fwhm:
+    :param airmass:
+    :param snr_units:
+    :param sky_err:
+    :return:
+    """
     if sky_err < 0 or sky_err > 1:
         raise ValueError("--sky_err option must provide a value between 0 and 1.")
     # Constants:
