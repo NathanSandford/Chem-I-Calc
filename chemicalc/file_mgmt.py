@@ -87,7 +87,7 @@ def download_all_files(overwrite: bool = True) -> None:
     if ref_label_file.exists() and not overwrite:
         print(f"{ref_label_file} exists")
     else:
-        print(f"Downloading {ref_label_file}.h5")
+        print(f"Downloading {ref_label_file}")
         download_package_files(id=precomputed_label_id, destination=ref_label_file)
 
     for res in precomputed_res:
