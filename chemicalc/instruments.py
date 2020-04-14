@@ -342,6 +342,11 @@ class AllInstruments:
             "NIRSpec G140H/F100LP": MiscInstrument(
                 "NIRSpec G140H/F100LP", res=2700, samp=sampX, start=9700, end=17999
             ),
+            # # # Subaru # # #
+            "PFS (b)": MiscInstrument('PFS (b)', res=2300, samp=3, start=3800, end=6300),
+            "PFS (r, LR)": MiscInstrument('PFS (r, LR)', res=3000, samp=3, start=6300, end=9400),
+            "PFS (r, MR)": MiscInstrument('PFS (r, MR)', res=5000, samp=3, start=7100, end=8850),
+            "PFS (nir)": MiscInstrument('PFS (NIR)', res=4300, samp=3, start=9400, end=12600),
             # # # MSE # # #
             "MSE LR (b)": MiscInstrument(
                 "MSE LR (b)", res=3000, samp=sampX, start=3600, end=5400
@@ -381,6 +386,7 @@ class AllInstruments:
             "DESI (i)": MiscInstrument(
                 "DESI (i)", res=4500, samp=3, start=6560, end=9800
             ),
+            # # # Example Resolutions # # #
             "R100": MiscInstrument("R100", res=1e2, samp=sampX, start=3000, end=18000),
             "R1000": MiscInstrument(
                 "R1000", res=1e3, samp=sampX, start=3000, end=18000
