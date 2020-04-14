@@ -91,8 +91,7 @@ def download_all_files(overwrite: bool = True) -> None:
         download_package_files(id=precomputed_label_id, destination=ref_label_file)
 
     for res in precomputed_res:
-        resolution = precomputed_res[res]
-        reference_file = data_dir.joinpath(f"reference_spectra_{resolution:06}.h5")
+        reference_file = data_dir.joinpath(f"reference_spectra_{res:06}.h5")
         reference_id = precomputed_ref_id[res]
         if reference_file.exists() and not overwrite:
             print(f"{reference_file} exists")
