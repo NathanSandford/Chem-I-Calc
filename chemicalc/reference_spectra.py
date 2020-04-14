@@ -28,8 +28,8 @@ class ReferenceSpectra:
         self,
         reference: str,
         init_res: float = precomputed_res[0],
-        scale_by_iron: bool = True,
-        alpha_included: bool = False,
+        scale_by_iron: bool = False,
+        alpha_included: bool = True,
         **kwargs,
     ) -> None:
         """
