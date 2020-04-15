@@ -346,7 +346,7 @@ class AllInstruments:
             "PFS (b)": MiscInstrument('PFS (b)', res=2300, samp=3, start=3800, end=6300),
             "PFS (r, LR)": MiscInstrument('PFS (r, LR)', res=3000, samp=3, start=6300, end=9400),
             "PFS (r, MR)": MiscInstrument('PFS (r, MR)', res=5000, samp=3, start=7100, end=8850),
-            "PFS (nir)": MiscInstrument('PFS (NIR)', res=4300, samp=3, start=9400, end=12600),
+            "PFS (nir)": MiscInstrument('PFS (nir)', res=4300, samp=3, start=9400, end=12600),
             # # # MSE # # #
             "MSE LR (b)": MiscInstrument(
                 "MSE LR (b)", res=3000, samp=sampX, start=3600, end=5400
