@@ -1,0 +1,90 @@
+{
+"Keck": {
+  "DEIMOS 1200G": {"name": "DEIMOS 1200G", "res": 6500, "samp": 4, "start": 6500, "end": 9000},
+  "DEIMOS 600ZD": {"name": "DEIMOS 600ZD", "res": 2100, "samp": 5, "start": 4000, "end": 9100},
+  "DEIMOS 900ZD": {"name": "DEIMOS 900ZD", "res": 2600, "samp": 5, "start": 4000, "end": 7500},
+  "DEIMOS 1200B": {"name": "DEIMOS 1200B", "res": 4000, "samp": 4, "start": 4000, "end": 6600},
+  "LRIS 600/4000 (b)": {"name": "LRIS 600/4000 (b)", "res": 1800, "samp": 4, "start": 3900, "end": 5500},
+  "LRIS 1200/7500 (r)": {"name": "LRIS 1200/7500 (r)", "res": 4000, "samp": 5, "start": 7700, "end": 9000},
+  "HIRESr 1.0\"": {"name": "HIRESr 1.0\"", "res": 35000, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 0.8\"": {"name": "HIRESr 0.8\"", "res": 49000, "samp": 3, "start": 3900, "end": 8350},
+  "FOBOS": {"name": "FOBOS", "res": 3500, "samp": 0, "start": 3100, "end": 10000}
+},
+
+"Magellan": {
+  "MIKE 1\" (r)": {"name": "MIKE 1\" (r)", "res": 22000, "samp": 3, "start": 5000, "end": 10000},
+  "MIKE 1\" (b)": {"name": "MIKE 1\" (b)", "res": 28000, "samp": 4, "start": 3500, "end": 50000},
+  "M2FS MedRes": {"name": "M2FS MedRes", "res": 10000, "samp": 0, "start": 5100, "end": 5315},
+  "M2FS HiRes": {"name": "M2FS HiRes", "res": 18000, "samp": 0, "start": 5130, "end": 5185}
+},
+
+"MMT": {
+  "Hectochelle": {"name": "Hectochelle", "res": 20000, "samp": 6, "start": 5160, "end": 5280},
+  "Hectospec 270": {"name": "Hectospec 270", "res": 1500, "samp": 5, "start": 3900, "end": 9200},
+  "Hectospec 600": {"name": "Hectospec 600", "res": 5000, "samp": 5, "start": 5300, "end": 7800},
+  "Binospec 270": {"name": "Binospec 270", "res": 1300, "samp": 4, "start": 3900, "end": 9200},
+  "Binospec 600a": {"name": "Binospec 600a", "res": 2700, "samp": 3, "start": 4500, "end": 7000},
+  "Binospec 600b": {"name": "Binospec 600b", "res": 3600, "samp": 3, "start": 6000, "end": 8500},
+  "Binospec 600c": {"name": "Binospec 600c", "res": 4400, "samp": 3, "start": 7250, "end": 9750},
+  "Binospec 1000": {"name": "Binospec 1000", "res": 3900, "samp": 3, "start": 3900, "end": 5400}
+},
+
+"VLT": {
+  "MUSE (nominal)": {"name": "MUSE (nominal)", "res": 2500, "samp": 0, "start": 4800, "end": 9300},
+  "MUSE (extended)": {"name": "MUSE (extended)", "res": 2500, "samp": 0, "start": 4650, "end": 9300},
+  "XSHOOTER (UVB)": {"name": "XSHOOTER (UVB)", "res": 6700, "samp": 5, "start": 3000, "end": 5500},
+  "XSHOOTER (VIS)": {"name": "XSHOOTER (VIS)", "res": 11400, "samp": 4, "start": 5500, "end": 10200},
+  "XSHOOTER (NIR)": {"name": "XSHOOTER (NIR)", "res": 5600, "samp": 4, "start": 10200, "end": 18000},
+  "GIRAFFE LR8": {"name": "GIRAFFE LR8", "res": 6500, "samp": 0, "start": 8200, "end": 9400},
+  "GIRAFFE HR10": {"name": "GIRAFFE HR10", "res": 19800, "samp": 0, "start": 5340, "end": 5620},
+  "GIRAFFE HR13": {"name": "GIRAFFE HR13", "res": 22500, "samp": 0, "start": 6120, "end": 6400},
+  "GIRAFFE HR14A": {"name": "GIRAFFE HR14A", "res": 28800, "samp": 0, "start": 6400, "end": 6620},
+  "GIRAFFE HR15": {"name": "GIRAFFE HR15", "res": 19300, "samp": 0, "start": 6620, "end": 6960},
+  "BlueMUSE": {"name": "BlueMUSE", "res": 4000, "samp": 0, "start": 3500, "end": 6000}
+},
+
+"LBT": {
+  "MODS (b)": {"name": "MODS (b)", "res": 1850, "samp": 4, "start": 3200, "end": 5500},
+  "MODS (r)": {"name": "MODS (r)", "res": 2300, "samp": 4, "start": 5500, "end": 10500}
+},
+
+"Subaru": {
+  "PFS (b)": {"name": "PFS (b)", "res": 2300, "samp": 3, "start": 3800, "end": 6300},
+  "PFS (r, LR)": {"name": "PFS (r, LR)", "res": 3000, "samp": 3, "start": 6300, "end": 9400},
+  "PFS (r, MR)": {"name": "PFS (b, MR)", "res": 5000, "samp": 3, "start": 7100, "end": 8850},
+  "PFS (nir)": {"name": "PFS (nir)", "res": 4300, "samp": 3, "start": 9400, "end": 12600}
+},
+
+"Misc Surveys": {
+  "LAMOST": {"name": "LAMOST", "res": 2000, "samp": 0, "start": 3900, "end": 9000},
+  "WEAVE": {"name": "WEAVE", "res": 6000, "samp": 0, "start": 3700, "end": 10000},
+  "RAVE": {"name": "RAVE", "res": 8000, "samp": 0, "start": 8400, "end": 8800}
+},
+
+"DESI": {
+  "DESI (b)": {"name": "DESI (b)", "res": 2500, "samp": 3, "start": 3600, "end": 5550},
+  "DESI (r)": {"name": "DESI (r)", "res": 3500, "samp": 3, "start": 5550, "end": 6560},
+  "DESI (i)": {"name": "DESI (i)", "res": 4500, "samp": 3, "start": 6560, "end": 9800}
+},
+
+"JWST": {
+  "NIRSpec G140M/F070LP": {"name": "NIRSpec G140M/F070LP", "res": 1000, "samp": 0, "start": 7000, "end": 12700},
+  "NIRSpec G140M/F100LP": {"name": "NIRSpec G140M/F100LP", "res": 1000, "samp": 0, "start": 9700, "end": 18000},
+  "NIRSpec G140H/F070LP": {"name": "NIRSpec G140H/F070LP", "res": 2700, "samp": 0, "start": 7000, "end": 12700},
+  "NIRSpec G140H/F100LP": {"name": "NIRSpec G140H/F100LP", "res": 2700, "samp": 0, "start": 9700, "end": 18000}
+},
+
+"MSE": {
+  "MSE LR (b)": {"name": "MSE LR (b)", "res": 3000, "samp": 0, "start": 3600, "end": 5400},
+  "MSE LR (g)": {"name": "MSE LR (g)", "res": 3000, "samp": 0, "start": 5400, "end": 7200},
+  "MSE LR (r)": {"name": "MSE LR (r)", "res": 3000, "samp": 0, "start": 7200, "end": 9500},
+  "MSE LR (nir)": {"name": "MSE LR (nir)", "res": 3000, "samp": 0, "start": 9500, "end": 13000},
+  "MSE MR (b)": {"name": "MSE MR (b)", "res": 5000, "samp": 0, "start": 3900, "end": 5000},
+  "MSE MR (g)": {"name": "MSE MR (g)", "res": 5000, "samp": 0, "start": 5750, "end": 6900},
+  "MSE MR (r)": {"name": "MSE MR (r)", "res": 5000, "samp": 0, "start": 7370, "end": 9000}
+},
+
+  "R100": {"name": "R100", "res": 1e2, "samp": 0, "start": 3000, "end": 18000},
+  "R1000": {"name": "R1000", "res": 1e3, "samp": 0, "start": 3000, "end": 18000},
+  "R10000": {"name": "R10000", "res": 1e4, "samp": 0, "start": 3000, "end": 18000}
+}
