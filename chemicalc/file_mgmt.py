@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 data_dir: Path = Path(os.path.dirname(__file__)).joinpath("data")
 data_dir.mkdir(exist_ok=True)
+inst_file = data_dir.joinpath('instruments.json')
 ref_label_file = data_dir.joinpath("reference_labels.h5")
 
 precomputed_res: List = [300000]
