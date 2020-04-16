@@ -84,7 +84,9 @@
   "MSE MR (r)": {"name": "MSE MR (r)", "res": 5000, "samp": 0, "start": 7370, "end": 9000}
 },
 
+"Examples": {
   "R100": {"name": "R100", "res": 1e2, "samp": 0, "start": 3000, "end": 18000},
   "R1000": {"name": "R1000", "res": 1e3, "samp": 0, "start": 3000, "end": 18000},
   "R10000": {"name": "R10000", "res": 1e4, "samp": 0, "start": 3000, "end": 18000}
+}
 }
