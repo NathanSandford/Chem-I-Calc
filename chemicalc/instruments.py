@@ -126,7 +126,7 @@ class InstConfig:
             print(
                 f"{self.name}\n"
                 + f"Custom Wavelength w/\n"
-                + f"({self.wave[0]} < lambda (A) < {self.self.wave[-1]})\n"
+                + f"({self.wave[0]} < lambda (A) < {self.wave[-1]})\n"
                 + f"R ~ {self.R_res}\n"
             )
 
