@@ -10,7 +10,7 @@ def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
     """
     Initialized CRLB dataframe with indices corresponding to all the labels included
 
-    :param ReferenceSpectra reference: reference star object
+    :param ReferenceSpectra reference: Reference star object (used to identify stellar labels)
     :return pd.DataFrame: Empty CRLB dataframe
     """
     if not isinstance(reference, ReferenceSpectra):
@@ -29,12 +29,12 @@ def calc_crlb(
     chunk_size: int = 10000,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
     """
-    Calculates the CRLB and FIM
+    Calculates the Fisher Information Matrix and Cramer-Rao Lower Bound from spectral gradients
 
-    :param ReferenceSpectra reference: reference star object
+    :param ReferenceSpectra reference: Reference star object
     :param Union[InstConfig,List[InstConfig]] instruments: instrument object or list of instrument objects
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
-    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
+    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements (see chemicalc.reference_spectra.alpha_el)
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
     :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs. If output_fisher=True, also returns FIM
@@ -46,7 +46,7 @@ def calc_crlb(
     if not isinstance(instruments, list):
         instruments = [instruments]
     if chunk_size < 1000:
-        warn(f"chunk_size of {chunk_size} seems a little small...", UserWarning)
+        warn(f"chunk_size of {chunk_size} seems a little small...This may lead to numerical errors", UserWarning)
     grad_list = []
     snr_list = []
     for instrument in instruments:
@@ -129,7 +129,8 @@ def sort_crlb(
 
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
-    :param str sort_by: Name of dataframe column to sort labels by. Default uses the column with the most labels below the cutoff
+    :param str sort_by: Name of dataframe column to sort labels by. Default uses the column with the most labels recovered below the cutoff
+    :param bool fancy_labels: Replaces Teff, logg, and v_micro with math-formatted labels (for plotting).
     :return pd.DataFrame: Sorted CRLB dataframe
     """
     if not isinstance(crlb, pd.DataFrame):
