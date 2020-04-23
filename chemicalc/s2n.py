@@ -14,6 +14,7 @@ from enyo.scripts.fobos_etc import (
     get_wavelength_vector,
     read_emission_line_database,
     get_spectrum,
+    get_sky_spectrum,
     get_source_distribution,
 )
 
@@ -649,6 +650,9 @@ def calculate_fobos_snr(
     mag: float = 24.0,
     mag_band: str = "g",
     mag_system: str = "AB",
+    sky_mag: Optional[float] = None,
+    sky_mag_band: str = 'g',
+    sky_mag_system: str = 'AB',
     redshift: float = 0.0,
     emline: Optional[str] = None,
     sersic: Optional[Tuple[float, float, float, float]] = None,
@@ -724,7 +728,7 @@ def calculate_fobos_snr(
     # Get the source distribution.  If the source is uniform, onsky is None.
     onsky = get_source_distribution(fwhm, uniform, sersic)
     # Get the sky spectrum
-    sky_spectrum = spectrum.MaunakeaSkySpectrum()
+    sky_spectrum = get_sky_spectrum(sky_mag, mag_band=sky_mag_band, mag_system=sky_mag_system)
     # Get the atmospheric throughput
     atmospheric_throughput = efficiency.AtmosphericThroughput(airmass=airmass)
     # Set the telescope. Defines the aperture area and throughput
