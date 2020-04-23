@@ -644,6 +644,7 @@ def calculate_fobos_snr(
     spec_wave_units: str = "angstrom",
     spec_flux: Union[str, float] = "FLUX",
     spec_flux_units: Optional[str] = None,
+    spot_fwhm: float = 5.8,
     spec_res_indx: Optional[Union[str, float]] = None,
     spec_res_value: Optional[float] = None,
     spec_table: Optional[Union[str, float]] = None,
@@ -698,13 +699,14 @@ def calculate_fobos_snr(
     dark = 0.0  # Detector dark-current (e-/s)
     # Temporary numbers that assume a given spectrograph PSF and LSF.
     # Assume 3 pixels per spectral and spatial FWHM.
-    spatial_fwhm = 3.0
-    spectral_fwhm = 3.0
+    spatial_fwhm = spot_fwhm
+    spectral_fwhm = spot_fwhm
     # Get source spectrum in 1e-17 erg/s/cm^2/angstrom. Currently, the
     # source spectrum is assumed to be
     #   - normalized by the total integral of the source flux
     #   - independent of position within the source
-    wavelengths = [3100, 10000, 4e-5]
+    dw = 1 / spectral_fwhm / resolution / np.log(10)
+    wavelengths = [3100, 10000, dw]
     wave = get_wavelength_vector(wavelengths[0], wavelengths[1], wavelengths[2])
     emline_db = None if emline is None else read_emission_line_database(emline)
     spec = get_spectrum(
