@@ -1,6 +1,7 @@
 from typing import List, Tuple, Optional, Union
 import numpy as np
 import pandas as pd
+from chemicalc.reference_spectra import ReferenceSpectra
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import StrMethodFormatter
@@ -82,7 +83,7 @@ def plotly_crlb(crlb):
 
 
 def plot_gradients(
-    star,
+    star: ReferenceSpectra,
     inst_name: str,
     labels: List[str],
     panel_height: float = 3,
@@ -101,10 +102,11 @@ def plot_gradients(
     ylabel_size: float = 26,
     ylabel_pad: float = 10,
     include_spec: bool = True,
-):
+) -> plt.figure:
     """
+    Plot gradients of a spectrum with respect to its stellar labels.
 
-    :param chemicalc.reference_spectra.ReferenceSpectra star: Reference star object
+    :param ReferenceSpectra star: Reference star object
     :param str inst_name: Instrument name
     :param List[str] labels: List of labels
     :param float panel_height: Height of each subplot
@@ -123,22 +125,19 @@ def plot_gradients(
     :param float ylabel_size: Fontsize of y-axis labels
     :param float ylabel_pad: Pad between placeholder y-axis label and y-axis when using inset_ylabel
     :param bool include_spec: Include spectrum in top panel
-    :return:
+    :return plt.figure: Matplotlib figure
     """
     nlabels = len(labels)
     if include_spec:
         nfigures = nlabels + 1
     else:
         nfigures = nlabels
-
     wave = star.wavelength[inst_name]
     if xlim is None:
         xlim = (np.min(wave), np.max(wave))
-
     fig = plt.figure(figsize=(panel_width, panel_height * nfigures))
     gs = GridSpec(nfigures, 1)
     gs.update(hspace=0.0)
-
     i = 0
     if include_spec:  # Plot spectrum in top panel
         ax = plt.subplot(gs[0, 0])
@@ -151,7 +150,6 @@ def plot_gradients(
             ax.set_yticks(yticks_spec)
         ax.tick_params(axis="y", labelsize=ytick_size)
         i += 1
-
     for label in labels:  # Plot gradients in individual panels
         ax = plt.subplot(gs[i, 0])
         ax.plot(star.gradients[inst_name].loc[label], c="k", lw=1)
@@ -187,13 +185,12 @@ def plot_gradients(
             ax.set_xlabel(r"Wavelength ($\AA$)", size=xlabel_size)
         else:
             ax.tick_params(axis="x", labelsize=0)
-
     plt.tight_layout()
     return fig
 
 
 def plot_crlb(
-    crlb_list,
+    crlb_list: Union[pd.DataFrame, List[pd.DataFrame]],
     cutoff: float = 0.3,
     labels: Union[str, List[str]] = None,
     label_loc: Tuple[float, float] = (0.98, 0.95),
@@ -207,24 +204,25 @@ def plot_crlb(
     legend_loc: str = "lower right",
     reverse_legend: bool = False,
     color_palette: str = "plasma",
-):
+) -> plt.figure:
     """
+    Plots standard presentation of CRLBs
 
-    :param crlb_list: CRLB dataframe or list of CRLB dataframes
-    :param cutoff: Cutoff precision for abundances
-    :param labels: List of additional text to include in each panel
-    :param label_loc: Location of additional text box
-    :param panel_height: Height of each subplot
-    :param panel_width: Width of each subplot
-    :param cutoff_label_xoffset: Relative x position of cutoff label (increases to the left)
-    :param cutoff_label_yoffset: Relative y position of cutoff label
-    :param ylim: Bound on y-axis
-    :param yticks: Manual y-axis ticks
-    :param legend_ncol: Number of legend columns
-    :param legend_loc: Location of legend (standard matplotlib inputs)
-    :param reverse_legend: Reverse order of legend items
-    :param color_palette: Color palette of lines and markers
-    :return:
+    :param Union[pd.DataFrame,List[pd.DataFrame]] crlb_list: CRLB dataframe or list of CRLB dataframes
+    :param float cutoff: Cutoff precision for abundances
+    :param Union[str,List[str]] labels: List of additional text to include in each panel. Must be same length as the number of CRLB dataframes
+    :param Tuple[float,float] label_loc: Location of additional text box
+    :param float panel_height: Height of each subplot
+    :param float panel_width: Width of each subplot
+    :param float cutoff_label_xoffset: Relative x position of cutoff label (increases to the left)
+    :param float cutoff_label_yoffset: Relative y position of cutoff label
+    :param Optional[Tuple[float,float]] ylim: Bound on y-axis
+    :param Optional[List[float]] yticks: Manual y-axis ticks. Helpful when log-spacing yields only one tick on the y-axis.
+    :param int legend_ncol: Number of legend columns
+    :param str legend_loc: Location of legend (standard matplotlib inputs)
+    :param bool reverse_legend: Reverse order of legend items
+    :param str color_palette: Color palette of lines and markers (standard matplotlib selection)
+    :return plt.figure: Matplotlib figure
     """
     if type(crlb_list) is not list:
         crlb_list = [crlb_list]
@@ -333,8 +331,8 @@ def plot_crlb(
 
 
 def overplot_crlb(
-    crlb_list,
-    names,
+    crlb_list: List[pd.DataFrame],
+    names: List[str],
     cutoff: float = 0.3,
     labels: Union[str, List[str]] = None,
     label_loc: Tuple[float, float] = (0.98, 0.95),
@@ -350,11 +348,11 @@ def overplot_crlb(
     legend2_loc: Tuple[float, float] = (1, 0.425),
     reverse_legend2=False,
     color_palette: str = "plasma",
-):
+) -> plt.figure:
     """
 
-    :param crlb_list: CRLB dataframe or list of CRLB dataframes
-    :param names: Labels to show in second legend
+    :param List[pd.DataFrame] crlb_list: List of CRLB dataframes
+    :param List[str] names: Labels to show in second legend
     :param cutoff: Cutoff precision for abundances
     :param labels: List of additional text to include in each panel
     :param label_loc: Location of additional text box
@@ -371,16 +369,12 @@ def overplot_crlb(
     :param legend2_loc: Location of legend for second legend (axis coords)
     :param reverse_legend2: Reverse order of legend items for second legend
     :param color_palette: Color palette of lines and markers
-    :return:
+    :return plt.figure: Matplotlib figure
     """
-    if type(crlb_list) is not list:
-        crlb_list = [crlb_list]
-
     # Determin CRLBs with most labels
     lead_crlb = np.argmax([len(crlb.index) for crlb in crlb_list])
     all_labs = crlb_list[lead_crlb].index
     nlabs = all_labs.shape[0]
-
     # Initialize Figure
     fig = plt.figure(figsize=(panel_width, panel_height))
     gs = GridSpec(1, 1)
@@ -389,7 +383,6 @@ def overplot_crlb(
     c = plt.cm.get_cmap(color_palette, np.max([crlb.shape[1] for crlb in crlb_list]))
     lines = ["-", "--", ":", "-."]
     markers = ["s", "o"]
-
     # Iterate through panels
     for i, crlb in enumerate(crlb_list):
         labs = crlb.index
@@ -421,7 +414,6 @@ def overplot_crlb(
         y=cutoff + cutoff_label_yoffset,
         fontsize=12,
     )
-
     # Axes
     ax.set_ylabel(r"$\sigma$[X/H]", size=16)
     ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
@@ -481,7 +473,7 @@ def overplot_crlb(
 
 
 def gridplot_crlb(
-    crlb,
+    crlb: pd.DataFrame,
     xlabel: str,
     figsize: Tuple[float, float] = (8, 9),
     label_fontsize: float = 20,
@@ -491,13 +483,13 @@ def gridplot_crlb(
 ):
     """
 
-    :param crlb: CRLB DataFrame
-    :param xlabel: X-axis Label
-    :param figsize: X- and y-dimensions of figure
-    :param label_fontsize: Fontsize of x- and y-axis labels
-    :param tick_fontsize: Fontsize of x- and y-axis tick labels
-    :param xtick_rotation: Rotation of x-axis tick labels
-    :param color_palette: Color palette of figure
+    :param pd.DataFrame crlb: CRLB DataFrame
+    :param str xlabel: X-axis Label
+    :param Tuple[float,float] figsize: X- and y-dimensions of figure
+    :param float label_fontsize: Fontsize of x- and y-axis labels
+    :param float tick_fontsize: Fontsize of x- and y-axis tick labels
+    :param float xtick_rotation: Rotation of x-axis tick labels
+    :param str color_palette: Color palette of figure
     :return:
     """
     # Initialize Figure
