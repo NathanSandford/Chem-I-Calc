@@ -49,10 +49,10 @@
 },
 
 "Subaru": {
-  "PFS (b)": {"name": "PFS (b)", "res": 2300, "samp": 3, "start": 3800, "end": 6300},
-  "PFS (r, LR)": {"name": "PFS (r, LR)", "res": 3000, "samp": 3, "start": 6300, "end": 9400},
-  "PFS (r, MR)": {"name": "PFS (b, MR)", "res": 5000, "samp": 3, "start": 7100, "end": 8850},
-  "PFS (nir)": {"name": "PFS (nir)", "res": 4300, "samp": 3, "start": 9400, "end": 12600}
+  "PFS (b)": {"name": "PFS (b)", "res": 2300, "samp": 4, "start": 3800, "end": 6300},
+  "PFS (r, LR)": {"name": "PFS (r, LR)", "res": 3000, "samp": 4, "start": 6300, "end": 9400},
+  "PFS (r, MR)": {"name": "PFS (b, MR)", "res": 5000, "samp": 4, "start": 7100, "end": 8850},
+  "PFS (nir)": {"name": "PFS (nir)", "res": 4300, "samp": 4, "start": 9400, "end": 12600}
 },
 
 "Misc Surveys": {
