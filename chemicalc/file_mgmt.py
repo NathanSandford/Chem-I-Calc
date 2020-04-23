@@ -48,7 +48,7 @@ def check_spec_format(specfile: str) -> None:
 
 def download_package_files(id: str, destination: Union[str, Path]) -> None:
     """
-    Download large file from Google Drive
+    Generic function to download large file from Google Drive
 
     :param str id: Google Drive file ID
     :param Union[str,Path] destination: Path to download location
@@ -80,7 +80,7 @@ def download_package_files(id: str, destination: Union[str, Path]) -> None:
 
 def download_all_files(overwrite: bool = True) -> None:
     """
-    Downloads all external files
+    Downloads all external files: Label File, Normalized Spectra File(s)
 
     :param bool overwrite: Overwrite existing files
     :return:
