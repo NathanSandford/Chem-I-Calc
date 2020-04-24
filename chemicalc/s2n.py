@@ -7,7 +7,7 @@ import mechanicalsoup
 import requests
 import json
 from chemicalc.utils import decode_base64_dict
-from chemicalc.file_mgmt import data_dir
+from chemicalc.file_mgmt import etc_file_dir
 
 
 keck_options = {
@@ -87,7 +87,6 @@ mse_options = {
         "PN",
     ],
 }
-etc_file_dir = data_dir.joinpath("etc_files")
 
 
 class Sig2NoiseWMKO:
