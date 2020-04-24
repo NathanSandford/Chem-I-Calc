@@ -126,6 +126,14 @@ To use chemicalc.s2n.calculate_fobos_snr() the fobos-enyo package must be instal
     cd enyo
     python setup.py develop
 
+To update:
+
+.. code-block:: bash
+
+    cd <path_to_installation>/enyo
+    git pull
+    python setup.py develop
+
 PFS ETC
 +++++++
 
@@ -139,3 +147,23 @@ To install:
     cd enyo
     python setup.py develop
 
+To update:
+
+.. code-block:: bash
+
+    cd <path_to_installation>/spt_ExposureTimeCalculator
+    git pull
+    python setup.py develop
+
+(Blue)MUSE ETC
+++++++++++++++
+
+The function chemicalc.s2n.calculate_muse_snr() is adapted from the calculation presented
+`here <https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/blob/master/BlueMUSE-ETC.py>`_ by Johan Richard.
+While the function is self-contained in Chem-I-Calc, it does require several small external files,
+which can be downloaded from the BlueMUSE-ETC with chemicalc.file_mgmt.download_bluemuse_files() as follows:
+
+.. code-block:: python
+
+    from chemicalc.file_mgmt import download_bluemuse_files
+    download_bluemuse_files()
