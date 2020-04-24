@@ -30,6 +30,7 @@ The source code for Chem-I-Calc can be downloaded from GitHub and installed by r
 
 .. code-block:: bash
 
+    cd <path_to_installation>
     git clone https://github.com/nathansandford/Chem-I-Calc.git
     cd Chem-I-Calc
     python setup.py develop
@@ -97,3 +98,44 @@ If you are unsure what the full path to the directory is, you can check with the
 
     from chemicalc.file_mgmt import data_dir
     print(data_dir)
+
+
+Optional Dependencies
+---------------------
+
+While some spectrographs have online exposure time calculators (ETCs) that can be queeried by Chem-I-Calc,
+others have ETCs in the form of GitHub code repositories. To simplify the installation of Chem-I-Calc,
+we do not include these repositories as dependencies. However, to ease the integration of those ETC's with Chem-I-Calc,
+we have written several convenience functions into chemicalc.s2n. To use these functions, you will need to install the
+relevant repositories following the instructions below.
+
+.. warning:: Many of these repositories are undergoing constant revision so we recommend making sure that you have
+the most recent version installed before making important calculations. If a ETC code-base changes sufficiently that it
+breaks the Chem-I-Calc interface with them, please raise an issue on the
+`Chem-I-Calc GitHub <https://github.com/NathanSandford/Chem-I-Calc>`_.
+
+FOBOS ETC (enyo)
+++++++++++++++++
+
+To use chemicalc.s2n.calculate_fobos_snr() the fobos-enyo package must be installed as follows:
+
+.. code-block:: bash
+
+    cd <path_to_installation>
+    git clone https://github.com/Keck-FOBOS/enyo
+    cd enyo
+    python setup.py develop
+
+PFS ETC
++++++++
+
+No convenience functions have been writted for the PFS ETC, but it was used for Sandford et al. (in prep).
+To install:
+
+.. code-block:: bash
+
+    cd <path_to_installation>
+    git clone https://github.com/Subaru-PFS/spt_ExposureTimeCalculator
+    cd enyo
+    python setup.py develop
+
