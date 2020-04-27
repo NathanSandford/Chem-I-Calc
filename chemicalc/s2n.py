@@ -446,16 +446,15 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
         log_S_blue = (
             log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
         )
-        S_red = 10 ** log_S_red * slit_loss_factor
-        S_blue = 10 ** log_S_blue * slit_loss_factor
+        S_red = 10 ** log_S_red * slit_loss_factor * A_per_pix_red
+        S_blue = 10 ** log_S_blue * slit_loss_factor * A_per_pix_blue
         snr_red = (
-            g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2) * A_per_pix_red
+            g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
         )
         snr_blue = (
             g_blue
             * S_blue
             / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
-            * A_per_pix_blue
         )
         snr = np.max([snr_red, snr_blue], axis=0)
     elif mode == "direct":
@@ -469,12 +468,11 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
             log_S_red = (
                 log_S_0_r(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
             )
-            S_red = 10 ** log_S_red * slit_loss_factor
+            S_red = 10 ** log_S_red * slit_loss_factor * A_per_pix_red
             snr = (
                 g_red
                 * S_red
                 / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
-                * A_per_pix_red
             )
         elif side == "blue":
             log_S_0_b = interp1d(
@@ -486,12 +484,11 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
             log_S_blue = (
                 log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
             )
-            S_blue = 10 ** log_S_blue * slit_loss_factor
+            S_blue = 10 ** log_S_blue * slit_loss_factor * A_per_pix_blue
             snr = (
                 g_blue
                 * S_blue
                 / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
-                * A_per_pix_blue
             )
     return np.array([wave, snr])
 
