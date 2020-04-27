@@ -13,6 +13,21 @@ sampX: float = 3  # Placeholder for Unknown Wavelength Sampling
 
 
 class InstConfig:
+    """
+    Object containing Instrument configuration.
+
+    :param str name: Name of the instrument configuration
+    :param float res: Resolving power (:math:`\\lambda/d\\lambda`)
+    :param float samp: Pixels per Resolution element
+    :param float start: Beginning wavelength in Angstroms
+    :param end: Ending wavelength in Angstroms
+    :param truncate: If true, discards any pixels with wavelengths > ending wavelength
+
+    Attributes:
+        _custom_wave (bool): True if Instrument's wavelength has been manually set
+        wave (np.ndarray): Instrument's wavelength grid
+        snr (Optional[Union[float, np.ndarray]]): Signal/Noise of observation. Initially None.
+    """
     def __init__(
         self,
         name: str,
@@ -34,15 +49,15 @@ class InstConfig:
             self.R_samp,
             truncate=truncate,
         )
-        self.custom_wave = False
-        self.snr = 100 * np.ones_like(self.wave)
+        self._custom_wave = False
+        self.snr = None
 
     def set_custom_wave(self, wave: np.ndarray, update_config: bool = True) -> None:
         """
         Sets instrument wavelength array to input array
 
         :param np.ndarray wave: Array of wavelengths
-        :param bool update_config: update instrument's beginning and ending wavelength config
+        :param bool update_config: Update instrument's start_wavelength and end_wavelength attributes
         :return:
         """
         self.wave = wave
@@ -50,7 +65,7 @@ class InstConfig:
             self.start_wavelength = self.wave[0]
             self.end_wavelength = self.wave[-1]
             self.R_samp = np.nan
-        self.custom_wave = True
+        self._custom_wave = True
 
     def reset_wave(self, truncate: bool = False) -> None:
         """
@@ -69,11 +84,11 @@ class InstConfig:
             self.R_samp,
             truncate=truncate,
         )
-        self.custom_wave = False
+        self._custom_wave = False
 
     def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO]) -> None:
         """
-        Sets S/N for instrument
+        Sets S/N for instrument configuration
 
         :param snr_input: Signal-to-Noise Ratio
         :return:
@@ -115,7 +130,7 @@ class InstConfig:
 
         :return:
         """
-        if self.custom_wave == False:
+        if self._custom_wave == False:
             print(
                 f"{self.name}\n"
                 + f"{self.start_wavelength} < lambda (A) < {self.end_wavelength}\n"
@@ -131,10 +146,20 @@ class InstConfig:
             )
 
     def __len__(self) -> int:
+        """
+        :return int: length of wavelength array
+        """
         return len(self.wave)
 
 
 class AllInstruments:
+    """
+    Object containing all pre-defined instrument configurations.
+
+    Attributes:
+        spectrographs (dict[str, InstConfig]): Dictionary of instrument configurations
+
+    """
     def __init__(self) -> None:
         with open(inst_file) as f:
             all_inst_dict = json.load(f)
