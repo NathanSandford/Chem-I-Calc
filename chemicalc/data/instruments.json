@@ -13,7 +13,7 @@
 
 "Magellan": {
   "MIKE 1\" (r)": {"name": "MIKE 1\" (r)", "res": 22000, "samp": 3, "start": 5000, "end": 10000},
-  "MIKE 1\" (b)": {"name": "MIKE 1\" (b)", "res": 28000, "samp": 4, "start": 3500, "end": 50000},
+  "MIKE 1\" (b)": {"name": "MIKE 1\" (b)", "res": 28000, "samp": 4, "start": 3500, "end": 5000},
   "M2FS MedRes": {"name": "M2FS MedRes", "res": 10000, "samp": 0, "start": 5100, "end": 5315},
   "M2FS HiRes": {"name": "M2FS HiRes", "res": 18000, "samp": 0, "start": 5130, "end": 5185}
 },
