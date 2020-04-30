@@ -117,7 +117,7 @@ def plot_gradients(
 
 def plot_crlb(
     crlb_list: Union[pd.DataFrame, List[pd.DataFrame]],
-    cutoff: float = 0.3,
+    cutoff: Optional[float] = None,
     labels: Union[str, List[str]] = None,
     label_loc: Tuple[float, float] = (0.98, 0.95),
     panel_height: float = 3,
@@ -135,7 +135,7 @@ def plot_crlb(
     Plots standard presentation of CRLBs
 
     :param Union[pd.DataFrame,List[pd.DataFrame]] crlb_list: CRLB dataframe or list of CRLB dataframes
-    :param float cutoff: Cutoff precision for abundances
+    :param Optional[float] cutoff: Cutoff precision for abundances
     :param Union[str,List[str]] labels: List of additional text to include in each panel. Must be same length as the number of CRLB dataframes
     :param Tuple[float,float] label_loc: Location of additional text box
     :param float panel_height: Height of each subplot
@@ -205,13 +205,14 @@ def plot_crlb(
                 label=col,
             )
         # Plot cutoff line
-        ax.axhline(cutoff, ls="--", lw=1, c="k")
-        plt.text(
-            s=f"{cutoff:01.1f} dex",
-            x=nlabs - cutoff_label_xoffset,
-            y=cutoff + cutoff_label_yoffset,
-            fontsize=12,
-        )
+        if cutoff:
+            ax.axhline(cutoff, ls="--", lw=1, c="k")
+            plt.text(
+                s=f"{cutoff:01.1f} dex",
+                x=nlabs - cutoff_label_xoffset,
+                y=cutoff + cutoff_label_yoffset,
+                fontsize=12,
+            )
         # Axes
         ax.set_ylabel(r"$\sigma$[X/H]", size=16)
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
