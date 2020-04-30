@@ -135,3 +135,16 @@ def download_all_files(overwrite: bool = True) -> None:
         else:
             print(f"Downloading {reference_file}")
             download_package_files(id=reference_id, destination=reference_file)
+
+    MUSE_etc_dir = etc_file_dir.joinpath('MUSE')
+    MUSE_etc_dir.mkdir(exist_ok=True)
+    muse_files = [MUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt'),
+                  MUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'),
+                  MUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'),
+                  MUSE_etc_dir.joinpath('transmission_airmass1.txt'),
+                  MUSE_etc_dir.joinpath('WFM_NONAO_N.dat.txt')]
+    if all([file.exists() for file in muse_files]) and not overwrite:
+        print('MUSE ETC files exist')
+    else:
+        download_bluemuse_files()
+    print('Download Complete!')
