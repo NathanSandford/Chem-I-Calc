@@ -7,7 +7,7 @@ import mechanicalsoup
 import requests
 import json
 from chemicalc.utils import decode_base64_dict
-from chemicalc.file_mgmt import etc_file_dir
+from chemicalc.file_mgmt import etc_file_dir, download_bluemuse_files
 
 
 keck_options = {
@@ -835,6 +835,13 @@ def calculate_muse_snr(wave, flux, exptime, nexp, blueMUSE=False,
     :return:
     """
     MUSE_etc_dir = etc_file_dir.joinpath('MUSE')
+    muse_files = [MUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt'),
+                  MUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'),
+                  MUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'),
+                  MUSE_etc_dir.joinpath('transmission_airmass1.txt'),
+                  MUSE_etc_dir.joinpath('WFM_NONAO_N.dat.txt')]
+    if not all([file.exists() for file in muse_files]):
+        download_bluemuse_files()
     ron = 3.0  # readout noise (e-)
     dcurrent = 3.0  # dark current (e-/pixel/s)
     nbiases = 11  # number of biases used in calibration
