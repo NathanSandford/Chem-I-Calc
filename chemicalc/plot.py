@@ -260,7 +260,7 @@ def plot_crlb(
 def overplot_crlb(
     crlb_list: List[pd.DataFrame],
     names: List[str],
-    cutoff: float = 0.3,
+    cutoff: Optional[float] = None,
     labels: Union[str, List[str]] = None,
     label_loc: Tuple[float, float] = (0.98, 0.95),
     panel_height: float = 3,
@@ -268,34 +268,35 @@ def overplot_crlb(
     cutoff_label_xoffset: float = 3,
     cutoff_label_yoffset: float = 0.05,
     ylim: Optional[Tuple[float, float]] = (0.009, 1.7),
+    yticks: Optional[List[float]] = None,
     legend_ncol: int = 1,
     legend_loc: str = "lower right",
     reverse_legend: bool = False,
-    legend2_ncol=1,
+    legend2_ncol: int = 1,
     legend2_loc: Tuple[float, float] = (1, 0.425),
-    reverse_legend2=False,
+    reverse_legend2: bool = False,
     color_palette: str = "plasma",
 ) -> plt.figure:
     """
 
     :param List[pd.DataFrame] crlb_list: List of CRLB dataframes
     :param List[str] names: Labels to show in second legend
-    :param cutoff: Cutoff precision for abundances
-    :param labels: List of additional text to include in each panel
-    :param label_loc: Location of additional text box
-    :param panel_height: Height of each subplot
-    :param panel_width: Width of each subplot
-    :param cutoff_label_xoffset: Relative x position of cutoff label (increases to the left)
-    :param cutoff_label_yoffset: Relative y position of cutoff label
-    :param ylim: Bound on y-axis
-    :param yticks: Manual y-axis ticks
-    :param legend_ncol: Number of legend columns
-    :param legend_loc: Location of legend (standard matplotlib inputs)
-    :param reverse_legend: Reverse order of legend items
-    :param legend2_ncol: Number of legend columns for second legend
-    :param legend2_loc: Location of legend for second legend (axis coords)
-    :param reverse_legend2: Reverse order of legend items for second legend
-    :param color_palette: Color palette of lines and markers
+    :param Optional[float] cutoff: Cutoff precision for abundances
+    :param Union[str,List[str]] labels: List of additional text to include in each panel
+    :param Tuple[float,float] label_loc: Location of additional text box
+    :param float panel_height: Height of each subplot
+    :param float panel_width: Width of each subplot
+    :param float cutoff_label_xoffset: Relative x position of cutoff label (increases to the left)
+    :param float cutoff_label_yoffset: Relative y position of cutoff label
+    :param Optional[Tuple[float,float]] ylim: Bound on y-axis
+    :param Optional[List[float]] yticks: Manual y-axis ticks
+    :param int legend_ncol: Number of legend columns
+    :param str legend_loc: Location of legend (standard matplotlib inputs)
+    :param bool reverse_legend: Reverse order of legend items
+    :param int  legend2_ncol: Number of legend columns for second legend
+    :param Tuple[float, float] legend2_loc: Location of legend for second legend (axis coords)
+    :param bool reverse_legend2: Reverse order of legend items for second legend
+    :param str color_palette: Color palette of lines and markers
     :return plt.figure: Matplotlib figure
     """
     # Determin CRLBs with most labels
@@ -334,7 +335,14 @@ def overplot_crlb(
                 label=label,
             )
     # Plot cutoff line
-    ax.axhline(cutoff, ls="--", lw=1, c="k")
+    if cutoff:
+        ax.axhline(cutoff, ls="--", lw=1, c="k")
+        plt.text(
+            s=f"{cutoff:01.1f} dex",
+            x=nlabs - cutoff_label_xoffset,
+            y=cutoff + cutoff_label_yoffset,
+            fontsize=12,
+        )
     plt.text(
         s="0.3 dex",
         x=nlabs - cutoff_label_xoffset,
@@ -395,6 +403,8 @@ def overplot_crlb(
             loc=legend_loc,
         )
     fig.axes[0].add_artist(leg2)
+    if yticks is not None:
+        fig.axes[i].set_yticks(yticks)
     plt.tight_layout()
     return fig
 
