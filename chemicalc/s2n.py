@@ -90,7 +90,7 @@ mse_options = {
     ],
 }
 vlt_options = {
-    "instruments": ['UVES', 'FLAMES-UVES', 'FLAMES-GIRAFFE', 'XSHOOTER', 'MUSE'],
+    "instruments": ['UVES', 'FLAMES-UVES', 'FLAMES-GIRAFFE', 'X-SHOOTER', 'MUSE'],
     "src_target_mag_band": ['U',  # NOT MUSE
                             'B', 'V', 'R', 'I',
                             'J', 'H', 'K',  # X-SHOOTER ONLY
@@ -583,6 +583,7 @@ class Sig2NoiseVLT:
         self.urls = {"UVES": "http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro",
                      "FLAMES-UVES": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES",
                      "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro",
+                     "X-SHOOTER": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=X-SHOOTER+INS.MODE=spectro",
                      "MUSE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr"}
         self.url =  self.urls[instrument]
         if not exptime > 0:
