@@ -478,6 +478,71 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             raise ValueError("Wavelength input not recognized")
 
 
+class Sig2NoiseHectoBinoSpec:
+    def __init__(self,
+                 instrument: str,
+                 exptime: float,
+                 mag: float,
+                 band: str = 'g_filt',
+                 template: str = 'K0V',
+                 seeing: float = 0.75,
+                 airmass: float = 1.1,
+                 moonage: float = 0.0,
+                 aptype: str = 'Round',
+                 apwidth: float = 1.0,
+                 extrapolation = None):
+        self.instrument = instrument
+        self.exptime = exptime
+        self.mag = mag
+        self.band = band
+        self.template = template
+        self.seeing = seeing
+        self.airmass = airmass
+        self.moonage = moonage
+        self.aptype = aptype
+        self.apwidth = apwidth
+        self.extrapolation = extrapolation
+
+    def query_s2n(self, wavelength="default"):
+        url = self.urls[self.instrument]
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form.new_control(type='select', name="instmode", value='')
+        form.new_control(type='select', name="objspec_", value='')
+        form.new_control(type='select', name="objspec__", value='')
+        form["instmode"] = self.instrument
+        form['exptime'] = self.exptime
+        form['ABmag'] = self.mag
+        form['bandfilter'] = self.band
+        form["objspec_"] = 'Stars'
+        form["objspec__"] = self.template
+        form['objspec'] = f'Stars/{self.template}.tab'
+        form['srcext'] = 0.0
+        form['seeing'] = self.seeing
+        form['airmass'] = self.airmass
+        form['moonage'] = self.moonage
+        form['aptype'] = self.aptype
+        form['apwidth'] = self.apwidth
+        data = browser.submit_selected()
+        snr_text = data.text.split('---')[-1]
+        snr = pd.DataFrame([row.split('\t') for row in snr_text.split('\n')[1:-1]])
+        snr.index = snr.pop(0)
+        snr.drop([1, 2, 3, 4], axis=1, inplace=True)
+        snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
+        snr[0] *= 1e4
+        if type(wavelength) == np.ndarray:
+            if self.extrapolation:
+                snr_interpolator = interp1d(snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation)
+            else:
+                snr_interpolator = interp1d(snr[0], snr[1])
+            return snr_interpolator(wavelength)
+        elif wavelength == "default":
+            return snr
+        else:
+            raise ValueError("Wavelength input not recognized")
+
+
 class Sig2NoiseVLT:
     # TODO: Refactor to be consistent with WMKO ETC query.
     # TODO: Implement MARCS stellar template selection
