@@ -128,6 +128,7 @@ vlt_options = {
                              "Kinney_starb6",
                              "Galev_E",
                              "qso-interp"],
+    "sky_seeing": ['0.5', '0.6', '0.7', '0.8', '1.0', '1.3', '3.0'],
     "uves_det_cd_name": ["Blue_346", "Blue_437", "Red__520", "Red__580", "Red__600", "Red__860",
                          "Dicroic1_Blue_346", "Dicroic2_Blue_346", "Dicroic1_Red__580",
                          "Dicroic1_Blue_390", "Dicroic2_Blue_390", "Dicroic1_Red__564",
@@ -556,7 +557,7 @@ class Sig2NoiseVLT:
                  src_target_redshift: float = 0,
                  sky_airmass: float = 1.1,
                  sky_moon_fli: float = 0.0,
-                 sky_seeing_iq: float = 0.75,
+                 sky_seeing: float = "0.8",
                  uves_det_cd_name="Red__580",
                  uves_slit_width="1.0",
                  uves_ccd_binning='1x1',
@@ -617,9 +618,9 @@ class Sig2NoiseVLT:
         if sky_moon_fli < 0.0 or sky_moon_fli > 1.0:
             raise ValueError('sky_moon_fli must be between 0.0 (new) and 1.0 (full)')
         self.sky_moon_fli = sky_moon_fli
-        if not sky_seeing_iq < 3:
-            raise ValueError("Seeing must be < 3 arcsec")
-        self.sky_seeing_iq = sky_seeing_iq
+        if sky_seeing not in vlt_options["sky_seeing"]:
+            raise KeyError(f"{sky_seeing} not one of {vlt_options['sky_seeing']}")
+        self.sky_seeing = sky_seeing
         if uves_det_cd_name not in vlt_options["uves_det_cd_name"]:
             raise KeyError(f"{uves_det_cd_name} not one of {vlt_options['uves_det_cd_name']}")
         self.uves_det_cd_name = uves_det_cd_name
@@ -695,8 +696,8 @@ class Sig2NoiseVLT:
         # Sky Parameters
         form["SKY.AIRMASS"] = self.sky_airmass
         form["SKY.MOON.FLI"] = self.sky_moon_fli
-        form["USR.SEEING.OR.IQ"] = "iq_given"
-        form["SKY.SEEING.IQ"] = self.sky_seeing_iq
+        form["USR.SEEING.OR.IQ"] = "seeing_given"
+        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
