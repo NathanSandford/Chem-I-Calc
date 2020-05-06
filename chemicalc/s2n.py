@@ -609,7 +609,7 @@ class Sig2NoiseVLT:
         self.muse_target_offset = muse_target_offset
         self.kwargs = kwargs
 
-    def query_s2n(self, uves_mid_order_only=False):
+    def query_s2n(self, uves_mid_order_only=False, wavelength="default"):
         url = self.urls[self.instrument]
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -699,11 +699,18 @@ class Sig2NoiseVLT:
             form[key] = self.kwargs[key]
         self.data = browser.submit_selected()
         if self.instrument in ["UVES", "FLAMES-UVES"]:
-            return self.parse_uves_etc()
+            snr = self.parse_uves_etc()
         elif self.instrument == 'X-SHOOTER':
-            return self.parse_xshooter_etc()
+            snr = self.parse_xshooter_etc()
         else:
-            return self.parse_basic_etc()
+            snr = self.parse_basic_etc()
+        if type(wavelength) == np.ndarray:
+            snr_interpolator = interp1d(snr[0], snr[1])
+            return snr_interpolator(wavelength)
+        elif wavelength == "default":
+            return snr
+        else:
+            raise ValueError("Wavelength input not recognized")
 
 
     def parse_uves_etc(self):
