@@ -1,7 +1,9 @@
 from typing import Optional, Union, Tuple
+from warnings import warn
 import os
 import time
 import numpy as np
+import pandas as pd
 from scipy.interpolate import interp1d
 import mechanicalsoup
 import requests
@@ -86,6 +88,76 @@ mse_options = {
         "HII",
         "PN",
     ],
+}
+vlt_options = {
+    "instruments": ['UVES', 'FLAMES-UVES', 'FLAMES-GIRAFFE', 'XSHOOTER', 'MUSE'],
+    "src_target_mag_band": ['U',  # NOT MUSE
+                            'B', 'V', 'R', 'I',
+                            'J', 'H', 'K',  # X-SHOOTER ONLY
+                            'sloan_g_prime', 'sloan_r_prime', 'sloan_i_prime', 'sloan_z_prime'],  # MUSE ONLY
+    "src_target_mag_system": ['Vega', 'AB'],
+    "src_target_type": ["template_spectrum"],
+    "src_target_spec_type": ["Pickles_O5V",
+                             "Pickles_O9V",
+                             "Kurucz_B1V",
+                             "Pickles_B2IV",
+                             "Kurucz_B3V",
+                             "Kurucz_B8V",
+                             "Pickles_B9III",
+                             "Pickles_B9V",
+                             "Pickles_A0III",
+                             "Pickles_A0V",
+                             "Kurucz_A1V",
+                             "Kurucz_F0V",
+                             "Pickles_G0V",
+                             "Kurucz_G2V",
+                             "Pickles_K2V",
+                             "Pickles_K7V",
+                             "Pickles_M2V",
+                             "Planetary Nebula",
+                             "HII Region (ORION)",
+                             "Kinney_ell",
+                             "Kinney_s0",
+                             "Kinney_sa",
+                             "Kinney_sb",
+                             "Kinney_starb1",
+                             "Kinney_starb2",
+                             "Kinney_starb3",
+                             "Kinney_starb4",
+                             "Kinney_starb5",
+                             "Kinney_starb6",
+                             "Galev_E",
+                             "qso-interp"],
+    "uves_det_cd_name": ["Blue_346", "Blue_437", "red__520", "red__580", "red__600", "red__860",
+                         "Dicroic1_Blue_346", "Dicroic2_Blue_346", "Dicroic1_red__580",
+                         "Dicroic1_Blue_390", "Dicroic2_Blue_390", "Dicroic1_red__564",
+                         "Dicroic2_Blue_437", "Dicroic2_red__760", "Dicroic2_red__860"],
+    "uves_slit_width": ["0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0", "1.1",
+                        "1.2", "1.5", "1.8", "2.1", "2.4", "2.7", "3.0", "5.0", "10.0"],
+    "uves_ccd_binning": ['1x1', '1x1v', '2x2', '2x1', '3x2'],
+    "giraffe_sky_sampling_mode": ['MEDUSA', 'IFU052', 'ARGUS052', 'ARGUS030',],
+    "giraffe_resolution": ['HR', 'LR'],
+    "giraffe_slicer_hr": ['HR01', 'HR02', 'HR03', 'HR04', 'HR05A', 'HR05B', 'HR06', 'HR07A', 'HR07B', 'HR08',
+                          'HR09A', 'HR09B', 'HR10', 'HR11', 'HR12', 'HR13', 'HR014A', 'HR014B', 'HR15', 'HR15n',
+                          'HR16', 'HR17A', 'HR17B', 'HR17B', 'HR18', 'HR19A', 'HR19B', 'HR20A', 'HR20B', 'HR21',
+                          'HR22A', 'HR22B'],
+    "giraffe_slicer_lr": ['LR01', 'LR02', 'LR03', 'LR04', 'LR05', 'LR06', 'LR07', 'LR08'],
+    "giraffe_ccd_mode": ['standard', 'fast', 'slow'],
+    "xshooter_uvb_slit_width": ["0.5", "0.8", "1.0", "1.3", "1.6", "5.0"],
+    "xshooter_vis_slit_width": ["0.4", "0.7", "0.9", "1.2", "1.5", "5.0"],
+    "xshooter_nir_slit_width": ["0.4", "0.6", "0.9", "1.2", "1.5", "5.0"],
+    "xshooter_uvb_ccd_binning": ["high1x1slow", "high1x2slow", "high2x2slow",
+                                 "low1x1fast", "low1x2fast", "low2x2fast"],
+    "xshooter_vis_ccd_binning": ["high1x1slow", "high1x2slow", "high2x2slow",
+                                 "low1x1fast", "low1x2fast", "low2x2fast"],
+    "muse_setting": ['WFM_NONAO_N',  # Wide Field Mode without AO, nominal  wavelength range
+                     'WFM_NONAO_E',  # Wide Field Mode without AO, extended wavelength range
+                     'WFM_AO_N',  # Wide Field Mode with AO, nominal wavelength range
+                     'WFM_AO_E',  # Wide Field Mode with AO, extended wavelength range
+                     'NFM_AO_N'],  # Narrow Field Mode with AO, nominal wavelength range
+    "muse_spatial_binning": ['1', '2', '3', '4', '5', '10', '30', '60', '100'],
+    "muse_spectra_binning": ['1', '2', '3', '4', '5', '10', '20', '30', '40',
+                              '50', '100', '200', '400', '800', '1600', '3200'],
 }
 
 
@@ -404,6 +476,375 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             return snr
         else:
             raise ValueError("Wavelength input not recognized")
+
+
+class Sig2NoiseVLT:
+    def __init(self, instrument: str,
+               exposure_time: float,
+               src_target_mag: float,
+               src_target_mag_band: str = 'V',
+               src_target_mag_system: str = 'Vega',
+               src_target_type: str = 'template_spectrum',
+               src_target_spec_type: str = 'Pickles_K2V',
+               src_target_redshift: float = 0,
+               sky_airmass: float = 1.1,
+               sky_moon_fli: float = 0.0,
+               sky_seeing_iq: float = 0.75,
+               uves_det_cd_name="Red__580",
+               uves_slit_width="1.0",
+               uves_ccd_binning='1x1',
+               giraffe_sky_sampling_mode='MEDUSA',
+               giraffe_fiber_obj_decenter=0.0,
+               giraffe_resolution='HR',
+               giraffe_slicer_hr='HR10',
+               giraffe_slicer_lr='LR08',
+               giraffe_ccd_mode='standard',
+               xshooter_uvb_slit_width='0.8',
+               xshooter_vis_slit_width='0.7',
+               xshooter_nir_slit_width='0.9',
+               xshooter_uvb_ccd_binning="high1x1slow",
+               xshooter_vis_ccd_binning="high1x1slow",
+               muse_setting='WFM_NONAO_N',
+               muse_spatial_binning='3',
+               muse_spectra_binning='1',
+               muse_target_offset=0,
+               **kwargs):
+        if instrument not in vlt_options["instruments"]:
+            raise KeyError(f"{instrument} not one of {vlt_options['instruments']}")
+        self.instrument = instrument
+        self.urls = {"UVES": "http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro",
+                     "FLAMES-UVES": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES",
+                     "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro"}
+        self.url =  self.urls[instrument]
+        if not exposure_time > 0:
+            raise ValueError("Exposure Time must be positive")
+        self.exposure_time = exposure_time
+        self.src_target_mag = src_target_mag
+        if src_target_mag_band not in vlt_options["src_target_mag_band"]:
+            raise KeyError(f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band']}")
+        if src_target_mag_band in ['J', 'H', 'K'] and instrument != 'X-SHOOTER':
+            raise KeyError("J, H, and K bands are only valid for X-SHOOTER")
+        if src_target_mag_band in ['sloan_g_prime', 'sloan_r_prime', 'sloan_i_prime', 'sloan_z_prime'] and instrument != 'MUSE':
+            raise KeyError("g', r', i', and z' bands are only valid for MUSE")
+        if src_target_mag_band == 'U' and instrument == 'MUSE':
+            raise KeyError("U bands is not valid for MUSE")
+        self.src_target_mag_band = src_target_mag_band
+        if src_target_mag_system not in vlt_options["src_target_mag_system"]:
+            raise KeyError(f"{src_target_mag_system} not one of {vlt_options['src_target_mag_system']}")
+        self.src_target_mag_system = src_target_mag_system
+        if src_target_type not in vlt_options["src_target_type"]:
+            raise KeyError(f"Only {vlt_options['src_target_type']} is supported currently")
+        self.src_target_type = src_target_type
+        if src_target_spec_type not in vlt_options["src_target_spec_type"]:
+            raise KeyError(f"{src_target_spec_type} not one of {vlt_options['src_target_spec_type']}")
+        self.src_target_spec_type = src_target_spec_type
+        if not src_target_redshift > 0:
+            raise ValueError("Redshift must be positive")
+        self.src_target_redshift = src_target_redshift
+        if not sky_airmass > 1.0:
+            raise ValueError("Airmass must be > 1.0")
+        self.sky_airmass = sky_airmass
+        if sky_moon_fli < 0.0 or sky_moon_fli > 1.0:
+            raise ValueError('sky_moon_fli must be between 0.0 (new) and 1.0 (full)')
+        self.sky_moon_fli = sky_moon_fli
+        if sky_seeing_iq > 3:
+            raise ValueError("Seeing must be < 3 arcsec")
+        self.sky_seeing_iq = sky_seeing_iq
+        if uves_det_cd_name not in vlt_options["uves_det_cd_name"]:
+            raise KeyError(f"{uves_det_cd_name} not one of {vlt_options['uves_det_cd_name']}")
+        self.uves_det_cd_name = uves_det_cd_name
+        if uves_slit_width not in vlt_options["uves_slit_width"]:
+            raise KeyError(f"{uves_slit_width} not one of {vlt_options['uves_slit_width']}")
+        self.uves_slit_width = uves_slit_width
+        if uves_ccd_binning not in vlt_options["uves_ccd_binning"]:
+            raise KeyError(f"{uves_ccd_binning} not one of {vlt_options['uves_ccd_binning']}")
+        self.uves_ccd_binning = uves_ccd_binning
+        if giraffe_sky_sampling_mode not in vlt_options["giraffe_sky_sampling_mode"]:
+            raise KeyError(f"{giraffe_sky_sampling_mode} not one of {vlt_options['giraffe_sky_sampling_mode']}")
+        self.giraffe_sky_sampling_mode = giraffe_sky_sampling_mode
+        if giraffe_fiber_obj_decenter < 0:
+            raise ValueError("giraffe_fiber_obj_decenter must be positive")
+        self.giraffe_fiber_obj_decenter = giraffe_fiber_obj_decenter
+        if giraffe_resolution not in vlt_options["giraffe_resolution"]:
+            raise KeyError(f"{giraffe_resolution} not one of {vlt_options['giraffe_resolution']}")
+        self.giraffe_resolution = giraffe_resolution
+        if giraffe_slicer_hr not in vlt_options["giraffe_slicer_hr"]:
+            raise KeyError(f"{giraffe_slicer_hr} not one of {vlt_options['giraffe_slicer_hr']}")
+        self.giraffe_slicer_hr = giraffe_slicer_hr
+        if giraffe_slicer_lr not in vlt_options["giraffe_slicer_lr"]:
+            raise KeyError(f"{giraffe_slicer_lr} not one of {vlt_options['giraffe_slicer_lr']}")
+        self.giraffe_slicer_lr = giraffe_slicer_lr
+        if giraffe_ccd_mode not in vlt_options["giraffe_ccd_mode"]:
+            raise KeyError(f"{giraffe_ccd_mode} not one of {vlt_options['giraffe_ccd_mode']}")
+        self.giraffe_ccd_mode = giraffe_ccd_mode
+        if xshooter_uvb_slit_width not in vlt_options["xshooter_uvb_slit_width"]:
+            raise KeyError(f"{xshooter_uvb_slit_width} not one of {vlt_options['xshooter_uvb_slit_width']}")
+        self.xshooter_uvb_slit_width = xshooter_uvb_slit_width
+        if xshooter_vis_slit_width not in vlt_options["xshooter_vis_slit_width"]:
+            raise KeyError(f"{xshooter_vis_slit_width} not one of {vlt_options['xshooter_vis_slit_width']}")
+        self.xshooter_vis_slit_width = xshooter_vis_slit_width
+        if xshooter_nir_slit_width not in vlt_options["xshooter_nir_slit_width"]:
+            raise KeyError(f"{xshooter_nir_slit_width} not one of {vlt_options['xshooter_nir_slit_width']}")
+        self.xshooter_nir_slit_width = xshooter_nir_slit_width
+        if xshooter_uvb_ccd_binning not in vlt_options["xshooter_uvb_ccd_binning"]:
+            raise KeyError(f"{xshooter_uvb_ccd_binning} not one of {vlt_options['xshooter_uvb_ccd_binning']}")
+        self.xshooter_uvb_ccd_binning = xshooter_uvb_ccd_binning
+        if xshooter_vis_ccd_binning not in vlt_options["xshooter_vis_ccd_binning"]:
+            raise KeyError(f"{xshooter_vis_ccd_binning} not one of {vlt_options['xshooter_vis_ccd_binning']}")
+        self.xshooter_vis_ccd_binning = xshooter_vis_ccd_binning
+        if muse_setting not in vlt_options["muse_setting"]:
+            raise KeyError(f"{muse_setting} not one of {vlt_options['muse_setting']}")
+        self.muse_setting = muse_setting
+        if muse_spatial_binning not in vlt_options["muse_spatial_binning"]:
+            raise KeyError(f"{muse_spatial_binning} not one of {vlt_options['muse_spatial_binning']}")
+        self.muse_spatial_binning = muse_spatial_binning
+        if muse_spectra_binning not in vlt_options["muse_spectra_binning"]:
+            raise KeyError(f"{muse_spectra_binning} not one of {vlt_options['muse_spectra_binning']}")
+        self.muse_spectra_binning = muse_spectra_binning
+        if muse_target_offset < 0:
+            raise ValueError("muse_target_offset must be positive")
+        self.muse_target_offset = muse_target_offset
+
+    def query_s2n(self, uves_mid_order_only=False):
+        url = self.urls[self.instrument]
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form["POSTFILE.FLAG"] = 0
+        # Source Parameters
+        form["SRC.TARGET.MAG"] = self.src_target_mag
+        form.new_control(type='select', name="SRC.TARGET.MAG.BAND", value='V')
+        form["SRC.TARGET.MAG.BAND"] = self.src_target_mag_band
+        form["SRC.TARGET.MAG.SYSTEM"]  = self.src_target_mag_system
+        form["SRC.TARGET.TYPE"] = self.src_target_type
+        form["SRC.TARGET.SPEC.TYPE"] =  self.src_target_spec_type
+        form["SRC.TARGET.REDSHIFT"] = self.src_target_redshift
+        form["SRC.TARGET.GEOM"] = 'seeing_ltd'
+        # Sky Parameters
+        form["SKY.AIRMASS"] = self.sky_airmass
+        form["SKY.MOON.FLI"] = self.sky_moon_fli
+        form["USR.SEEING.OR.IQ"] = "iq_given"
+        form["SKY.SEEING.IQ"] = self.sky_seeing_iq
+        # Default Sky Background
+        form["almanac_time_option"] = "almanac_time_option_ut_time"
+        form["SKYMODEL.TARGET.ALT"] = 65.38
+        form["SKYMODEL.MOON.SUN.SEP"] = 0
+        if self.instrument == "UVES":
+            self.uves_mid_order_only = uves_mid_order_only
+            form["INS.NAME"] = 'UVES'
+            form["INS.MODE"] = 'spectro'
+            form["INS.PRE_SLIT.FILTER.NAME"] = 'ADC'
+            form["INS.IMAGE_SLICERS.NAME"] = "None"
+            form['INS.BELOW_SLIT.FILTER.NAME'] = 'NONE'
+            form["INS.DET.SPECTRAL_FORMAT.NAME"] = "STANDARD"
+            form["INS.DET.CD.NAME"] = self.uves_det_cd_name
+            form["INS.SLIT.FROM_USER.WIDTH.VAL"] = self.uves_slit_width
+            form["INS.DET.CCD.BINNING.VAL"] = self.uves_ccd_binning
+            form["INS.DET.EXP.TIME.VAL"] = self.exposure_time
+            form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
+            form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
+            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
+            self.data = browser.submit_selected()
+            return self.parse_uves_etc(self)
+        if self.instrument == "FLAMES-UVES":
+            self.uves_mid_order_only = uves_mid_order_only
+            form["INS.NAME"] = 'UVES'
+            form["INS.MODE"] = 'FLAMES'
+            form["INS.DET.CD.NAME"] = self.uves_det_cd_name
+            form["INS.DET.EXP.TIME.VAL"] = self.exposure_time
+            form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
+            form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
+            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
+            self.data = browser.submit_selected()
+            return self.parse_uves_etc()
+        if self.instrument == "FLAMES-GIRAFFE":
+            form["INS.NAME"] = 'GIRAFFE'
+            form["INS.MODE"] = 'spectro'
+            form["INS.SKY.SAMPLING.MODE"] = self.giraffe_sky_sampling_mode
+            form["INS.GIRAFFE.FIBER.OBJ.DECENTER"] = self.giraffe_fiber_obj_decenter
+            form["INS.GIRAFFE.RESOLUTION"] = self.giraffe_resolution
+            form["INS.IMAGE.SLICERS.NAME.HR"] = self.giraffe_slicer_hr
+            form["INS.IMAGE.SLICERS.NAME.LR"] = self.giraffe_slicer_lr
+            form["DET.CCD.MODE"] = self.giraffe_ccd_mode
+            form["USR.OUT.MODE"] = "USR.OUT.MODE.EXPOSURE.TIME"
+            form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exposure_time
+            form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = "1"
+            self.data = browser.submit_selected()
+            return self.parse_basic_etc()
+        if self.instrument == 'X-SHOOTER':
+            form["INS.NAME"] = 'X-SHOOTER'
+            form["INS.MODE"] = 'spectro'
+            form["INS.ARM.UVB.FLAG"] = "1"
+            form["INS.ARM.VIS.FLAG"] = "1"
+            form["INS.ARM.NIR.FLAG"] = "1"
+            form["INS.SLIT.FROM_USER.WIDTH.VAL.UVB"] = self.xshooter_uvb_slit_width
+            form["INS.SLIT.FROM_USER.WIDTH.VAL.VIS"] = self.xshooter_vis_slit_width
+            form["INS.SLIT.FROM_USER.WIDTH.VAL.NIR"] = self.xshooter_nir_slit_width
+            form["INS.DET.DIT.UVB"] = self.exposure_time
+            form["INS.DET.DIT.VIS"] = self.exposure_time
+            form["INS.DET.DIT.NIR"] = self.exposure_time
+            form["INS.DET.CCD.BINNING.VAL.UVB"] = self.xshooter_uvb_ccd_binning
+            form["INS.DET.CCD.BINNING.VAL.VIS"] = self.xshooter_vis_ccd_binning
+            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
+            self.data = browser.submit_selected()
+            return self.parse_xshooter_etc()
+        if self.instrument == 'MUSE':
+            form["INS.NAME"] = 'MUSE'
+            form["INS.MODE"] = 'swspectr'
+            form["INS.MUSE.SETTING.KEY"] = self.muse_setting
+            form["INS.MUSE.SPATIAL.NPIX.LINEAR"] = self.muse_spatial_binning
+            form["INS.MUSE.SPECTRAL.NPIX.LINEAR"] = self.muse_spectral_binning
+            form["SRC.TARGET.GEOM.DISTANCE"] = self.muse_target_offset
+            form["USR.OBS.SETUP.TYPE"] = 'givenexptime'
+            form["DET.IR.NDIT"] = 1
+            form["DET.IR.DIT"] = self.exposure_time
+            form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
+            self.data = browser.submit_selected()
+            return self.parse_basic_etc()
+
+    def parse_uves_etc(self):
+        if self.uves_mid_order_only:
+            snr_url1 = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+            snr_url2 = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[2].split('" TITLE')[0]
+            snr_txt1 = requests.post(snr_url1).text
+            snr_txt2 = requests.post(snr_url2).text
+            snr1 = pd.DataFrame([row.split('\t') for row in snr_txt1.split('\n')[:-1]])
+            snr2 = pd.DataFrame([row.split('\t') for row in snr_txt2.split('\n')[:-1]])
+            uves_snr = pd.concat([snr1, snr2])
+            uves_snr.index = uves_snr.pop(0)
+            uves_snr.sort_index(inplace=True)
+            uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(float)
+        else:
+            mit_tab1 = pd.read_html(
+                '<table class="echelleTable' + self.data.text.split('<table class="echelleTable')[1].split('</table>')[0])[0]
+            mit_tab1.columns = mit_tab1.loc[0]
+            mit_tab1.drop(0, axis=0, inplace=True)
+            mit_tab2 = pd.read_html(
+                '<table class="echelleTable' + self.data.text.split('<table class="echelleTable')[2].split('</table>')[0])[0]
+            mit_tab2.columns = mit_tab2.loc[1]
+            mit_tab2.drop([0, 1], axis=0, inplace=True)
+            eev_tab1 = pd.read_html(
+                '<table class="echelleTable' + self.data.text.split('<table class="echelleTable')[3].split('</table>')[0])[0]
+            eev_tab1.columns = eev_tab1.loc[0]
+            eev_tab1.drop(0, axis=0, inplace=True)
+            eev_tab2 = pd.read_html(
+                '<table class="echelleTable' + self.data.text.split('<table class="echelleTable')[4].split('</table>')[0])[0]
+            eev_tab2.columns = eev_tab2.loc[1]
+            eev_tab2.drop([0, 1], axis=0, inplace=True)
+            mit_wave_mid = mit_tab1['wav of central column (nm)']
+            mit_wave_min = mit_tab1['FSR l Min (nm)']
+            mit_wave_max = mit_tab1['FSR l Max (nm)']
+            mit_snr_min = mit_tab2['S/N*'].iloc[:, 0]
+            mit_snr_mid = mit_tab2['S/N*'].iloc[:, 1]
+            mit_snr_max = mit_tab2['S/N*'].iloc[:, 2]
+            eev_wave_mid = eev_tab1['wav of central column (nm)']
+            eev_wave_min = eev_tab1['FSR l Min (nm)']
+            eev_wave_max = eev_tab1['FSR l Max (nm)']
+            eev_snr_min = eev_tab2['S/N*'].iloc[:, 0]
+            eev_snr_mid = eev_tab2['S/N*'].iloc[:, 1]
+            eev_snr_max = eev_tab2['S/N*'].iloc[:, 2]
+            mit_wave = pd.concat([mit_wave_min, mit_wave_mid, mit_wave_max])
+            mit_snr = pd.concat([mit_snr_min, mit_snr_mid, mit_snr_max])
+            mit_snr.index = mit_wave
+            mit_snr.sort_index(inplace=True)
+            mit_snr = mit_snr.groupby(mit_snr.index).max()
+            eev_wave = pd.concat([eev_wave_min, eev_wave_mid, eev_wave_max])
+            eev_snr = pd.concat([eev_snr_min, eev_snr_mid, eev_snr_max])
+            eev_snr.index = eev_wave
+            eev_snr.sort_index(inplace=True)
+            eev_snr = eev_snr.groupby(eev_snr.index).max()
+            uves_snr = pd.concat([eev_snr, mit_snr])
+            uves_snr = np.vstack([uves_snr.index.values, uves_snr.iloc[:].values]).astype(float)
+        uves_snr[0] *= 10
+        return uves_snr
+
+    def parse_basic_etc(self):
+        snr_url = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+        snr_txt = requests.post(snr_url).text
+        snr = pd.DataFrame([row.split(' ') for row in snr_txt.split('\n')[:-1]])
+        snr.index = snr.pop(0)
+        snr.sort_index(inplace=True)
+        snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
+        snr[0] *= 10
+        return snr
+
+    def parse_xshooter_etc(self):
+        def combine_xshooter_snr(snr_min_df, snr_mid_df, snr_max_df, offset):
+            snr_mid_df.index = snr_mid_df.pop(0)
+            snr_max_df.index = snr_max_df.pop(0)
+            snr_min_df.index = snr_min_df.pop(0)
+            snr_mid_df.sort_index(inplace=True)
+            snr_max_df.sort_index(inplace=True)
+            snr_min_df.sort_index(inplace=True)
+            snr = pd.concat([snr_min_df, snr_mid_df, snr_max_df])
+            snr.sort_index(inplace=True)
+            for i, idx_min in enumerate(snr_min_df.index[offset:]):
+                idx_max = snr_max_df.index[i]
+                idx_mid_before = snr_mid_df.index[i]
+                idx_mid_after = snr_mid_df.index[i + 1]
+                snr_min = snr_min_df.loc[idx_min, 1]
+                if not isinstance(snr_min, float):
+                    snr_min = snr_min.iloc[0]
+                snr_mid_before = snr_mid_df.loc[idx_mid_before, 1]
+                snr_mid_after = snr_mid_df.loc[idx_mid_after, 1]
+                snr_max = snr_max_df.loc[idx_max, 1]
+                if not isinstance(snr_max, float):
+                    snr_max = snr_max.iloc[0]
+                if idx_min < idx_max:
+                    if snr_min > snr_max:
+                        dy = snr_max - snr_mid_before
+                        dx = idx_max - idx_mid_before
+                        new_wave = idx_min - 0.1
+                        new_snr = snr_mid_before + dy / dx * (new_wave - idx_mid_before)
+                        snr.drop(idx_max, inplace=True)
+                        snr.loc[new_wave] = new_snr
+                    else:
+                        dy = snr_mid_after - snr_min
+                        dx = idx_mid_after - idx_min
+                        new_wave = idx_max + 0.1
+                        new_snr = snr_min + dy / dx * (new_wave - idx_min)
+                        snr.drop(idx_min, inplace=True)
+                        snr.loc[new_wave] = new_snr
+                elif idx_min == idx_max:
+                    snr.drop(idx_min, inplace=True)
+                    snr.loc[idx_min] = np.max([snr_min, snr_max])
+                snr.sort_index(inplace=True)
+            return snr
+
+        snr_url1_mid = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+        snr_url2_mid = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[2].split('" TITLE')[0]
+        snr_url3_mid = 'https://www.eso.org' + self.data.text.split('ASCII DATA INFO: URL="')[3].split('" TITLE')[0]
+        snr_url1_max = snr_url1_mid[:-4] + '_FSRmax.dat'
+        snr_url2_max = snr_url2_mid[:-4] + '_FSRmax.dat'
+        snr_url3_max = snr_url3_mid[:-4] + '_FSRmax.dat'
+        snr_url1_min = snr_url1_mid[:-4] + '_FSRmin.dat'
+        snr_url2_min = snr_url2_mid[:-4] + '_FSRmin.dat'
+        snr_url3_min = snr_url3_mid[:-4] + '_FSRmin.dat'
+        snr_txt1_mid = requests.post(snr_url1_mid).text
+        snr_txt2_mid = requests.post(snr_url2_mid).text
+        snr_txt3_mid = requests.post(snr_url3_mid).text
+        snr_txt1_max = requests.post(snr_url1_max).text
+        snr_txt2_max = requests.post(snr_url2_max).text
+        snr_txt3_max = requests.post(snr_url3_max).text
+        snr_txt1_min = requests.post(snr_url1_min).text
+        snr_txt2_min = requests.post(snr_url2_min).text
+        snr_txt3_min = requests.post(snr_url3_min).text
+        snr1_mid_df = pd.DataFrame([row.split('\t') for row in snr_txt1_mid.split('\n')[:-1]], dtype=float)
+        snr2_mid_df = pd.DataFrame([row.split('\t') for row in snr_txt2_mid.split('\n')[:-1]], dtype=float)
+        snr3_mid_df = pd.DataFrame([row.split('\t') for row in snr_txt3_mid.split('\n')[:-1]], dtype=float)
+        snr1_max_df = pd.DataFrame([row.split('\t') for row in snr_txt1_max.split('\n')[:-1]], dtype=float)
+        snr2_max_df = pd.DataFrame([row.split('\t') for row in snr_txt2_max.split('\n')[:-1]], dtype=float)
+        snr3_max_df = pd.DataFrame([row.split('\t') for row in snr_txt3_max.split('\n')[:-1]], dtype=float)
+        snr1_min_df = pd.DataFrame([row.split('\t') for row in snr_txt1_min.split('\n')[:-1]], dtype=float)
+        snr2_min_df = pd.DataFrame([row.split('\t') for row in snr_txt2_min.split('\n')[:-1]], dtype=float)
+        snr3_min_df = pd.DataFrame([row.split('\t') for row in snr_txt3_min.split('\n')[:-1]], dtype=float)
+        snr1 = combine_xshooter_snr(snr1_min_df, snr1_mid_df, snr1_max_df, offset=1)
+        snr2 = combine_xshooter_snr(snr2_min_df, snr2_mid_df, snr2_max_df, offset=0)
+        snr3 = combine_xshooter_snr(snr3_min_df, snr3_mid_df, snr3_max_df, offset=1)
+        snr = pd.concat([snr1, snr2, snr3])
+        snr = np.vstack([snr.index.values, snr[1].values])
+        snr[0] *= 10
+        return snr
 
 
 def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
