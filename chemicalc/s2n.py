@@ -479,8 +479,10 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
 
 
 class Sig2NoiseVLT:
+    # TODO: Refactor to be consistent with WMKO ETC query.
+    # TODO: Implement MARCS stellar template selection
     def __init(self, instrument: str,
-               exposure_time: float,
+               exptime: float,
                src_target_mag: float,
                src_target_mag_band: str = 'V',
                src_target_mag_system: str = 'Vega',
@@ -516,9 +518,9 @@ class Sig2NoiseVLT:
                      "FLAMES-UVES": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES",
                      "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro"}
         self.url =  self.urls[instrument]
-        if not exposure_time > 0:
+        if not exptime > 0:
             raise ValueError("Exposure Time must be positive")
-        self.exposure_time = exposure_time
+        self.exptime = exptime
         self.src_target_mag = src_target_mag
         if src_target_mag_band not in vlt_options["src_target_mag_band"]:
             raise KeyError(f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band']}")
@@ -640,7 +642,7 @@ class Sig2NoiseVLT:
             form["INS.DET.CD.NAME"] = self.uves_det_cd_name
             form["INS.SLIT.FROM_USER.WIDTH.VAL"] = self.uves_slit_width
             form["INS.DET.CCD.BINNING.VAL"] = self.uves_ccd_binning
-            form["INS.DET.EXP.TIME.VAL"] = self.exposure_time
+            form["INS.DET.EXP.TIME.VAL"] = self.exptime
             form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
             form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
@@ -651,7 +653,7 @@ class Sig2NoiseVLT:
             form["INS.NAME"] = 'UVES'
             form["INS.MODE"] = 'FLAMES'
             form["INS.DET.CD.NAME"] = self.uves_det_cd_name
-            form["INS.DET.EXP.TIME.VAL"] = self.exposure_time
+            form["INS.DET.EXP.TIME.VAL"] = self.exptime
             form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
             form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
@@ -667,7 +669,7 @@ class Sig2NoiseVLT:
             form["INS.IMAGE.SLICERS.NAME.LR"] = self.giraffe_slicer_lr
             form["DET.CCD.MODE"] = self.giraffe_ccd_mode
             form["USR.OUT.MODE"] = "USR.OUT.MODE.EXPOSURE.TIME"
-            form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exposure_time
+            form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exptime
             form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = "1"
             self.data = browser.submit_selected()
             return self.parse_basic_etc()
@@ -680,9 +682,9 @@ class Sig2NoiseVLT:
             form["INS.SLIT.FROM_USER.WIDTH.VAL.UVB"] = self.xshooter_uvb_slit_width
             form["INS.SLIT.FROM_USER.WIDTH.VAL.VIS"] = self.xshooter_vis_slit_width
             form["INS.SLIT.FROM_USER.WIDTH.VAL.NIR"] = self.xshooter_nir_slit_width
-            form["INS.DET.DIT.UVB"] = self.exposure_time
-            form["INS.DET.DIT.VIS"] = self.exposure_time
-            form["INS.DET.DIT.NIR"] = self.exposure_time
+            form["INS.DET.DIT.UVB"] = self.exptime
+            form["INS.DET.DIT.VIS"] = self.exptime
+            form["INS.DET.DIT.NIR"] = self.exptime
             form["INS.DET.CCD.BINNING.VAL.UVB"] = self.xshooter_uvb_ccd_binning
             form["INS.DET.CCD.BINNING.VAL.VIS"] = self.xshooter_vis_ccd_binning
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
@@ -697,7 +699,7 @@ class Sig2NoiseVLT:
             form["SRC.TARGET.GEOM.DISTANCE"] = self.muse_target_offset
             form["USR.OBS.SETUP.TYPE"] = 'givenexptime'
             form["DET.IR.NDIT"] = 1
-            form["DET.IR.DIT"] = self.exposure_time
+            form["DET.IR.DIT"] = self.exptime
             form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
             self.data = browser.submit_selected()
             return self.parse_basic_etc()
