@@ -516,7 +516,8 @@ class Sig2NoiseVLT:
         self.instrument = instrument
         self.urls = {"UVES": "http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro",
                      "FLAMES-UVES": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES",
-                     "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro"}
+                     "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro",
+                     "MUSE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr"}
         self.url =  self.urls[instrument]
         if not exptime > 0:
             raise ValueError("Exposure Time must be positive")
