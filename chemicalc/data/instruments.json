@@ -35,6 +35,7 @@
   "XSHOOTER (UVB)": {"name": "XSHOOTER (UVB)", "res": 6700, "samp": 5, "start": 3000, "end": 5500},
   "XSHOOTER (VIS)": {"name": "XSHOOTER (VIS)", "res": 11400, "samp": 4, "start": 5500, "end": 10200},
   "XSHOOTER (NIR)": {"name": "XSHOOTER (NIR)", "res": 5600, "samp": 4, "start": 10200, "end": 18000},
+  "UVES (r580)": {"name": "UVES (r580)", "res": 47000, "samp": 5, "start": 4800, "end": 6800},
   "GIRAFFE LR8": {"name": "GIRAFFE LR8", "res": 6500, "samp": 0, "start": 8200, "end": 9400},
   "GIRAFFE HR10": {"name": "GIRAFFE HR10", "res": 19800, "samp": 0, "start": 5340, "end": 5620},
   "GIRAFFE HR13": {"name": "GIRAFFE HR13", "res": 22500, "samp": 0, "start": 6120, "end": 6400},
