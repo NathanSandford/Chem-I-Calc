@@ -1130,16 +1130,25 @@ class Sig2NoiseMSE:
                 )
                 for i in range(int(len(y) / 2))
             }
-        y[0] = y[0][x[0] < x[1].min()]
-        x[0] = x[0][x[0] < x[1].min()]
-        y[1] = y[1][x[1] < x[2].min()]
-        x[1] = x[1][x[1] < x[2].min()]
-        y[2] = y[2][x[2] < x[3].min()]
-        x[2] = x[2][x[2] < x[3].min()]
-        filler_x = np.linspace(x[3].max(), x[4].min(), 100)
-        filler_y = np.zeros(100)
-        x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
-        y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
+        if self.spec_mode == 'LR':
+            y[0] = y[0][x[0] < x[1].min()]
+            x[0] = x[0][x[0] < x[1].min()]
+            y[1] = y[1][x[1] < x[2].min()]
+            x[1] = x[1][x[1] < x[2].min()]
+            y[2] = y[2][x[2] < x[3].min()]
+            x[2] = x[2][x[2] < x[3].min()]
+            filler_x = np.linspace(x[3].max(), x[4].min(), 100)
+            filler_y = np.zeros(100)
+            x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
+            y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
+        elif self.spec_mode == 'MR':
+            filler_x1 = np.linspace(x[0].max(), x[1].min(), 100)
+            filler_x2 = np.linspace(x[1].max(), x[2].min(), 100)
+            filler_y = np.zeros(100)
+            x = np.concatenate([x[0], filler_x1, x[1], filler_x2, x[2]])
+            y = np.concatenate([y[0], filler_y, y[1], filler_y, y[2]])
+        else:
+            raise NotImplementedError("Can't parse HR data yet")
         snr = np.vstack([x, y])
         if type(wavelength) == np.ndarray:
             snr_interpolator = interp1d(snr[0], snr[1])
