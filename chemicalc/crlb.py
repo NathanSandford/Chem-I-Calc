@@ -145,11 +145,11 @@ def sort_crlb(
     if sort_by == "default":
         sort_by_index = np.sum(pd.isna(crlb)).idxmin()
     else:
-        if sort_by == list(crlb.columns):
+        if sort_by in list(crlb.columns):
             sort_by_index = sort_by
         else:
             raise KeyError(
-                f"{sort_by} not in CR_Gradients_File \n Try 'default' or one of {list(crlb.columns)}"
+                f"{sort_by} not in crlb \n Try 'default' or one of {list(crlb.columns)}"
             )
     valid_ele = np.concatenate(
         [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
