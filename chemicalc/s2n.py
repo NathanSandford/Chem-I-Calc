@@ -683,10 +683,11 @@ class Sig2NoiseVLT:
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
         form = browser.select_form()
+        form.new_control(type='select', name="SRC.TARGET.MAG.BAND", value='')
+        form.new_control(type='select', name="SKY.SEEING.ZENITH.V", value='')
         form["POSTFILE.FLAG"] = 0
         # Source Parameters
         form["SRC.TARGET.MAG"] = self.src_target_mag
-        form.new_control(type='select', name="SRC.TARGET.MAG.BAND", value='V')
         form["SRC.TARGET.MAG.BAND"] = self.src_target_mag_band
         form["SRC.TARGET.MAG.SYSTEM"]  = self.src_target_mag_system
         form["SRC.TARGET.TYPE"] = self.src_target_type
