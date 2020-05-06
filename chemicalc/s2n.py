@@ -541,13 +541,13 @@ class Sig2NoiseVLT:
         if src_target_spec_type not in vlt_options["src_target_spec_type"]:
             raise KeyError(f"{src_target_spec_type} not one of {vlt_options['src_target_spec_type']}")
         self.src_target_spec_type = src_target_spec_type
-        if not src_target_redshift > 0:
+        if not src_target_redshift >= 0:
             raise ValueError("Redshift must be positive")
         self.src_target_redshift = src_target_redshift
-        if not sky_airmass > 1.0:
+        if not sky_airmass >= 1.0:
             raise ValueError("Airmass must be > 1.0")
         self.sky_airmass = sky_airmass
-        if sky_moon_fli < 0.0 or sky_moon_fli > 1.0:
+        if sky_moon_fli <= 0.0 or sky_moon_fli >= 1.0:
             raise ValueError('sky_moon_fli must be between 0.0 (new) and 1.0 (full)')
         self.sky_moon_fli = sky_moon_fli
         if sky_seeing_iq > 3:
@@ -565,7 +565,7 @@ class Sig2NoiseVLT:
         if giraffe_sky_sampling_mode not in vlt_options["giraffe_sky_sampling_mode"]:
             raise KeyError(f"{giraffe_sky_sampling_mode} not one of {vlt_options['giraffe_sky_sampling_mode']}")
         self.giraffe_sky_sampling_mode = giraffe_sky_sampling_mode
-        if giraffe_fiber_obj_decenter < 0:
+        if giraffe_fiber_obj_decenter <= 0:
             raise ValueError("giraffe_fiber_obj_decenter must be positive")
         self.giraffe_fiber_obj_decenter = giraffe_fiber_obj_decenter
         if giraffe_resolution not in vlt_options["giraffe_resolution"]:
@@ -604,7 +604,7 @@ class Sig2NoiseVLT:
         if muse_spectra_binning not in vlt_options["muse_spectra_binning"]:
             raise KeyError(f"{muse_spectra_binning} not one of {vlt_options['muse_spectra_binning']}")
         self.muse_spectra_binning = muse_spectra_binning
-        if muse_target_offset < 0:
+        if muse_target_offset <= 0:
             raise ValueError("muse_target_offset must be positive")
         self.muse_target_offset = muse_target_offset
 
