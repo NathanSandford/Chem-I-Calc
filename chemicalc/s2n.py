@@ -138,7 +138,7 @@ vlt_options = {
     "giraffe_sky_sampling_mode": ['MEDUSA', 'IFU052', 'ARGUS052', 'ARGUS030',],
     "giraffe_resolution": ['HR', 'LR'],
     "giraffe_slicer_hr": ['HR01', 'HR02', 'HR03', 'HR04', 'HR05A', 'HR05B', 'HR06', 'HR07A', 'HR07B', 'HR08',
-                          'HR09A', 'HR09B', 'HR10', 'HR11', 'HR12', 'HR13', 'HR014A', 'HR014B', 'HR15', 'HR15n',
+                          'HR09A', 'HR09B', 'HR10', 'HR11', 'HR12', 'HR13', 'HR14A', 'HR14B', 'HR15', 'HR15n',
                           'HR16', 'HR17A', 'HR17B', 'HR17B', 'HR18', 'HR19A', 'HR19B', 'HR20A', 'HR20B', 'HR21',
                           'HR22A', 'HR22B'],
     "giraffe_slicer_lr": ['LR01', 'LR02', 'LR03', 'LR04', 'LR05', 'LR06', 'LR07', 'LR08'],
