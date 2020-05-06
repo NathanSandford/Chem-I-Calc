@@ -481,36 +481,36 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
 class Sig2NoiseVLT:
     # TODO: Refactor to be consistent with WMKO ETC query.
     # TODO: Implement MARCS stellar template selection
-    def __init(self, instrument: str,
-               exptime: float,
-               src_target_mag: float,
-               src_target_mag_band: str = 'V',
-               src_target_mag_system: str = 'Vega',
-               src_target_type: str = 'template_spectrum',
-               src_target_spec_type: str = 'Pickles_K2V',
-               src_target_redshift: float = 0,
-               sky_airmass: float = 1.1,
-               sky_moon_fli: float = 0.0,
-               sky_seeing_iq: float = 0.75,
-               uves_det_cd_name="Red__580",
-               uves_slit_width="1.0",
-               uves_ccd_binning='1x1',
-               giraffe_sky_sampling_mode='MEDUSA',
-               giraffe_fiber_obj_decenter=0.0,
-               giraffe_resolution='HR',
-               giraffe_slicer_hr='HR10',
-               giraffe_slicer_lr='LR08',
-               giraffe_ccd_mode='standard',
-               xshooter_uvb_slit_width='0.8',
-               xshooter_vis_slit_width='0.7',
-               xshooter_nir_slit_width='0.9',
-               xshooter_uvb_ccd_binning="high1x1slow",
-               xshooter_vis_ccd_binning="high1x1slow",
-               muse_setting='WFM_NONAO_N',
-               muse_spatial_binning='3',
-               muse_spectra_binning='1',
-               muse_target_offset=0,
-               **kwargs):
+    def __init__(self, instrument: str,
+                 exptime: float,
+                 src_target_mag: float,
+                 src_target_mag_band: str = 'V',
+                 src_target_mag_system: str = 'Vega',
+                 src_target_type: str = 'template_spectrum',
+                 src_target_spec_type: str = 'Pickles_K2V',
+                 src_target_redshift: float = 0,
+                 sky_airmass: float = 1.1,
+                 sky_moon_fli: float = 0.0,
+                 sky_seeing_iq: float = 0.75,
+                 uves_det_cd_name="Red__580",
+                 uves_slit_width="1.0",
+                 uves_ccd_binning='1x1',
+                 giraffe_sky_sampling_mode='MEDUSA',
+                 giraffe_fiber_obj_decenter=0.0,
+                 giraffe_resolution='HR',
+                 giraffe_slicer_hr='HR10',
+                 giraffe_slicer_lr='LR08',
+                 giraffe_ccd_mode='standard',
+                 xshooter_uvb_slit_width='0.8',
+                 xshooter_vis_slit_width='0.7',
+                 xshooter_nir_slit_width='0.9',
+                 xshooter_uvb_ccd_binning="high1x1slow",
+                 xshooter_vis_ccd_binning="high1x1slow",
+                 muse_setting='WFM_NONAO_N',
+                 muse_spatial_binning='3',
+                 muse_spectra_binning='1',
+                 muse_target_offset=0,
+                 **kwargs):
         if instrument not in vlt_options["instruments"]:
             raise KeyError(f"{instrument} not one of {vlt_options['instruments']}")
         self.instrument = instrument
@@ -646,8 +646,6 @@ class Sig2NoiseVLT:
             form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
             form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-            self.data = browser.submit_selected()
-            return self.parse_uves_etc(self)
         if self.instrument == "FLAMES-UVES":
             self.uves_mid_order_only = uves_mid_order_only
             form["INS.NAME"] = 'UVES'
@@ -657,8 +655,6 @@ class Sig2NoiseVLT:
             form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
             form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-            self.data = browser.submit_selected()
-            return self.parse_uves_etc()
         if self.instrument == "FLAMES-GIRAFFE":
             form["INS.NAME"] = 'GIRAFFE'
             form["INS.MODE"] = 'spectro'
@@ -671,8 +667,6 @@ class Sig2NoiseVLT:
             form["USR.OUT.MODE"] = "USR.OUT.MODE.EXPOSURE.TIME"
             form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exptime
             form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = "1"
-            self.data = browser.submit_selected()
-            return self.parse_basic_etc()
         if self.instrument == 'X-SHOOTER':
             form["INS.NAME"] = 'X-SHOOTER'
             form["INS.MODE"] = 'spectro'
@@ -688,21 +682,25 @@ class Sig2NoiseVLT:
             form["INS.DET.CCD.BINNING.VAL.UVB"] = self.xshooter_uvb_ccd_binning
             form["INS.DET.CCD.BINNING.VAL.VIS"] = self.xshooter_vis_ccd_binning
             form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-            self.data = browser.submit_selected()
-            return self.parse_xshooter_etc()
         if self.instrument == 'MUSE':
             form["INS.NAME"] = 'MUSE'
             form["INS.MODE"] = 'swspectr'
             form["INS.MUSE.SETTING.KEY"] = self.muse_setting
             form["INS.MUSE.SPATIAL.NPIX.LINEAR"] = self.muse_spatial_binning
-            form["INS.MUSE.SPECTRAL.NPIX.LINEAR"] = self.muse_spectral_binning
+            form["INS.MUSE.SPECTRAL.NPIX.LINEAR"] = self.muse_spectra_binning
             form["SRC.TARGET.GEOM.DISTANCE"] = self.muse_target_offset
             form["USR.OBS.SETUP.TYPE"] = 'givenexptime'
             form["DET.IR.NDIT"] = 1
             form["DET.IR.DIT"] = self.exptime
             form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
-            self.data = browser.submit_selected()
+        self.data = browser.submit_selected()
+        if self.instrument in ["UVES", "FLAMES-UVES"]:
+            return self.parse_uves_etc()
+        elif self.instrument == 'X-SHOOTER':
+            return self.parse_xshooter_etc()
+        else:
             return self.parse_basic_etc()
+
 
     def parse_uves_etc(self):
         if self.uves_mid_order_only:
