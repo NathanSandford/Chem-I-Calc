@@ -504,7 +504,7 @@ class Sig2NoiseHectoBinoSpec:
         self.extrapolation = extrapolation
 
     def query_s2n(self, wavelength="default"):
-        url = self.urls[self.instrument]
+        url = "http://hopper.si.edu/etc-cgi/TEST/sao-etc"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
         form = browser.select_form()
