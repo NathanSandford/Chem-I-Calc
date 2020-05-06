@@ -86,7 +86,7 @@ class InstConfig:
         )
         self._custom_wave = False
 
-    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO]) -> None:
+    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO, Sig2NoiseVLT]) -> None:
         """
         Sets S/N for instrument configuration
 
