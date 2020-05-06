@@ -547,7 +547,7 @@ class Sig2NoiseVLT:
         if not sky_airmass >= 1.0:
             raise ValueError("Airmass must be > 1.0")
         self.sky_airmass = sky_airmass
-        if sky_moon_fli <= 0.0 or sky_moon_fli >= 1.0:
+        if sky_moon_fli < 0.0 or sky_moon_fli > 1.0:
             raise ValueError('sky_moon_fli must be between 0.0 (new) and 1.0 (full)')
         self.sky_moon_fli = sky_moon_fli
         if sky_seeing_iq > 3:
