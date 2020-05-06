@@ -510,6 +510,7 @@ class Sig2NoiseVLT:
                  muse_spatial_binning='3',
                  muse_spectra_binning='1',
                  muse_target_offset=0,
+                 extrapolation=None,
                  **kwargs):
         if instrument not in vlt_options["instruments"]:
             raise KeyError(f"{instrument} not one of {vlt_options['instruments']}")
@@ -607,6 +608,7 @@ class Sig2NoiseVLT:
         if not muse_target_offset >= 0:
             raise ValueError("muse_target_offset must be positive")
         self.muse_target_offset = muse_target_offset
+        self.extrapolation = extrapolation
         self.kwargs = kwargs
 
     def query_s2n(self, uves_mid_order_only=False, wavelength="default"):
@@ -705,7 +707,10 @@ class Sig2NoiseVLT:
         else:
             snr = self.parse_basic_etc()
         if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
+            if self.extrapolation:
+                snr_interpolator = interp1d(snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation)
+            else:
+                snr_interpolator = interp1d(snr[0], snr[1])
             return snr_interpolator(wavelength)
         elif wavelength == "default":
             return snr
