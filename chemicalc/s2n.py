@@ -607,6 +607,7 @@ class Sig2NoiseVLT:
         if not muse_target_offset >= 0:
             raise ValueError("muse_target_offset must be positive")
         self.muse_target_offset = muse_target_offset
+        self.kwargs = kwargs
 
     def query_s2n(self, uves_mid_order_only=False):
         url = self.urls[self.instrument]
@@ -694,6 +695,8 @@ class Sig2NoiseVLT:
             form["DET.IR.NDIT"] = 1
             form["DET.IR.DIT"] = self.exptime
             form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
+        for key in self.kwargs:
+            form[key] = self.kwargs[key]
         self.data = browser.submit_selected()
         if self.instrument in ["UVES", "FLAMES-UVES"]:
             return self.parse_uves_etc()
