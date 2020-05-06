@@ -529,7 +529,7 @@ class Sig2NoiseHectoBinoSpec:
         snr = pd.DataFrame([row.split('\t') for row in snr_text.split('\n')[1:-1]])
         snr.index = snr.pop(0)
         snr.drop([1, 2, 3, 4], axis=1, inplace=True)
-        snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
+        snr = np.vstack([snr.index.values, snr[5].values]).astype(float)
         snr[0] *= 1e4
         if type(wavelength) == np.ndarray:
             if self.extrapolation:
