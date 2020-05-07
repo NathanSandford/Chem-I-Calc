@@ -1141,14 +1141,14 @@ class Sig2NoiseMSE:
             filler_y = np.zeros(100)
             x = np.concatenate([x[0], x[1], x[2], x[3], filler_x, x[4]])
             y = np.concatenate([y[0], y[1], y[2], y[3], filler_y, y[4]])
-        elif self.spec_mode == 'MR':
+        elif self.spec_mode in ['MR', 'HR']:
             filler_x1 = np.linspace(x[0].max(), x[1].min(), 100)
             filler_x2 = np.linspace(x[1].max(), x[2].min(), 100)
             filler_y = np.zeros(100)
             x = np.concatenate([x[0], filler_x1, x[1], filler_x2, x[2]])
             y = np.concatenate([y[0], filler_y, y[1], filler_y, y[2]])
         else:
-            raise NotImplementedError("Can't parse HR data yet")
+            raise RuntimeError(f"{self.spec_mode} not one of {mse_options['spec_mode']}")
         snr = np.vstack([x, y])
         if type(wavelength) == np.ndarray:
             snr_interpolator = interp1d(snr[0], snr[1])
