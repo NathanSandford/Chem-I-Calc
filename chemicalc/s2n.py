@@ -92,7 +92,7 @@ mse_options = {
 vlt_options = {
     "instruments": ['UVES', 'FLAMES-UVES', 'FLAMES-GIRAFFE', 'X-SHOOTER', 'MUSE'],
     "src_target_mag_band": ['U',  # NOT MUSE
-                            'B', 'V', 'R', 'I',
+                            'B', 'V', 'R', 'I',  # ALL INSTRUMENTS
                             'J', 'H', 'K',  # X-SHOOTER ONLY
                             'sloan_g_prime', 'sloan_r_prime', 'sloan_i_prime', 'sloan_z_prime'],  # MUSE ONLY
     "src_target_mag_system": ['Vega', 'AB'],
@@ -159,6 +159,23 @@ vlt_options = {
     "muse_spatial_binning": ['1', '2', '3', '4', '5', '10', '30', '60', '100'],
     "muse_spectra_binning": ['1', '2', '3', '4', '5', '10', '20', '30', '40',
                               '50', '100', '200', '400', '800', '1600', '3200'],
+}
+lco_options = {
+    "template": ['flat', 'O5V', 'B0V', 'A0V', 'F0V', 'G0V', 'K0V', 'M0V'],
+    "tempfilter": ['u', 'g', 'r', 'i', 'z'],
+    "telescope": ['MAGELLAN1', 'MAGELLAN2'],
+    "MAGELLAN1_instrument": ['IMACS', 'MAGE'],
+    "MAGELLAN2_instrument": ['LDSS3', 'MIKE'],
+    "IMACS_mode": ['F2_150_11', 'F2_200_15', 'F2_300_17', 'F2_300_26',
+                   'F4_150-3_3.4', 'F4_300-4_6.0', 'F4_600-8_9.3', 'F4_600-13_14.0',
+                   'F4_1200-17_19.0', 'F4_1200-27_27.0', 'F4_1200-27_33.5'],
+    "MAGE_mode": ['ECHELLETTE'],
+    "MIKE_mode": ['BLUE', 'RED'],
+    "LDSS3_mode": ['VPHALL', 'VPHBLUE', 'VPHRED'],
+    "binspat": ['1', '2', '3', '4', '5', '6', '7', '8'],
+    "binspec": ['1', '2', '3', '4', '5', '6', '7', '8'],
+    "nmoon": ['0', '1', '2', '3', '4', '5', '6', '7',
+              '8', '9', '10', '11', '12', '13', '14']
 }
 
 
@@ -1150,6 +1167,101 @@ class Sig2NoiseMSE:
         else:
             raise RuntimeError(f"{self.spec_mode} not one of {mse_options['spec_mode']}")
         snr = np.vstack([x, y])
+        if type(wavelength) == np.ndarray:
+            snr_interpolator = interp1d(snr[0], snr[1])
+            return snr_interpolator(wavelength)
+        elif wavelength == "default":
+            return snr
+        else:
+            raise ValueError("Wavelength input not recognized")
+
+
+class Sig2NoiseLCO:
+    def __init__(
+        self,
+        exptime,
+        mag,
+        template="flat",
+        band="g",
+        airmass="1.2",
+        seeing=0.5,
+        nmoon='0',
+        telescope="MAGELLAN2",
+        instrument="MIKE",
+        mode="BLUE",
+        nexp=1,
+        slitwidth=1.0,
+        binspat='3',
+        binspec='1',
+        extract_ap=1.5,
+    ):
+
+        if template not in lco_options["template"]:
+            raise KeyError(f"{template} not one of {lco_options['template']}")
+        if band not in lco_options["tempfilter"]:
+            raise KeyError(f"{band} not one of {lco_options['tempfilter']}")
+        if telescope not in lco_options["telescope"]:
+            raise KeyError(f"{telescope} not one of {lco_options['telescope']}")
+        if instrument not in lco_options[telescope+"_instrument"]:
+            raise KeyError(f"{instrument} not one of {lco_options[telescope+'_telescope']}")
+        if mode not in lco_options[instrument+"_mode"]:
+            raise KeyError(f"{mode} not one of {lco_options[instrument+'_mode']}")
+        if binspat not in lco_options["binspat"]:
+            raise KeyError(f"{binspat} not one of {lco_options['binspat']}")
+        if binspec not in lco_options["binspec"]:
+            raise KeyError(f"{binspec} not one of {lco_options['binspec']}")
+        if nmoon not in lco_options["nmoon"]:
+            raise KeyError(f"{nmoon} not one of {lco_options['nmoon']}")
+        if template == 'flat':
+            self.template = template
+        else:
+            self.template = f'{template}_Pickles.dat'
+        self.abmag = mag
+        self.tempfilter = f'sdss_{band}.dat'
+        self.telescope = telescope
+        self.instrument = instrument
+        self.mode = mode
+        self.dslit = slitwidth
+        self.binspat = binspat
+        self.binspec = binspec
+        self.nmoon = nmoon
+        self.amass = airmass
+        self.dpsf = seeing
+        self.texp = exptime
+        self.nexp = nexp
+        self.aper = extract_ap
+
+    def query_s2n(
+        self, wavelength="default",
+    ):
+        url = (f"{self.url_base}?"
+               + f"template={self.template}&"
+               + f"abmag={self.abmag}&"
+               + f"tempfilter={self.tempfilter}&"
+               + f"addline=0&"
+               + f"linelam=5000&"
+               + f"lineflux=1e-16&"
+               + f"linefwhm=5.0&"
+               + f"telescope={self.telescope}&"
+               + f"instrument={self.instrument}&"
+               + f"mode={self.mode}&"
+               + f"dslit={self.dslit}&"
+               + f"binspat={self.binspat}&"
+               + f"binspec={self.binspec}&"
+               + f"nmoon={self.nmoon}&"
+               + f"amass={self.amass}&"
+               + f"dpsf={self.dpsf}&"
+               + f"texp={self.texp}&"
+               + f"nexp={self.nexp}&"
+               + f"aper={self.aper}&"
+               + f"submitted=CALCULATE"
+            )
+        response = requests.post(url)
+        data_url = response.text.split('href="')[1].split('" download>')[0]
+        data_text = requests.post(data_url).text
+        header = data_text.split('\n')[0]
+        data = pd.DataFrame([row.split(' ') for row in data_text.split('\n')[1:-1]], columns=header.split(' ')[1:])
+        snr = np.vstack([data['Wavelength_[A]'].values, data['S/N_Aperture_Coadd']]).astype(float)
         if type(wavelength) == np.ndarray:
             snr_interpolator = interp1d(snr[0], snr[1])
             return snr_interpolator(wavelength)
