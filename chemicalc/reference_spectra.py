@@ -229,9 +229,9 @@ class ReferenceSpectra:
         :return:
         """
         self.resolution[new_name] = self.resolution[name]
-        self.wavelength[new_name] = self.wavelength[name]
-        self.spectra[new_name] = self.spectra[name]
-        self.gradients[new_name] = self.gradients[name]
+        self.wavelength[new_name] = np.copy(self.wavelength[name])
+        self.spectra[new_name] = np.copy(self.spectra[name])
+        self.gradients[new_name] = pd.DataFrame.copy(self.gradients[name])
 
     def reset(self) -> None:
         """
