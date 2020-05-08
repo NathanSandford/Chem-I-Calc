@@ -220,6 +220,19 @@ class ReferenceSpectra:
         """
         return list(self.spectra.keys())
 
+    def duplicate(self, name: str, new_name: str) -> None:
+        """
+        Duplicates set of spectra/gradients
+
+        :param str name: Name of spectra to duplicate
+        :param str new_name: Name given to new spectra
+        :return:
+        """
+        self.resolution[new_name] = self.resolution[name]
+        self.wavelength[new_name] = self.wavelength[name]
+        self.spectra[new_name] = self.spectra[name]
+        self.gradients[new_name] = self.gradients[name]
+
     def reset(self) -> None:
         """
         Resets object to only the initial high-res spectra
