@@ -2059,22 +2059,26 @@ def calculate_wfos_snr(
         if not uniform:
             print("Aperture Loss: {0:.1f}%".format((1 - red_obs.aperture_factor) * 100))
 
-    bwave_overlap = blue_snr.wave[blue_snr.wave > red_snr.wave.min()]
-    rwave_overlap = red_snr.wave[red_snr.wave < blue_snr.wave.max()]
-    bsnr_overlap = blue_snr.flux[blue_snr.wave > red_snr.wave.min()]
-    rsnr_overlap = red_snr.flux[red_snr.wave < blue_snr.wave.max()]
-    diff = np.sqrt(
-        (bwave_overlap[:, np.newaxis] - rwave_overlap[np.newaxis, :]) ** 2
-        + (bsnr_overlap[:, np.newaxis] - rsnr_overlap[np.newaxis, :]) ** 2
-    )
-    bintersect_ind, rintersect_ind = np.unravel_index(
-        np.argmin(diff, axis=None), diff.shape
-    )
-    i = 0
-    while bwave_overlap[bintersect_ind] > rwave_overlap[rintersect_ind + i]:
-        i += 1
-    bind = find_nearest_idx(blue_snr.wave, bwave_overlap[bintersect_ind])
-    rind = find_nearest_idx(red_snr.wave, rwave_overlap[rintersect_ind + i])
+    if blue_snr.wave.max() > red_snr.wave.min():
+        bwave_overlap = blue_snr.wave[blue_snr.wave > red_snr.wave.min()]
+        rwave_overlap = red_snr.wave[red_snr.wave < blue_snr.wave.max()]
+        bsnr_overlap = blue_snr.flux[blue_snr.wave > red_snr.wave.min()]
+        rsnr_overlap = red_snr.flux[red_snr.wave < blue_snr.wave.max()]
+        diff = np.sqrt(
+            (bwave_overlap[:, np.newaxis] - rwave_overlap[np.newaxis, :]) ** 2
+            + (bsnr_overlap[:, np.newaxis] - rsnr_overlap[np.newaxis, :]) ** 2
+        )
+        bintersect_ind, rintersect_ind = np.unravel_index(
+            np.argmin(diff, axis=None), diff.shape
+        )
+        i = 0
+        while bwave_overlap[bintersect_ind] > rwave_overlap[rintersect_ind + i]:
+            i += 1
+        bind = find_nearest_idx(blue_snr.wave, bwave_overlap[bintersect_ind])
+        rind = find_nearest_idx(red_snr.wave, rwave_overlap[rintersect_ind + i])
+    else:
+        bind = len(blue_snr.wave)
+        rind = 0
     snr = np.vstack(
         [
             np.concatenate([blue_snr.wave[:bind], red_snr.wave[rind:]]),
