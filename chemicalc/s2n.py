@@ -1279,6 +1279,7 @@ class Sig2NoiseMSE:
         skymag=20.7,
         src_type="point",
         redshift=0,
+        extrapolation=None
     ):
         self.url_base = "http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py"
         # Hard Coded Values
@@ -1310,6 +1311,7 @@ class Sig2NoiseMSE:
         self.skymag = skymag
         self.src_type = src_type
         self.redshift = redshift
+        self.extrapolation = extrapolation
 
     def query_s2n(
         self, wavelength="default", smoothed=False,
@@ -1401,7 +1403,12 @@ class Sig2NoiseMSE:
             )
         snr = np.vstack([x, y])
         if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
+            if self.extrapolation:
+                snr_interpolator = interp1d(
+                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
+                )
+            else:
+                snr_interpolator = interp1d(snr[0], snr[1])
             return snr_interpolator(wavelength)
         elif wavelength == "default":
             return snr
