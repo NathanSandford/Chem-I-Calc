@@ -154,8 +154,8 @@ def plot_crlb(
         crlb_list = [crlb_list]
 
     # Sort sets of CRLBs
-    order = [-len(crlb.index) for crlb in crlb_list]
-    sorted_crlb_list = [x for _, x in sorted(zip(order, crlb_list))]
+    order = np.argsort([-len(crlb.index) for crlb in crlb_list])
+    sorted_crlb_list = [crlb_list[i] for i in order]
     all_crlb = pd.concat(sorted_crlb_list, axis=1, sort=False)
     all_labs = all_crlb.index
     all_cols = all_crlb.columns
