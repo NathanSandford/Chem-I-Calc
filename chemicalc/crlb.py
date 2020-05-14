@@ -2,6 +2,7 @@ from typing import Any, List, Tuple, Dict, Union, Optional, cast
 from warnings import warn
 import numpy as np
 import pandas as pd
+from scipy import sparse
 from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
 
@@ -23,7 +24,9 @@ def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
 def calc_crlb(
     reference: ReferenceSpectra,
     instruments: Union[InstConfig, List[InstConfig]],
+    pixel_covar: Optional[List[float]] = None,
     priors: Optional[Dict["str", float]] = None,
+    bias_grad: Optional[pd.DataFrame] = None,
     use_alpha: bool = False,
     output_fisher: bool = False,
     chunk_size: int = 10000,
@@ -45,10 +48,13 @@ def calc_crlb(
         )
     if not isinstance(instruments, list):
         instruments = [instruments]
-    if chunk_size < 1000:
-        warn(f"chunk_size of {chunk_size} seems a little small...This may lead to numerical errors", UserWarning)
-    grad_list = []
-    snr_list = []
+    if chunk_size is not None:
+        if chunk_size < 1000:
+            warn(
+                f"chunk_size of {chunk_size} seems a little small...This may lead to numerical errors",
+                UserWarning,
+            )
+    fisher_mat = np.zeros((reference.nlabels, reference.nlabels))
     for instrument in instruments:
         if not isinstance(instrument, InstConfig):
             raise TypeError(
@@ -65,21 +71,28 @@ def calc_crlb(
             reference.zero_gradients(name=instrument.name, labels=alpha_el)
         elif not use_alpha and "alpha" in reference.labels.index:
             reference.zero_gradients(name=instrument.name, labels=["alpha"])
-        grad_list.append(reference.gradients[instrument.name].values)
-        snr_list.append(instrument.snr)
+        grad = reference.gradients[instrument.name].values
         reference.gradients[instrument.name] = grad_backup
-    grad = np.concatenate(grad_list, axis=1)
-    snr2 = np.concatenate(snr_list, axis=0) ** 2
-
-    if chunk_size is not None:
-        n_chunks = int(np.ceil(grad.shape[1] / chunk_size))
-        fisher_mat = np.zeros((grad.shape[0], grad.shape[0]))
+        flux_var = instrument.snr ** (-2)
+        if chunk_size is not None:
+            n_chunks = int(np.ceil(grad.shape[1] / chunk_size))
+        else:
+            chunk_size = grad.shape[1]
+            n_chunks = 1
         for i in range(n_chunks):
-            grad_tmp = grad[:, i * chunk_size : (i + 1) * chunk_size]
-            snr2_tmp = np.diag(snr2[i * chunk_size : (i + 1) * chunk_size])
-            fisher_mat += (grad_tmp.dot(snr2_tmp)).dot(grad_tmp.T)
-    else:
-        fisher_mat = (grad.dot(np.diag(snr2))).dot(grad.T)
+            print(i, n_chunks)
+            grad_tmp = grad[:, i * chunk_size: (i + 1) * chunk_size]
+            flux_var_tmp = flux_var[i * chunk_size: (i + 1) * chunk_size]
+            if pixel_covar:
+                flux_covar = sparse.diags(flux_var_tmp, format='csc')
+                for k, covar_factor in enumerate(pixel_covar):
+                    j = k+1
+                    flux_covar += covar_factor * sparse.diags(flux_var_tmp[:-j], j) + covar_factor * sparse.diags(
+                        flux_var_tmp[j:], -j)
+                flux_covar_inv = sparse.linalg.inv(flux_covar).todense()
+            else:
+                flux_covar_inv = np.diag(flux_var_tmp ** -1)
+            fisher_mat += grad_tmp.dot(flux_covar_inv).dot(grad_tmp.T)
     diag_val = np.abs(np.diag(fisher_mat)) < 1.0
     fisher_mat[diag_val, :] = 0.0
     fisher_mat[:, diag_val] = 0.0
@@ -87,7 +100,6 @@ def calc_crlb(
     fisher_df = pd.DataFrame(
         fisher_mat, columns=reference.labels.index, index=reference.labels.index
     )
-
     if priors:
         if not isinstance(priors, dict):
             raise TypeError("priors must be None or a dictionary of {label: prior}")
@@ -107,11 +119,19 @@ def calc_crlb(
                 fisher_df.loc[label, label] = 1e-6
             else:
                 fisher_df.loc[label, label] += prior ** (-2)
-
-    crlb = pd.DataFrame(
-        np.sqrt(np.diag(np.linalg.pinv(fisher_df))), index=reference.labels.index
-    )
-
+    if bias_grad:
+        I = pd.DataFrame(np.eye(fisher_df.shape[0]),
+                         columns=fisher_df.columns,
+                         index=fisher_df.index)
+        D = bias_grad
+        crlb = pd.DataFrame(
+            np.sqrt(np.diag(((I+D).dot(np.linalg.pinv(fisher_df))).dot((I+D).T))),
+            index=reference.labels.index
+        )
+    else:
+        crlb = pd.DataFrame(
+            np.sqrt(np.diag(np.linalg.pinv(fisher_df))), index=reference.labels.index
+        )
     if output_fisher:
         return crlb, fisher_df
     else:
