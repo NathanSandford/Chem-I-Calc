@@ -119,7 +119,7 @@ def calc_crlb(
                 fisher_df.loc[label, label] = 1e-6
             else:
                 fisher_df.loc[label, label] += prior ** (-2)
-    if bias_grad:
+    if bias_grad is not None:
         I = pd.DataFrame(np.eye(fisher_df.shape[0]),
                          columns=fisher_df.columns,
                          index=fisher_df.index)
