@@ -3,6 +3,7 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 from scipy import sparse
+from scipy.sparse import linalg
 from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
 
@@ -88,7 +89,7 @@ def calc_crlb(
                     j = k+1
                     flux_covar += covar_factor * sparse.diags(flux_var_tmp[:-j], j) + covar_factor * sparse.diags(
                         flux_var_tmp[j:], -j)
-                flux_covar_inv = sparse.linalg.inv(flux_covar).todense()
+                flux_covar_inv = linalg.inv(flux_covar).todense()
             else:
                 flux_covar_inv = np.diag(flux_var_tmp ** -1)
             fisher_mat += grad_tmp.dot(flux_covar_inv).dot(grad_tmp.T)
