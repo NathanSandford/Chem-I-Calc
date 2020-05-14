@@ -80,7 +80,6 @@ def calc_crlb(
             chunk_size = grad.shape[1]
             n_chunks = 1
         for i in range(n_chunks):
-            print(i, n_chunks)
             grad_tmp = grad[:, i * chunk_size: (i + 1) * chunk_size]
             flux_var_tmp = flux_var[i * chunk_size: (i + 1) * chunk_size]
             if pixel_covar:
@@ -120,9 +119,7 @@ def calc_crlb(
             else:
                 fisher_df.loc[label, label] += prior ** (-2)
     if bias_grad is not None:
-        I = pd.DataFrame(np.eye(fisher_df.shape[0]),
-                         columns=fisher_df.columns,
-                         index=fisher_df.index)
+        I = np.eye(fisher_df.shape[0])
         D = bias_grad
         crlb = pd.DataFrame(
             np.sqrt(np.diag(((I+D).dot(np.linalg.pinv(fisher_df))).dot((I+D).T))),
