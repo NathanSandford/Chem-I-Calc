@@ -1,4 +1,4 @@
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Optional, Tuple
 from warnings import warn
 from pathlib import Path
 import pandas as pd
@@ -211,6 +211,20 @@ class ReferenceSpectra:
         :return:
         """
         self.gradients[name].loc[labels] = 0
+
+    def mask_wavelength(self, name: str, regions: List[Tuple[float,float]]) -> None:
+        """
+
+        :param name:
+        :param regions:
+        :return:
+        """
+        if not isinstance(regions, list):
+            regions = [regions]
+        for region in regions:
+            min_wave, max_wave = region
+            mask = (self.wavelength[name] > min_wave) & (self.wavelength[name] < max_wave)
+            self.gradients[name].iloc[:,mask] = 0
 
     def get_names(self) -> List[str]:
         """
