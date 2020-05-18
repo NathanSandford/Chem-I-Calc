@@ -57,7 +57,7 @@
 },
 
 "Misc Surveys": {
-  "LAMOST": {"name": "LAMOST", "res": 2000, "samp": 0, "start": 3900, "end": 9000},
+  "LAMOST": {"name": "LAMOST", "res": 1800, "samp": 0, "start": 3700, "end": 9000},
   "WEAVE": {"name": "WEAVE", "res": 6000, "samp": 0, "start": 3700, "end": 10000},
   "RAVE": {"name": "RAVE", "res": 8000, "samp": 0, "start": 8400, "end": 8800}
 },
