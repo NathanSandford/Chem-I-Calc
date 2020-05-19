@@ -1423,7 +1423,7 @@ class Sig2NoiseLCO:
         mag,
         template="flat",
         band="g",
-        airmass="1.2",
+        airmass=1.1,
         seeing=0.5,
         nmoon="0",
         telescope="MAGELLAN2",
