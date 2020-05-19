@@ -1434,6 +1434,7 @@ class Sig2NoiseLCO:
         binspat="3",
         binspec="1",
         extract_ap=1.5,
+        extrapolation=None
     ):
         if template not in lco_options["template"]:
             raise KeyError(f"{template} not one of {lco_options['template']}")
@@ -1472,6 +1473,7 @@ class Sig2NoiseLCO:
         self.nexp = nexp
         self.aper = extract_ap
         self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
+        self.extrapolation = extrapolation
 
     def query_s2n(
         self, wavelength="default",
@@ -1511,7 +1513,12 @@ class Sig2NoiseLCO:
             [data["Wavelength_[A]"].values, data["S/N_Aperture_Coadd"]]
         ).astype(float)
         if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
+            if self.extrapolation:
+                snr_interpolator = interp1d(
+                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
+                )
+            else:
+                snr_interpolator = interp1d(snr[0], snr[1])
             return snr_interpolator(wavelength)
         elif wavelength == "default":
             return snr
