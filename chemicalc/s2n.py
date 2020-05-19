@@ -1471,6 +1471,7 @@ class Sig2NoiseLCO:
         self.texp = exptime
         self.nexp = nexp
         self.aper = extract_ap
+        self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
 
     def query_s2n(
         self, wavelength="default",
