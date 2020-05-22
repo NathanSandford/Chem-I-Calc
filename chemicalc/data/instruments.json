@@ -82,7 +82,10 @@
   "MSE LR (nir)": {"name": "MSE LR (nir)", "res": 3000, "samp": 0, "start": 9500, "end": 13000},
   "MSE MR (b)": {"name": "MSE MR (b)", "res": 5000, "samp": 0, "start": 3900, "end": 5000},
   "MSE MR (g)": {"name": "MSE MR (g)", "res": 5000, "samp": 0, "start": 5750, "end": 6900},
-  "MSE MR (r)": {"name": "MSE MR (r)", "res": 5000, "samp": 0, "start": 7370, "end": 9000}
+  "MSE MR (r)": {"name": "MSE MR (r)", "res": 5000, "samp": 0, "start": 7370, "end": 9000},
+  "MSE HR (b)": {"name": "MSE HR (b)", "res": 40000, "samp": 0, "start": 4010, "end": 4160},
+  "MSE HR (g)": {"name": "MSE HR (g)", "res": 40000, "samp": 0, "start": 4720, "end": 4890},
+  "MSE HR (r)": {"name": "MSE HR (r)", "res": 20000, "samp": 0, "start": 6260, "end": 6740}
 },
 
 "Examples": {
