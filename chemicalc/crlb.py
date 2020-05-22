@@ -25,7 +25,7 @@ def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
 def calc_crlb(
     reference: ReferenceSpectra,
     instruments: Union[InstConfig, List[InstConfig]],
-    pixel_covar: Optional[List[float]] = None,
+    pixel_corr: Optional[List[float]] = None,
     priors: Optional[Dict["str", float]] = None,
     bias_grad: Optional[pd.DataFrame] = None,
     use_alpha: bool = False,
@@ -36,8 +36,10 @@ def calc_crlb(
     Calculates the Fisher Information Matrix and Cramer-Rao Lower Bound from spectral gradients
 
     :param ReferenceSpectra reference: Reference star object
-    :param Union[InstConfig,List[InstConfig]] instruments: instrument object or list of instrument objects
+    :param Union[InstConfig,List[InstConfig]] instruments: Instrument object or list of instrument objects
+    :param Optional[List[float]] pixel_corr: Correlation of adjacent pixels
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
+    :param Optional[pd.DataFrame] bias_grad: Gradient of the bias matrix
     :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements (see chemicalc.reference_spectra.alpha_el)
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
@@ -83,9 +85,9 @@ def calc_crlb(
         for i in range(n_chunks):
             grad_tmp = grad[:, i * chunk_size: (i + 1) * chunk_size]
             flux_var_tmp = flux_var[i * chunk_size: (i + 1) * chunk_size]
-            if pixel_covar:
+            if pixel_corr:
                 flux_covar = sparse.diags(flux_var_tmp, format='csc')
-                for k, covar_factor in enumerate(pixel_covar):
+                for k, covar_factor in enumerate(pixel_corr):
                     j = k+1
                     flux_covar += covar_factor * sparse.diags(flux_var_tmp[:-j], j) + covar_factor * sparse.diags(
                         flux_var_tmp[j:], -j)
