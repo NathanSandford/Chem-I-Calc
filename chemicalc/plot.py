@@ -126,6 +126,7 @@ def plot_crlb(
     cutoff_label_yoffset: float = 0.05,
     ylim: Optional[Tuple[float, float]] = (0.009, 1.7),
     yticks: Optional[List[float]] = None,
+    ytick_ndecimal: int = 2,
     legend_ncol: int = 1,
     legend_loc: str = "lower right",
     reverse_legend: bool = False,
@@ -144,6 +145,7 @@ def plot_crlb(
     :param float cutoff_label_yoffset: Relative y position of cutoff label
     :param Optional[Tuple[float,float]] ylim: Bound on y-axis
     :param Optional[List[float]] yticks: Manual y-axis ticks. Helpful when log-spacing yields only one tick on the y-axis.
+    :param int ytick_ndecimal: Number of decimal places to include in y-axis ticks.
     :param int legend_ncol: Number of legend columns
     :param str legend_loc: Location of legend (standard matplotlib inputs)
     :param bool reverse_legend: Reverse order of legend items
@@ -215,7 +217,7 @@ def plot_crlb(
             )
         # Axes
         ax.set_ylabel(r"$\sigma$[X/H]", size=16)
-        ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
+        ax.yaxis.set_major_formatter(StrMethodFormatter("{x:."+f"{ytick_ndecimal}"+"f}"))
         ax.set_xlim(-0.5, nlabs - 0.5)
         ax.set_ylim(ylim)
         ax.set_yscale("log")
@@ -226,7 +228,7 @@ def plot_crlb(
             ax.tick_params(axis="x", labelsize=0)
         for j, label in enumerate(ax.get_xticklabels()):
             label.set_horizontalalignment("left")
-        ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
+        ax.yaxis.set_major_formatter(StrMethodFormatter("{x:."+f"{ytick_ndecimal}"+"f}"))
         # Add Label
         if labels is not None:
             plt.text(
