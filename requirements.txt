@@ -6,3 +6,6 @@ mechanicalsoup>=0.12.0
 pandas>=1.0.0
 numpy>=1.18.0
 tables>=3.6.0
+tqdm~=4.31.1
+setuptools~=45.2.0
+pytest~=5.0.0
