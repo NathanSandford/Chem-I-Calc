@@ -145,6 +145,7 @@ class ReferenceSpectra:
         :param bool symmetric: if True, applies both positive and negative doppler shifts
         :return:
         """
+        warn("This feature is experimental and has not been sufficiently tested on either computational or statistical grounds!", UserWarning)
         self.labels.loc["RV"] = 0.0
         self.labels["fffff"] = self.labels["aaaaa"]
         self.labels.loc["RV", "fffff"] += d_rv
@@ -204,7 +205,8 @@ class ReferenceSpectra:
 
     def zero_gradients(self, name: str, labels: Union[str, List[str]]):
         """
-        Sets gradient of labels to zero
+        Sets gradients of a spectrum to zero for the specified labels. This is equivalent to setting a delta-function
+        prior on those labels (i.e., holding them fixed).
 
         :param str name: Name of spectra to apply gradient zeroing to
         :param Union[str,List[str]] labels: List of labels for which to zero gradients
@@ -214,9 +216,11 @@ class ReferenceSpectra:
 
     def mask_wavelength(self, name: str, regions: List[Tuple[float,float]]) -> None:
         """
+        Masks the information content of a spectrum by setting the gradient to zero within the bounds of the mask.
+        Can be used to mimic the masking of skylines, non-LTE lines, or detector gaps.
 
-        :param name:
-        :param regions:
+        :param str name: Name of the spectra to apply  mask to
+        :param List[Tuple[float,float]] regions: List of wavelength bounds on the regions to mask.
         :return:
         """
         if not isinstance(regions, list):
