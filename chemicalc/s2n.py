@@ -1,4 +1,4 @@
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, List
 from warnings import warn
 import os
 import time
@@ -1555,17 +1555,22 @@ def calculate_fobos_snr(
 ):
     """
     This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/python/enyo/scripts/fobos_etc.py
+
     :param spec_file:
     :param spec_wave:
     :param spec_wave_units:
     :param spec_flux:
     :param spec_flux_units:
+    :param spot_fwhm:
     :param spec_res_indx:
     :param spec_res_value:
     :param spec_table:
     :param mag:
     :param mag_band:
     :param mag_system:
+    :param sky_mag:
+    :param sky_mag_band:
+    :param sky_mag_system:
     :param redshift:
     :param emline:
     :param sersic:
@@ -1653,7 +1658,7 @@ def calculate_fobos_snr(
     # sets the resolution of the fiber rendering; it has nothing to do
     # with spatial or spectral resolution of the instrument
     fiber = aperture.FiberAperture(0, 0, fiber_diameter, resolution=100)
-    # Get the spectrograph throughput (circa June 2018; TODO: needs to
+    # Get the spectrograph throughput (circa June 2018; needs to
     # be updated). Includes fibers + foreoptics + FRD + spectrograph +
     # detector QE (not sure about ADC). Because this is the total
     # throughput, define a generic efficiency object.
@@ -1778,22 +1783,64 @@ def calculate_wfos_snr(
     blue_grat: str = "B1210",
     blue_wave: Optional[float] = None,
     blue_angle: Optional[float] = None,
-    blue_binning: Optional[Tuple[int, int]] = [1, 1],
+    blue_binning: Optional[Tuple[int, int]] = (1, 1),
     red_grat: str = "R680",
     red_wave: Optional[float] = None,
     red_angle: Optional[float] = None,
-    red_binning: Optional[Tuple[int, int]] = [1, 1],
-    slit: Optional[Tuple[float, float, float, float, float]] = [
+    red_binning: Optional[Tuple[int, int]] = (1, 1),
+    slit: Optional[Tuple[float, float, float, float, float]] = (
         0.0,
         0.0,
         0.75,
         5.0,
         0.0,
-    ],
+    ),
     extract_size: Optional[float] = None,
     return_R: bool = False,
     print_summary: bool = True,
 ):
+    """
+    This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/enyo/scripts/wfos_etc.py
+
+    :param spec_file:
+    :param spec_wave:
+    :param spec_wave_units:
+    :param spec_flux:
+    :param spec_flux_units:
+    :param spot_fwhm:
+    :param spec_res_indx:
+    :param spec_res_value:
+    :param spec_table:
+    :param mag:
+    :param mag_band:
+    :param mag_system:
+    :param sky_mag:
+    :param sky_mag_band:
+    :param sky_mag_system:
+    :param redshift:
+    :param emline:
+    :param sersic:
+    :param uniform:
+    :param exptime:
+    :param fwhm:
+    :param airmass:
+    :param snr_units:
+    :param sky_err:
+    :param refl:
+    :param blue_grat:
+    :param blue_wave:
+    :param blue_angle:
+    :param blue_binning:
+    :param red_grat:
+    :param red_wave:
+    :param red_angle:
+    :param red_binning:
+    :param slit:
+    :param extract_size:
+    :param return_R:
+    :param print_summary:
+    :return:
+    """
     try:
         from enyo.etc import (
             spectrum,
@@ -2127,6 +2174,7 @@ def calculate_muse_snr(
 ):
     """
     This code is adapted from https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC
+
     :param wave:
     :param flux:
     :param exptime:
