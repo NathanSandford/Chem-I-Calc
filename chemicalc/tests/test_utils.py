@@ -21,12 +21,12 @@ def test_alpha_el():
 def test_find_nearest():
     test_array = np.arange(100)
     test_list = list(range(100))
-    assert u.find_nearest(test_array, 50) == 50
-    assert u.find_nearest(test_list, 50) == 50
+    assert u.find_nearest_val(test_array, 50) == 50
+    assert u.find_nearest_val(test_list, 50) == 50
     with pytest.raises(TypeError):
-        u.find_nearest("str", 50)
-        u.find_nearest(range(100), 50)
-        u.find_nearest(test_array, "str")
+        u.find_nearest_val("str", 50)
+        u.find_nearest_val(range(100), 50)
+        u.find_nearest_val(test_array, "str")
 
 
 def test_find_nearest_idx():
