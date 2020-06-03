@@ -282,6 +282,7 @@ def overplot_crlb(
     color_palette: str = "plasma",
 ) -> plt.figure:
     """
+    Overplots two groups of CRLBs using different line styles and marker shapes
 
     :param List[pd.DataFrame] crlb_list: List of CRLB dataframes
     :param List[str] names: Labels to show in second legend
@@ -314,7 +315,7 @@ def overplot_crlb(
     ax = plt.subplot(gs[0, 0])
     c = plt.cm.get_cmap(color_palette, np.max([crlb.shape[1] for crlb in crlb_list]))
     lines = ["-", "--", ":", "-."]
-    markers = ["s", "o"]
+    markers = ["s", "o", "^", "*"]
     # Iterate through panels
     for i, crlb in enumerate(crlb_list):
         labs = crlb.index
@@ -425,6 +426,7 @@ def gridplot_crlb(
     color_palette: str = "plasma",
 ):
     """
+    Plots grid representation of the CRLBs for many instrumental specifications.
 
     :param pd.DataFrame crlb: CRLB DataFrame
     :param str xlabel: X-axis Label
@@ -433,7 +435,7 @@ def gridplot_crlb(
     :param float tick_fontsize: Fontsize of x- and y-axis tick labels
     :param float xtick_rotation: Rotation of x-axis tick labels
     :param str color_palette: Color palette of figure
-    :return:
+    :return: plt.figure: Matplotlib figure
     """
     # Initialize Figure
     fig = plt.figure(figsize=figsize)
