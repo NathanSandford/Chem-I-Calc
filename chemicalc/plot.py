@@ -217,6 +217,7 @@ def plot_crlb(
             )
         # Axes
         ax.set_ylabel(r"$\sigma$[X/H]", size=16)
+        # ToDo: replace StrMethodFormatter with FuncFormatter
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:."+f"{ytick_ndecimal}"+"f}"))
         ax.set_xlim(-0.5, nlabs - 0.5)
         ax.set_ylim(ylim)
@@ -228,6 +229,7 @@ def plot_crlb(
             ax.tick_params(axis="x", labelsize=0)
         for j, label in enumerate(ax.get_xticklabels()):
             label.set_horizontalalignment("left")
+        # ToDo: replace StrMethodFormatter with FuncFormatter
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:."+f"{ytick_ndecimal}"+"f}"))
         # Add Label
         if labels is not None:
@@ -353,6 +355,7 @@ def overplot_crlb(
     )
     # Axes
     ax.set_ylabel(r"$\sigma$[X/H]", size=16)
+    # ToDo: replace StrMethodFormatter with FuncFormatter
     ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
     ax.set_xlim(-0.5, nlabs - 0.5)
     ax.set_ylim(ylim)
@@ -361,6 +364,7 @@ def overplot_crlb(
     ax.tick_params(axis="x", which="major", rotation=-45)
     for label in ax.get_xticklabels():
         label.set_horizontalalignment("left")
+    # ToDo: replace StrMethodFormatter with FuncFormatter
     ax.yaxis.set_major_formatter(StrMethodFormatter("{x:.2f}"))
     # Add Label
     if labels is not None:
