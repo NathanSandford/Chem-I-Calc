@@ -10,9 +10,9 @@ import base64
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 
 
-def find_nearest(array: Union[List[float], np.ndarray], value: float) -> float:
+def find_nearest_val(array: Union[List[float], np.ndarray], value: float) -> float:
     """
-    Find the nearest value in an array
+    Find the nearest value in an array. Helpful for indexing spectra at a specific wavelength.
 
     :param Union[List[float],np.ndarray] array: list or array of floats to search
     :param float value: value that you wish to find
@@ -29,7 +29,7 @@ def find_nearest(array: Union[List[float], np.ndarray], value: float) -> float:
 
 def find_nearest_idx(array: Union[List[float], np.ndarray], value: float) -> int:
     """
-    Find the index of the nearest value in an array
+    Find the index of the nearest value in an array. Helpful for indexing spectra at a specific wavelength.
 
     :param Union[List[float], np.ndarray] array: list or array of floats to search
     :param float value: value that you wish to find
@@ -61,6 +61,7 @@ def generate_wavelength_template(
     :param bool truncate: If true, drop final pixel for which lambda > end_wavelength
     :return np.ndarray: wavelength grid of given resolution between start and end wavelengths
     """
+    # ToDo: Incorporate wavelength dependent sampling/resolution
     if not all(
         isinstance(i, (int, float))
         for i in [start_wavelength, end_wavelength, resolution, res_sampling]
@@ -91,7 +92,8 @@ def doppler_shift(
     """
     Apply doppler shift to spectra and resample onto original wavelength grid
 
-    Warning: This function does not gracefully handle spectral regions that are shifted into the wavelength range. Presently, these are set to np.nan.
+    Warning: This function does not gracefully handle spectral regions with rest-frame wavelengths outside of the
+    wavelength range. Presently, these are set to np.nan.
 
     :param np.ndarray wave: input wavelength array
     :param np.ndarray spec: input spectra array
@@ -143,6 +145,8 @@ def convolve_spec(
     :param Optional[float] res_in: Resolving power of input spectra
     :return Union[np.ndarray,Any]: convolved spectra array
     """
+    # ToDo: Enable convolution with Gaussian LSF with wavelength-dependent width.
+    # ToDo: Enable convolution with arbitrary LSF
     if not all(isinstance(i, np.ndarray) for i in [wave, spec, outwave]):
         raise TypeError("wave, spec, and outwave must be np.ndarray")
     if not isinstance(resolution, (int, float)):
@@ -228,6 +232,7 @@ def calc_gradient(
     :param bool ref_included: Is spectra[0] the reference spectrum?
     :return pd.DataFrame: Partial derivatives of spectra wrt each label
     """
+    # ToDo: Add option to automatically determine structure of the spectrum dataframe from the label dataframe.
     if not isinstance(spectra, np.ndarray):
         raise TypeError("spectra must be np.ndarray")
     if not isinstance(labels, pd.DataFrame):
@@ -245,9 +250,9 @@ def calc_gradient(
                 + "\nCannot perform symmetric gradient calculation"
             )
         dx = np.diag(
-            labels.iloc[:, skip::2].values - labels.iloc[:, (skip + 1) :: 2].values
+            labels.iloc[:, skip::2].values - labels.iloc[:, (skip + 1)::2].values
         ).copy()
-        grad = spectra[skip::2] - spectra[(skip + 1) :: 2]
+        grad = spectra[skip::2] - spectra[(skip + 1)::2]
     else:
         if not ref_included:
             raise ValueError(
@@ -309,13 +314,12 @@ def mu_to_kpc(
 
 
 def decode_base64_dict(data):
-    ''' Decode a base64 encoded array into a NumPy array. Lifted from bokeh.serialization
-    Args:
-        data (dict) : encoded array data to decode
-    Data should have the format encoded by :func:`encode_base64_dict`.
-    Returns:
-        np.ndarray
-    '''
+    """
+    Decode a base64 encoded array into a NumPy array. Lifted from bokeh.serialization
+
+    :param dict data: encoded array data to decode. Data should have the format encoded by :func:`encode_base64_dict`.
+    :return np.ndarray: decoded numpy array
+    """
     b64 = base64.b64decode(data['__ndarray__'])
     array = np.copy(np.frombuffer(b64, dtype=data['dtype']))
     if len(data['shape']) > 1:
