@@ -86,7 +86,8 @@ class InstConfig:
         )
         self._custom_wave = False
 
-    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO, Sig2NoiseVLT, Sig2NoiseHectoBinoSpec, Sig2NoiseMSE, Sig2NoiseLCO]) -> None:
+    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO, Sig2NoiseVLT, Sig2NoiseHectoBinoSpec,
+                                       Sig2NoiseMSE, Sig2NoiseLCO]) -> None:
         """
         Sets S/N for instrument configuration
 
@@ -130,7 +131,7 @@ class InstConfig:
 
         :return:
         """
-        if self._custom_wave == False:
+        if not self._custom_wave:
             print(
                 f"{self.name}\n"
                 + f"{self.start_wavelength} < lambda (A) < {self.end_wavelength}\n"

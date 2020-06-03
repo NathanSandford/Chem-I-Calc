@@ -18,7 +18,7 @@ from chemicalc.file_mgmt import (
     precomputed_alpha_included
 )
 
-
+# noinspection PyTypeChecker
 elements_included: List[str] = [x.symbol for x in element(list(range(3, 100)))]
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 
@@ -36,9 +36,12 @@ class ReferenceSpectra:
         Object for spectra of a specific reference star
 
         :param str reference: Name of reference star to load (e.g., 'RGB_m1.5')
-        :param str init_res: Initial resolution of high-res reference spectra. Only 300000 is presently included for default spectra. Can be approximate if using custom reference spectra.
+        :param str init_res: Initial resolution of high-res reference spectra.
+                             Only 300000 is presently included for default spectra.
+                             Can be approximate if using custom reference spectra.
         :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
-        :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters and before the other elements (i.e., between v_micro and Li)
+        :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters
+                                    and before the other elements (i.e., between v_micro and Li)
         :param kwargs: see below
 
         Keyword Arguments:
@@ -67,7 +70,7 @@ class ReferenceSpectra:
                     "Downloading reference file---this may take a few minutes but is only necessary once"
                 )
                 download_package_files(
-                    id=precomputed_ref_id[init_res], destination=self.ref_spec_file
+                    id_str=precomputed_ref_id[init_res], destination=self.ref_spec_file
                 )
 
         if "ref_label_file" in kwargs:
@@ -81,7 +84,7 @@ class ReferenceSpectra:
                     "Downloading label_file---this should be quick and is only necessary once"
                 )
                 download_package_files(
-                    id=precomputed_label_id, destination=self.ref_label_file
+                    id_str=precomputed_label_id, destination=self.ref_label_file
                 )
 
         ref_list_spec = list(
@@ -95,7 +98,7 @@ class ReferenceSpectra:
                 f"{reference} is not included in ref_label_file and/or ref_spec_file"
             )
         else:
-            if alpha_included and not reference in precomputed_alpha_included:
+            if alpha_included and reference not in precomputed_alpha_included:
                 raise ValueError(
                     f"alpha offsets not currently included for {reference}"
                 )
@@ -145,7 +148,8 @@ class ReferenceSpectra:
         :param bool symmetric: if True, applies both positive and negative doppler shifts
         :return:
         """
-        warn("This feature is experimental and has not been sufficiently tested on either computational or statistical grounds!", UserWarning)
+        warn("This feature is experimental and has not been sufficiently tested on either computational or "
+             "statistical grounds!", UserWarning)
         self.labels.loc["RV"] = 0.0
         self.labels["fffff"] = self.labels["aaaaa"]
         self.labels.loc["RV", "fffff"] += d_rv
@@ -192,7 +196,8 @@ class ReferenceSpectra:
 
         :param str name: Name of convolved spectra to calculate gradient for
         :param bool symmetric: If True, calculates symmetric gradient around reference labels
-        :param bool ref_included: If True, expects first spectra to be reference spectra w/ no offsets to any labels. Required for symmetric=False.
+        :param bool ref_included: If True, expects first spectra to be reference spectra w/ no offsets to any labels.
+                                  Required for symmetric=False.
         :return:
         """
         self.gradients[name] = calc_gradient(
@@ -214,7 +219,7 @@ class ReferenceSpectra:
         """
         self.gradients[name].loc[labels] = 0
 
-    def mask_wavelength(self, name: str, regions: List[Tuple[float,float]]) -> None:
+    def mask_wavelength(self, name: str, regions: List[Tuple[float, float]]) -> None:
         """
         Masks the information content of a spectrum by setting the gradient to zero within the bounds of the mask.
         Can be used to mimic the masking of skylines, non-LTE lines, or detector gaps.
@@ -228,7 +233,7 @@ class ReferenceSpectra:
         for region in regions:
             min_wave, max_wave = region
             mask = (self.wavelength[name] > min_wave) & (self.wavelength[name] < max_wave)
-            self.gradients[name].iloc[:,mask] = 0
+            self.gradients[name].iloc[:, mask] = 0
 
     def get_names(self) -> List[str]:
         """

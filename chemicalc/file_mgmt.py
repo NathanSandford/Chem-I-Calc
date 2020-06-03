@@ -30,89 +30,97 @@ precomputed_alpha_included: List[str] = [
 ]
 
 
-def check_label_format(labelfile: str) -> None:
+def check_label_format(labelfile: Union[str, Path]) -> None:
     """
     Warning: Not Implemented Yet
 
+    :param Union[str, Path] labelfile:
     :return:
     """
     raise NotImplementedError("Coming soon!")
 
 
-def check_spec_format(specfile: str) -> None:
+def check_spec_format(specfile: Union[str, Path]) -> None:
     """
     Warning: Not Implemented Yet
 
+    :param Union[str, Path] specfile:
     :return:
     """
     raise NotImplementedError("Coming soon!")
 
 
-def download_package_files(id: str, destination: Union[str, Path]) -> None:
+def download_package_files(id_str: str, destination: Union[str, Path]) -> None:
     """
     Generic function to download large file from Google Drive
 
-    :param str id: Google Drive file ID
+    :param str id_str: Google Drive file ID
     :param Union[str,Path] destination: Path to download location
     :return:
     """
 
-
-    def get_confirm_token(response):
-        for key, value in response.cookies.items():
+    def get_confirm_token(resp):
+        for key, value in resp.cookies.items():
             if key.startswith("download_warning"):
                 return value
         return None
 
-    def save_response_content(response, destination):
+    def save_response_content(resp, dest):
         chunk_size = 32768
-        with open(destination, "wb") as f:
-            for chunk in tqdm(response.iter_content(chunk_size)):
+        with open(dest, "wb") as f:
+            for chunk in tqdm(resp.iter_content(chunk_size)):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
 
     url = "https://docs.google.com/uc?export=download"
     session = requests.Session()
-    response = session.get(url, params={"id": id}, stream=True)
+    response = session.get(url, params={"id_str": id_str}, stream=True)
     token = get_confirm_token(response)
     if token:
-        params = {"id": id, "confirm": token}
+        params = {"id_str": id_str, "confirm": token}
         response = session.get(url, params=params, stream=True)
     save_response_content(response, destination)
 
+
+# noinspection PyTypeChecker
 def download_bluemuse_files():
-    MUSE_etc_dir = etc_file_dir.joinpath('MUSE')
-    MUSE_etc_dir.mkdir(exist_ok=True)
+    """
+
+    :return:
+    """
+    muse_etc_dir = etc_file_dir.joinpath('MUSE')
+    muse_etc_dir.mkdir(exist_ok=True)
     newbluemuse_noatm_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
                             + "NewBlueMUSE_noatm.txt?inline=false"
-    radiance_airmass10_05moon_url  = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                                     + "radiance_airmass1.0_0.5moon.txt?inline=false"
+    radiance_airmass10_05moon_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
+                                    + "radiance_airmass1.0_0.5moon.txt?inline=false"
     radiance_airmass10_newmoon_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                                     +"radiance_airmass1.0_newmoon.txt?inline=false"
+                                     + "radiance_airmass1.0_newmoon.txt?inline=false"
     transmission_airmass1_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
                                 + "transmission_airmass1.txt?inline=false"
-    wfm_nonao_N_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
+    wfm_nonao_n_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
                       + "WFM_NONAO_N.dat.txt?inline=false"
     r = requests.get(newbluemuse_noatm_url)
-    with open(MUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt'), 'wb') as f:
         f.write(r.content)
-        print(f"Downloaded {MUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt')}")
+        print(f"Downloaded {muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt')}")
     r = requests.get(radiance_airmass10_05moon_url)
-    with open(MUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'), 'wb') as f:
         f.write(r.content)
-        print(f"Downloaded {MUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt')}")
+        print(f"Downloaded {muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt')}")
     r = requests.get(radiance_airmass10_newmoon_url)
-    with open(MUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'), 'wb') as f:
         f.write(r.content)
-        print(f"Downloaded {MUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt')}")
+        print(f"Downloaded {muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt')}")
     r = requests.get(transmission_airmass1_url)
-    with open(MUSE_etc_dir.joinpath('transmission_airmass1.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath('transmission_airmass1.txt'), 'wb') as f:
         f.write(r.content)
-        print(f"Downloaded {MUSE_etc_dir.joinpath('transmission_airmass1.txt')}")
-    r = requests.get(wfm_nonao_N_url)
-    with open(MUSE_etc_dir.joinpath('WFM_NONAO_N.dat.txt'), 'wb') as f:
+        print(f"Downloaded {muse_etc_dir.joinpath('transmission_airmass1.txt')}")
+    r = requests.get(wfm_nonao_n_url)
+    with open(muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt'), 'wb') as f:
         f.write(r.content)
-        print(f"Downloaded {MUSE_etc_dir.joinpath('WFM_NONAO_N.dat.txt')}")
+        print(f"Downloaded {muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt')}")
+
 
 def download_all_files(overwrite: bool = True) -> None:
     """
@@ -125,7 +133,7 @@ def download_all_files(overwrite: bool = True) -> None:
         print(f"{ref_label_file} exists")
     else:
         print(f"Downloading {ref_label_file}")
-        download_package_files(id=precomputed_label_id, destination=ref_label_file)
+        download_package_files(id_str=precomputed_label_id, destination=ref_label_file)
 
     for res in precomputed_res:
         reference_file = data_dir.joinpath(f"reference_spectra_{res:06}.h5")
@@ -134,15 +142,15 @@ def download_all_files(overwrite: bool = True) -> None:
             print(f"{reference_file} exists")
         else:
             print(f"Downloading {reference_file}")
-            download_package_files(id=reference_id, destination=reference_file)
+            download_package_files(id_str=reference_id, destination=reference_file)
 
-    MUSE_etc_dir = etc_file_dir.joinpath('MUSE')
-    MUSE_etc_dir.mkdir(exist_ok=True)
-    muse_files = [MUSE_etc_dir.joinpath('NewBlueMUSE_noatm.txt'),
-                  MUSE_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'),
-                  MUSE_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'),
-                  MUSE_etc_dir.joinpath('transmission_airmass1.txt'),
-                  MUSE_etc_dir.joinpath('WFM_NONAO_N.dat.txt')]
+    muse_etc_dir = etc_file_dir.joinpath('MUSE')
+    muse_etc_dir.mkdir(exist_ok=True)
+    muse_files = [muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt'),
+                  muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'),
+                  muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'),
+                  muse_etc_dir.joinpath('transmission_airmass1.txt'),
+                  muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt')]
     if all([file.exists() for file in muse_files]) and not overwrite:
         print('MUSE ETC files exist')
     else:

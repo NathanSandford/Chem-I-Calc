@@ -137,14 +137,16 @@ def plot_crlb(
 
     :param Union[pd.DataFrame,List[pd.DataFrame]] crlb_list: CRLB dataframe or list of CRLB dataframes
     :param Optional[float] cutoff: Cutoff precision for abundances
-    :param Union[str,List[str]] labels: List of additional text to include in each panel. Must be same length as the number of CRLB dataframes
+    :param Union[str,List[str]] labels: List of additional text to include in each panel.
+                                        Must be same length as the number of CRLB dataframes
     :param Tuple[float,float] label_loc: Location of additional text box
     :param float panel_height: Height of each subplot
     :param float panel_width: Width of each subplot
     :param float cutoff_label_xoffset: Relative x position of cutoff label (increases to the left)
     :param float cutoff_label_yoffset: Relative y position of cutoff label
     :param Optional[Tuple[float,float]] ylim: Bound on y-axis
-    :param Optional[List[float]] yticks: Manual y-axis ticks. Helpful when log-spacing yields only one tick on the y-axis.
+    :param Optional[List[float]] yticks: Manual y-axis ticks.
+                                         Helpful when log-spacing yields only one tick on the y-axis.
     :param int ytick_ndecimal: Number of decimal places to include in y-axis ticks.
     :param int legend_ncol: Number of legend columns
     :param str legend_loc: Location of legend (standard matplotlib inputs)
@@ -411,7 +413,7 @@ def overplot_crlb(
         )
     fig.axes[0].add_artist(leg2)
     if yticks is not None:
-        fig.axes[i].set_yticks(yticks)
+        fig.axes[0].set_yticks(yticks)
     plt.tight_layout()
     return fig
 
