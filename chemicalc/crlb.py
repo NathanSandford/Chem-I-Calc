@@ -37,13 +37,16 @@ def calc_crlb(
 
     :param ReferenceSpectra reference: Reference star object
     :param Union[InstConfig,List[InstConfig]] instruments: Instrument object or list of instrument objects
-    :param Optional[List[float]] pixel_corr: Correlation of adjacent pixels
+    :param Optional[List[float]] pixel_corr: Correlation of adjacent pixels.
+                                             This may considerably slow down the computation.
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
     :param Optional[pd.DataFrame] bias_grad: Gradient of the bias matrix
-    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements (see chemicalc.reference_spectra.alpha_el)
+    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
+                           (see chemicalc.reference_spectra.alpha_el)
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
-    :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs. If output_fisher=True, also returns FIM
+    :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs.
+                                                                  If output_fisher=True, also returns FIM
     """
     if not isinstance(reference, ReferenceSpectra):
         raise TypeError(
@@ -122,6 +125,7 @@ def calc_crlb(
             else:
                 fisher_df.loc[label, label] += prior ** (-2)
     if bias_grad is not None:
+        warn("Calculating the biased CRLB is an experimental feature and has not been thoroughly tested.", UserWarning)
         I = np.eye(fisher_df.shape[0])
         D = bias_grad
         crlb = pd.DataFrame(
@@ -149,10 +153,12 @@ def sort_crlb(
 
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
-    :param str sort_by: Name of dataframe column to sort labels by. Default uses the column with the most labels recovered below the cutoff
+    :param str sort_by: Name of dataframe column to sort labels by.
+                        Default uses the column with the most labels recovered below the cutoff
     :param bool fancy_labels: Replaces Teff, logg, and v_micro with math-formatted labels (for plotting).
     :return pd.DataFrame: Sorted CRLB dataframe
     """
+    # ToDo: Thoroughly check that sorting works as expected
     if not isinstance(crlb, pd.DataFrame):
         raise TypeError("crlb must be pd.DataFrame")
     if not isinstance(cutoff, (int, float)):
