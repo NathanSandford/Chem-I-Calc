@@ -1,0 +1,3 @@
+#!/usr/bin/env zsh
+
+sphinx-apidoc -f -o api ../chemicalc ../chemicalc/tests
