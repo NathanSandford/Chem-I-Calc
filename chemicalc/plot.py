@@ -158,6 +158,7 @@ def plot_crlb(
         crlb_list = [crlb_list]
 
     # Sort sets of CRLBs
+    # ToDo: Thoroughly check that sorting works as intended
     order = np.argsort([-len(crlb.index) for crlb in crlb_list])
     sorted_crlb_list = [crlb_list[i] for i in order]
     all_crlb = pd.concat(sorted_crlb_list, axis=1, sort=False)
@@ -306,6 +307,7 @@ def overplot_crlb(
     :param str color_palette: Color palette of lines and markers
     :return plt.figure: Matplotlib figure
     """
+    # ToDo: Thoroughly check that sorting works as intended
     # Determin CRLBs with most labels
     lead_crlb = np.argmax([len(crlb.index) for crlb in crlb_list])
     all_labs = crlb_list[lead_crlb].index
