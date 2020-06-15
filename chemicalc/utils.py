@@ -7,9 +7,6 @@ from scipy.interpolate import interp1d
 import base64
 
 
-alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
-
-
 def find_nearest_val(array: Union[List[float], np.ndarray], value: float) -> float:
     """
     Find the nearest value in an array. Helpful for indexing spectra at a specific wavelength.
@@ -224,7 +221,7 @@ def calc_gradient(
     ref_included: bool = True,
 ) -> pd.DataFrame:
     """
-    Calculates partial derivatives of spectra wrt to each label
+    Calculates partial derivatives of spectra with respect to each label
 
     :param np.ndarray spectra: input spectra array
     :param pd.DataFrame labels: input label array
