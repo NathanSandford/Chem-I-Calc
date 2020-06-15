@@ -1,4 +1,5 @@
-from typing import Union
+from typing import Union, Dict
+from warnings import warn
 import copy
 from pathlib import Path
 import json
@@ -23,10 +24,9 @@ class InstConfig:
     :param end: Ending wavelength in Angstroms
     :param truncate: If true, discards any pixels with wavelengths > ending wavelength
 
-    Attributes:
-        _custom_wave (bool): True if Instrument's wavelength has been manually set
-        wave (np.ndarray): Instrument's wavelength grid
-        snr (Optional[Union[float, np.ndarray]]): Signal/Noise of observation. Initially None.
+    :ivar bool _custom_wave: True if Instrument's wavelength has been manually set
+    :ivar np.ndarray wave: Instrument's wavelength grid
+    :ivar Optional[Union[float,np.ndarray]] snr: Signal/Noise of observation (per pixel). Initially None.
     """
     def __init__(
         self,
@@ -57,7 +57,7 @@ class InstConfig:
         Sets instrument wavelength array to input array
 
         :param np.ndarray wave: Array of wavelengths
-        :param bool update_config: Update instrument's start_wavelength and end_wavelength attributes
+        :param bool update_config: Update instrument's start_wavelength and end_wavelength attributes to match new wavelength grid.
         :return:
         """
         self.wave = wave
@@ -86,12 +86,16 @@ class InstConfig:
         )
         self._custom_wave = False
 
-    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseWMKO, Sig2NoiseVLT, Sig2NoiseHectoBinoSpec,
-                                       Sig2NoiseMSE, Sig2NoiseLCO]) -> None:
+    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseQuery]) -> None:
         """
-        Sets S/N for instrument configuration
+        Sets S/N for instrument configuration.
 
-        :param snr_input: Signal-to-Noise Ratio
+        - If snr_input is an int or float, a constant S/N is set for all pixels.
+        - If snr_input is a 2D array, the first row is the wavelength grid and the second row is the S/N per pixel. The S/N is then interpolated onto the instrument's wavelength grid.
+        - If snr_input is a 1D array, the wavelength grid is assumed to be linearly spaced from the instruments starting and ending wavelength. The S/N is then interpolated onto the instrument's wavelength grid.
+        - If snr_input is a Sig2NoiseQuery, the relevant ETC is queried and the S/N is interpolated onto the instrument's wavelength grid.
+
+        :param snr_input: Signal-to-Noise Ratio.
         :return:
         """
         if (
@@ -110,6 +114,7 @@ class InstConfig:
                 )
                 self.snr = snr_interpolator(self.wave)
             elif snr_input.ndim == 1:
+                warn(f"snr_input is a 1D array. Assuming a linearly spaced wavelength grid from {self.wave.min()} to {self.wave.max()} Angstrom", UserWarning)
                 fake_wave = np.linspace(
                     self.wave.min(), self.wave.max(), snr_input.shape[0]
                 )
@@ -157,12 +162,14 @@ class AllInstruments:
     """
     Object containing all pre-defined instrument configurations.
 
-    Attributes:
-        spectrographs (dict[str, InstConfig]): Dictionary of instrument configurations
+    :param file: JSON file containing  instrument parameters. If None, uses default Chem-I-Calc instrument file.
 
+    :ivar Dict[str,InstConfig] spectrographs: Dictionary of instrument configurations
     """
-    def __init__(self) -> None:
-        with open(inst_file) as f:
+    def __init__(self, file: str = None) -> None:
+        if file == None:
+            file = inst_file
+        with open(file) as f:
             all_inst_dict = json.load(f)
         self.spectrographs = {}
         for observatory, obs_dict in all_inst_dict.items():
@@ -194,3 +201,8 @@ class AllInstruments:
         :return: Predefined InstConfig
         """
         return copy.deepcopy(self.spectrographs[name])
+
+AllInst = AllInstruments()
+"""
+AllInstruments: Pre-initialized object of all the instruments
+"""
