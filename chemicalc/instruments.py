@@ -191,7 +191,9 @@ class AllInstruments:
 
         :return:
         """
-        print(list(self.spectrographs.keys()))
+        for key, item in inst.AllInst.spectrographs.items():
+            item.summary()
+            print('\n')
 
     def get_spectrograph(self, name: str) -> InstConfig:
         """
