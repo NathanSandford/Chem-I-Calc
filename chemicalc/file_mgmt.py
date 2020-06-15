@@ -13,6 +13,9 @@ etc_file_dir = data_dir.joinpath("etc_files")
 etc_file_dir.mkdir(exist_ok=True)
 
 precomputed_res: List = [300000]
+"""
+List[float]: Resolution at which pre-computed spectral grids have been calculated.
+"""
 precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
 precomputed_label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
 
@@ -28,13 +31,16 @@ precomputed_alpha_included: List[str] = [
     "Ph_k5iii_m0.0",
     "Ph_k5iii_m1.0",
 ]
+"""
+List[str]: Pre-computed spectral grids that include a bulk alpha offset.
+"""
 
 
 def check_label_format(labelfile: Union[str, Path]) -> None:
     """
     Warning: Not Implemented Yet
 
-    :param Union[str, Path] labelfile:
+    :param Union[str,Path] labelfile:
     :return:
     """
     raise NotImplementedError("Coming soon!")
@@ -44,7 +50,7 @@ def check_spec_format(specfile: Union[str, Path]) -> None:
     """
     Warning: Not Implemented Yet
 
-    :param Union[str, Path] specfile:
+    :param Union[str,Path] specfile:
     :return:
     """
     raise NotImplementedError("Coming soon!")
@@ -85,6 +91,7 @@ def download_package_files(id_str: str, destination: Union[str, Path]) -> None:
 # noinspection PyTypeChecker
 def download_bluemuse_files():
     """
+    Downloads files necessary to call chemicalc.s2n.calculate_muse_snr()
 
     :return:
     """
