@@ -191,7 +191,7 @@ class AllInstruments:
 
         :return:
         """
-        for key, item in inst.AllInst.spectrographs.items():
+        for key, item in self.spectrographs.items():
             item.summary()
             print('\n')
 
