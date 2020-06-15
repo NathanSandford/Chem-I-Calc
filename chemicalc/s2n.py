@@ -12,8 +12,8 @@ from chemicalc.utils import decode_base64_dict, find_nearest_idx
 from chemicalc.file_mgmt import etc_file_dir, download_bluemuse_files
 
 
-keck_options = {
-    "instrument": ["lris", "deimos", "hires"],
+wmko_options = {
+    "instrument": ["lris", "deimos", "hires", "esi"],
     "mag type": ["Vega", "AB"],
     "filter": [
         "sdss_r.dat",
@@ -51,6 +51,12 @@ keck_options = {
     "slitwidth arcsec (HIRES)": [1.15, 0.40, 0.57, 0.86, 0.80, 1.72],
     "dichroic (LRIS)": ["D560"],
     "central wavelength (DEIMOS)": ["5000", "6000", "7000", "8000"],
+}
+mmt_options = {
+    "inst_mode": ["BINOSPEC_1000", "BINOSPEC_270", "BINOSPEC_600", "HECTOSPEC_270", "HECTOSPEC_600"],
+    "template": ["O5V", "A0V", "A5V", "B0V", "F0V", "F5V", "G0V", "G2V", "K0V", "K5V", "M5V", "Moon"],
+    "filter": ["r_filt", "g_filt", "i_filt"],
+    "aptype": ["Round", "Square", "Rectangular"],
 }
 mse_options = {
     "spec_mode": ["LR", "MR", "HR"],
@@ -316,27 +322,49 @@ lco_options = {
 }
 
 
-class Sig2NoiseWMKO:
+class Sig2NoiseQuery:
+    """
+    Base class for ETC queries
+    """
+    def __init__(self):
+        pass
+
+
+class Sig2NoiseWMKO(Sig2NoiseQuery):
+    """
+    Superclass for WMKO ETC Queries
+
+    :param str instrument: Keck instrument. Must be "DEIMOS", "LRIS", "HIRES", or "ESI"
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.wmko_options['template'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
+    :param float airmass: Airmass of observation
+    :param float seeing: Seeing (FWHM) of observation
+    :param float redshift: Redshift of the target
+    """
     def __init__(
         self,
-        instrument,
-        exptime,
-        mag,
-        template,
-        magtype="Vega",
-        band="Cousins_I.dat",
-        airmass=1.1,
-        seeing=0.75,
-        redshift=0,
+        instrument: str,
+        exptime: float,
+        mag: float,
+        template: str,
+        magtype: str = "Vega",
+        band: str = "Cousins_I.dat",
+        airmass: float = 1.1,
+        seeing: float = 0.75,
+        redshift: float = 0,
     ):
-        if instrument not in keck_options["instrument"]:
-            raise KeyError(f"{instrument} not one of {keck_options['instrument']}")
-        if magtype not in keck_options["mag type"]:
-            raise KeyError(f"{magtype} not one of {keck_options['mag type']}")
-        if band not in keck_options["filter"]:
-            raise KeyError(f"{band} not one of {keck_options['filter']}")
-        if template not in keck_options["template"]:
-            raise KeyError(f"{template} not one of {keck_options['template']}")
+        Sig2NoiseQuery.__init__(self)
+        if instrument not in wmko_options["instrument"]:
+            raise KeyError(f"{instrument} not one of {wmko_options['instrument']}")
+        if magtype not in wmko_options["mag type"]:
+            raise KeyError(f"{magtype} not one of {wmko_options['mag type']}")
+        if band not in wmko_options["filter"]:
+            raise KeyError(f"{band} not one of {wmko_options['filter']}")
+        if template not in wmko_options["template"]:
+            raise KeyError(f"{template} not one of {wmko_options['template']}")
         self.instrument = instrument
         self.mag = mag
         self.magtype = magtype
@@ -347,27 +375,48 @@ class Sig2NoiseWMKO:
         self.seeing = seeing
         self.redshift = redshift
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self) -> None:
+        """
+        No generic S/N query, see specific instrument subclasses
+
+        :return:
+        """
         raise NotImplementedError(
             "No generic S/N query, see specific instrument children classes"
         )
 
 
 class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
+    """
+    Keck/DEIMOS S/N Query (http://etc.ucolick.org/web_s2n/deimos)
+
+    :param str grating: DEIMOS grating. Must be one of "600Z", "900Z", "1200G", or "1200B".
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.wmko_options['template'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
+    :param str cwave: Central wavelength of grating. Must be one of "5000", "6000", "7000", or "8000"
+    :param str slitwidth: Width of slit in arcseconds. Must be "0.75", "1.0", or "1.5"
+    :param str binning: spatial x spectral binning. "1x1" is the only option.
+    :param flaot airmass: Airmass of observation
+    :param float  seeing: Seeing (FWHM) of observation in arcseconds
+    :param float redshift: Redshift of the target
+    """
     def __init__(
         self,
-        grating,
-        exptime,
-        mag,
-        template,
-        magtype="Vega",
-        band="Cousins_I.dat",
-        cwave="7000",
-        slitwidth="0.75",
-        binning="1x1",
-        airmass=1.1,
-        seeing=0.75,
-        redshift=0,
+        grating: str,
+        exptime: float,
+        mag: float,
+        template: str,
+        magtype: str = "Vega",
+        band: str = "Cousins_I.dat",
+        cwave: str = "7000",
+        slitwidth: str = "0.75",
+        binning: str = "1x1",
+        airmass: float = 1.1,
+        seeing: float = 0.75,
+        redshift: float = 0,
     ):
         Sig2NoiseWMKO.__init__(
             self,
@@ -381,24 +430,31 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
             seeing,
             redshift,
         )
-        if grating not in keck_options["grating (DEIMOS)"]:
-            raise KeyError(f"{grating} not one of {keck_options['grating (DEIMOS)']}")
-        if binning not in keck_options["binning (DEIMOS)"]:
-            raise KeyError(f"{binning} not one of {keck_options['binning (DEIMOS)']}")
-        if slitwidth not in keck_options["slitwidth (DEIMOS)"]:
+        if grating not in wmko_options["grating (DEIMOS)"]:
+            raise KeyError(f"{grating} not one of {wmko_options['grating (DEIMOS)']}")
+        if binning not in wmko_options["binning (DEIMOS)"]:
+            raise KeyError(f"{binning} not one of {wmko_options['binning (DEIMOS)']}")
+        if slitwidth not in wmko_options["slitwidth (DEIMOS)"]:
             raise KeyError(
-                f"{slitwidth} not one of {keck_options['slitwidth (DEIMOS)']}"
+                f"{slitwidth} not one of {wmko_options['slitwidth (DEIMOS)']}"
             )
-        if cwave not in keck_options["central wavelength (DEIMOS)"]:
+        if cwave not in wmko_options["central wavelength (DEIMOS)"]:
             raise KeyError(
-                f"{cwave} not one of {keck_options['central wavelength (DEIMOS)']}"
+                f"{cwave} not one of {wmko_options['central wavelength (DEIMOS)']}"
             )
         self.grating = grating
         self.binning = binning
         self.slitwidth = slitwidth
         self.cwave = cwave
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self, wavelength: Union[str, np.ndarray] = "default") -> None:
+        """
+        Query the DEIMOS ETC (http://etc.ucolick.org/web_s2n/deimos)
+
+        :param wavelength: Wavelength grid to interpolate S/N onto.
+                           If "default", the wavelength array of the ETC is used.
+        :return:
+        """
         url = "http://etc.ucolick.org/web_s2n/deimos"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -430,21 +486,38 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
 
 
 class Sig2NoiseLRIS(Sig2NoiseWMKO):
+    """
+    Keck/LRIS S/N Query (http://etc.ucolick.org/web_s2n/lris)
+
+    :param str grating: LRIS red arm grating. Must be one of "600/7500", "600/10000", "1200/9000", "400/8500", or "831/8200".
+    :param str grism: LRIS blue arm grism. Must be one of "B300" or "B600".
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.wmko_options['template'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
+    :param str dichroic: LRIS dichroic separating the red and blue arms. "D560" is the only option currently.
+    :param str slitwidth: Width of slit in arcseconds. Must be one of "0.7", "1.0", or "1.5"
+    :param str binning: spatial x spectral binning. Must be one of "1x1", "2x1", "2x2", or "3x1"
+    :param float airmass: Airmass of observation
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param float redshift: Redshift of the target
+    """
     def __init__(
         self,
-        grating,
-        grism,
-        exptime,
-        mag,
-        template,
-        magtype="Vega",
-        band="Cousins_I.dat",
-        dichroic="D560",
-        slitwidth="0.7",
-        binning="1x1",
-        airmass=1.1,
-        seeing=0.75,
-        redshift=0,
+        grating: str,
+        grism: float,
+        exptime: float,
+        mag: float,
+        template: str,
+        magtype: str = "Vega",
+        band: str = "Cousins_I.dat",
+        dichroic: str = "D560",
+        slitwidth: str = "0.7",
+        binning: str = "1x1",
+        airmass: float = 1.1,
+        seeing: float = 0.75,
+        redshift: float = 0,
     ):
         Sig2NoiseWMKO.__init__(
             self,
@@ -458,16 +531,16 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
             seeing,
             redshift,
         )
-        if grating not in keck_options["grating (LRIS)"]:
-            raise KeyError(f"{grating} not one of {keck_options['grating (LRIS)']}")
-        if grism not in keck_options["grism (LRIS)"]:
-            raise KeyError(f"{grism} not one of {keck_options['grism (LRIS)']}")
-        if binning not in keck_options["binning (LRIS)"]:
-            raise KeyError(f"{binning} not one of {keck_options['binning (LRIS)']}")
-        if slitwidth not in keck_options["slitwidth (LRIS)"]:
-            raise KeyError(f"{slitwidth} not one of {keck_options['slitwidth (LRIS)']}")
-        if dichroic not in keck_options["dichroic (LRIS)"]:
-            raise KeyError(f"{dichroic} not one of {keck_options['dichroic (LRIS)']}")
+        if grating not in wmko_options["grating (LRIS)"]:
+            raise KeyError(f"{grating} not one of {wmko_options['grating (LRIS)']}")
+        if grism not in wmko_options["grism (LRIS)"]:
+            raise KeyError(f"{grism} not one of {wmko_options['grism (LRIS)']}")
+        if binning not in wmko_options["binning (LRIS)"]:
+            raise KeyError(f"{binning} not one of {wmko_options['binning (LRIS)']}")
+        if slitwidth not in wmko_options["slitwidth (LRIS)"]:
+            raise KeyError(f"{slitwidth} not one of {wmko_options['slitwidth (LRIS)']}")
+        if dichroic not in wmko_options["dichroic (LRIS)"]:
+            raise KeyError(f"{dichroic} not one of {wmko_options['dichroic (LRIS)']}")
         self.grating = grating
         self.grism = grism
         self.binning = binning
@@ -475,6 +548,13 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
         self.dichroic = dichroic
 
     def query_s2n(self, wavelength="default"):
+        """
+        Query the LRIS ETC (http://etc.ucolick.org/web_s2n/lris)
+
+        :param wavelength: Wavelength grid to interpolate S/N onto.
+                           If "default", the wavelength array of the ETC is used.
+        :return:
+        """
         url = "http://etc.ucolick.org/web_s2n/lris"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -507,19 +587,32 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
 
 
 class Sig2NoiseESI(Sig2NoiseWMKO):
+    """
+    Keck/ESI S/N Query (http://etc.ucolick.org/web_s2n/esi)
+
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.wmko_options['template'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
+    :param str slitwidth: Width of slit in arcseconds. Must be one of "0.75", "0.3", "0.5", or "1.0"
+    :param str binning: spatial x spectral binning. Must be one of "1x1", "2x1", "2x2", or "3x1"
+    :param float airmass: Airmass of observation
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param float redshift: Redshift of the target
+    """
     def __init__(
         self,
-        exptime,
-        mag,
-        template,
-        magtype="Vega",
-        band="Cousins_I.dat",
-        dichroic="D560",
-        slitwidth="0.75",
-        binning="1x1",
-        airmass=1.1,
-        seeing=0.75,
-        redshift=0,
+        exptime: float,
+        mag: float,
+        template: str,
+        magtype: str = "Vega",
+        band: str = "Cousins_I.dat",
+        slitwidth: str = "0.75",
+        binning: str = "1x1",
+        airmass: float = 1.1,
+        seeing: float = 0.75,
+        redshift: float = 0,
     ):
         Sig2NoiseWMKO.__init__(
             self,
@@ -533,14 +626,21 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
             seeing,
             redshift,
         )
-        if binning not in keck_options["binning (ESI)"]:
-            raise KeyError(f"{binning} not one of {keck_options['binning (ESI)']}")
-        if slitwidth not in keck_options["slitwidth (ESI)"]:
-            raise KeyError(f"{slitwidth} not one of {keck_options['slitwidth (ESI)']}")
+        if binning not in wmko_options["binning (ESI)"]:
+            raise KeyError(f"{binning} not one of {wmko_options['binning (ESI)']}")
+        if slitwidth not in wmko_options["slitwidth (ESI)"]:
+            raise KeyError(f"{slitwidth} not one of {wmko_options['slitwidth (ESI)']}")
         self.binning = binning
         self.slitwidth = slitwidth
 
     def query_s2n(self, wavelength="default"):
+        """
+        Query the ESI ETC (http://etc.ucolick.org/web_s2n/esi)
+
+        :param wavelength: Wavelength grid to interpolate S/N onto.
+                           If "default", the wavelength array of the ETC is used.
+        :return:
+        """
         url = "http://etc.ucolick.org/web_s2n/esi"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -570,18 +670,33 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
 
 
 class Sig2NoiseHIRES(Sig2NoiseWMKO):
+    """
+    Keck/HIRES S/N Query (http://etc.ucolick.org/web_s2n/hires)
+
+    :param str slitwidth: HIRES Decker. Must be "C5" (1.15"), "E4" (0.40"), "B2" (0.57"),
+                                                "B5" (0.86"), "E5" (0.80"), or "D3" (1.72")
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.wmko_options['template'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
+    :param str binning: spatial x spectral binning. Must be one of "1x1", "2x1", "2x2", or "3x1".
+    :param float airmass: Airmass of observation
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param float redshift: Redshift of the target
+    """
     def __init__(
         self,
-        slitwidth,
-        exptime,
-        mag,
-        template,
-        magtype="Vega",
-        band="Cousins_I.dat",
-        binning="1x1",
-        airmass=1.1,
-        seeing=0.75,
-        redshift=0,
+        slitwidth: str,
+        exptime: float,
+        mag: float,
+        template: str,
+        magtype: str = "Vega",
+        band: str = "Cousins_I.dat",
+        binning: str = "1x1",
+        airmass: float = 1.1,
+        seeing: float = 0.75,
+        redshift: float = 0,
     ):
         Sig2NoiseWMKO.__init__(
             self,
@@ -595,16 +710,23 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             seeing,
             redshift,
         )
-        if binning not in keck_options["binning (HIRES)"]:
-            raise KeyError(f"{binning} not one of {keck_options['binning (HIRES)']}")
-        if slitwidth not in keck_options["slitwidth (HIRES)"]:
+        if binning not in wmko_options["binning (HIRES)"]:
+            raise KeyError(f"{binning} not one of {wmko_options['binning (HIRES)']}")
+        if slitwidth not in wmko_options["slitwidth (HIRES)"]:
             raise KeyError(
-                f"{slitwidth} not one of {keck_options['slitwidth (HIRES)']}"
+                f"{slitwidth} not one of {wmko_options['slitwidth (HIRES)']}"
             )
         self.binning = binning
         self.slitwidth = slitwidth
 
     def query_s2n(self, wavelength="default"):
+        """
+        Query the HIRES ETC (http://etc.ucolick.org/web_s2n/hires)
+
+        :param wavelength: Wavelength grid to interpolate S/N onto.
+                           If "default", the wavelength array of the ETC is used.
+        :return:
+        """
         url = "http://etc.ucolick.org/web_s2n/hires"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -633,10 +755,27 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
             raise ValueError("Wavelength input not recognized")
 
 
-class Sig2NoiseHectoBinoSpec:
+class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
+    """
+    MMT/Hectospec and MMT/Binospec S/N Query (http://hopper.si.edu/etc-cgi/TEST/sao-etc)
+
+    :param str inst_mode: Instrument and mode.
+                          One of: "BINOSPEC_1000", "BINOSPEC_270", "BINOSPEC_600", "HECTOSPEC_270", or "HECTOSPEC_600"
+    :param float exptime: Exposure time in seconds
+    :param float mag: AB Magnitude of source
+    :param str band: Magnitude band. One of "r_filt", "g_filt", or "i_filt"
+    :param str template: Spectral template. For valid options see s2n.mmt_options['template'].
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param float airmass: Airmass of observation
+    :param float moonage: Moon Phase (days since new moon)
+    :param str aptype: Aperture shape. Must be one of "Round", "Square", or "Rectangular".
+    :param float apwidth: Width of aperture in arcseconds
+    :param Optional[Union[str,np.array]] extrapolation: Passed on as fill_value argument to scipy.interpolate.interp1d.
+        If None, an error will be raised if the wavelength grid extends beyond the S/N array returned from the ETC.
+    """
     def __init__(
         self,
-        instrument: str,
+        inst_mode: str,
         exptime: float,
         mag: float,
         band: str = "g_filt",
@@ -646,21 +785,37 @@ class Sig2NoiseHectoBinoSpec:
         moonage: float = 0.0,
         aptype: str = "Round",
         apwidth: float = 1.0,
-        extrapolation=None,
+        extrapolation: Optional[str] = None,
     ):
-        self.instrument = instrument
+        Sig2NoiseQuery.__init__(self)
+        if inst_mode not in mmt_options["inst_mode"]:
+            raise KeyError(f"{inst_mode} not one of {mmt_options['inst_mode']}")
+        self.inst_mode = inst_mode
         self.exptime = exptime
         self.mag = mag
+        if band not in mmt_options["filter"]:
+            raise KeyError(f"{band} not one of {mmt_options['filter']}")
         self.band = band
+        if template not in mmt_options["template"]:
+            raise KeyError(f"{template} not one of {mmt_options['template']}")
         self.template = template
         self.seeing = seeing
         self.airmass = airmass
         self.moonage = moonage
+        if aptype not in mmt_options["aptype"]:
+            raise KeyError(f"{aptype} not one of {mmt_options['aptype']}")
         self.aptype = aptype
         self.apwidth = apwidth
         self.extrapolation = extrapolation
 
     def query_s2n(self, wavelength="default"):
+        """
+        Query the Hectospec/Binospec ETC (http://hopper.si.edu/etc-cgi/TEST/sao-etc)
+
+        :param wavelength: Wavelength grid to interpolate S/N onto.
+                           If "default", the wavelength array of the ETC is used.
+        :return:
+        """
         url = "http://hopper.si.edu/etc-cgi/TEST/sao-etc"
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -668,7 +823,7 @@ class Sig2NoiseHectoBinoSpec:
         form.new_control(type="select", name="instmode", value="")
         form.new_control(type="select", name="objspec_", value="")
         form.new_control(type="select", name="objspec__", value="")
-        form["instmode"] = self.instrument
+        form["instmode"] = self.inst_mode
         form["exptime"] = self.exptime
         form["ABmag"] = self.mag
         form["bandfilter"] = self.band
@@ -702,7 +857,7 @@ class Sig2NoiseHectoBinoSpec:
             raise ValueError("Wavelength input not recognized")
 
 
-class Sig2NoiseVLT:
+class Sig2NoiseVLT(Sig2NoiseQuery):
     # TODO: Refactor to be consistent with WMKO ETC query.
     # TODO: Implement MARCS stellar template selection
     def __init__(
@@ -739,6 +894,7 @@ class Sig2NoiseVLT:
         extrapolation=None,
         **kwargs,
     ):
+        Sig2NoiseQuery.__init__(self)
         if instrument not in vlt_options["instruments"]:
             raise KeyError(f"{instrument} not one of {vlt_options['instruments']}")
         self.instrument = instrument
@@ -1266,7 +1422,7 @@ def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
     return np.array([wave, snr])
 
 
-class Sig2NoiseMSE:
+class Sig2NoiseMSE(Sig2NoiseQuery):
     def __init__(
         self,
         exptime,
@@ -1281,6 +1437,7 @@ class Sig2NoiseMSE:
         redshift=0,
         extrapolation=None
     ):
+        Sig2NoiseQuery.__init__(self)
         self.url_base = "http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py"
         # Hard Coded Values
         self.sessionID = 1234
@@ -1416,7 +1573,7 @@ class Sig2NoiseMSE:
             raise ValueError("Wavelength input not recognized")
 
 
-class Sig2NoiseLCO:
+class Sig2NoiseLCO(Sig2NoiseQuery):
     def __init__(
         self,
         exptime,
@@ -1436,6 +1593,7 @@ class Sig2NoiseLCO:
         extract_ap=1.5,
         extrapolation=None
     ):
+        Sig2NoiseQuery.__init__(self)
         if template not in lco_options["template"]:
             raise KeyError(f"{template} not one of {lco_options['template']}")
         if band not in lco_options["tempfilter"]:
