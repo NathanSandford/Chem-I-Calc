@@ -6,7 +6,7 @@ import json
 import numpy as np
 from scipy.interpolate import interp1d
 from chemicalc.utils import generate_wavelength_template
-from chemicalc.s2n import Sig2NoiseWMKO, Sig2NoiseHectoBinoSpec, Sig2NoiseVLT, Sig2NoiseMSE, Sig2NoiseLCO
+from chemicalc.s2n import Sig2NoiseQuery
 from chemicalc.file_mgmt import data_dir, inst_file
 
 
@@ -124,7 +124,7 @@ class InstConfig:
                 self.snr = snr_interpolator(self.wave)
             else:
                 raise ValueError("S/N array must have ndim <= 2")
-        elif isinstance(snr_input, (Sig2NoiseWMKO, Sig2NoiseVLT, Sig2NoiseHectoBinoSpec, Sig2NoiseMSE, Sig2NoiseLCO)):
+        elif isinstance(snr_input, (Sig2NoiseQuery)):
             self.snr = snr_input.query_s2n(wavelength=self.wave)
         else:
             raise ValueError("Cannot parse snr_input")
