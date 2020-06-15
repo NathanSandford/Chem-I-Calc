@@ -38,7 +38,12 @@ extensions = [
 ]
 
 # autodoc settings
-autodoc_member_order = "bysource"
+autodoc_default_options = {
+    'member-order': 'bysource',
+    'members': True,
+    'special-members': '',  # '__init__',
+    'undoc-members': True,
+}
 
 # Napoleon settings
 napoleon_google_docstring = True
