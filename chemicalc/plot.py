@@ -236,6 +236,8 @@ def plot_crlb(
         ax.yaxis.set_major_formatter(StrMethodFormatter("{x:."+f"{ytick_ndecimal}"+"f}"))
         # Add Label
         if labels is not None:
+            if type(labels) is not list:
+                labels = [labels]
             plt.text(
                 label_loc[0],
                 label_loc[1],
@@ -428,7 +430,7 @@ def gridplot_crlb(
     tick_fontsize: float = 10,
     xtick_rotation: float = -70,
     color_palette: str = "plasma",
-):
+) -> plt.figure:
     """
     Plots grid representation of the CRLBs for many instrumental specifications.
 
@@ -439,7 +441,7 @@ def gridplot_crlb(
     :param float tick_fontsize: Fontsize of x- and y-axis tick labels
     :param float xtick_rotation: Rotation of x-axis tick labels
     :param str color_palette: Color palette of figure
-    :return: plt.figure: Matplotlib figure
+    :return plt.figure: Matplotlib figure
     """
     # Initialize Figure
     fig = plt.figure(figsize=figsize)
