@@ -20,10 +20,41 @@ from chemicalc.file_mgmt import (
 
 # noinspection PyTypeChecker
 elements_included: List[str] = [x.symbol for x in element(list(range(3, 100)))]
+"""
+List[str]: List of all elements included in the pre-computed spectral grids.
+"""
 alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
+"""
+List[str]: List of elements considered when calculating bulk [:math:`\\alpha`/H].
+"""
 
 
 class ReferenceSpectra:
+    """
+    Object for spectra of a specific reference star
+
+    :param str reference: Name of reference star to load (e.g., 'RGB_m1.5')
+    :param str init_res: Initial resolution of high-res reference spectra.
+                         Only 300000 is presently included for default spectra.
+                         Can be approximate if using custom reference spectra.
+    :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
+    :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters
+                                and before the other elements (i.e., between v_micro and Li)
+    :param \**kwargs: see below
+
+    :keyword str ref_spec_file: Full path to file of reference spectra
+    :keyword str ref_label_file: Full path to file of reference spectra labels
+
+    :ivar Dict[Union[str,float],int] resolution: Dictionary of resolving powers for each instrument
+    :ivar ref_spec_file: Full path to file of reference spectra
+    :ivar ref_label_file: Full path to file of reference spectra labels
+    :ivar Dict[Union[str,float],np.ndarray] wavelength: Dictionary of wavelength arrays for each instrument
+    :ivar Dict[Union[str,float],np.ndarray] spectra: Dictionary of spectral grids for each instrument
+    :ivar pd.DataFrame labels: Labels corresponding to each spectrum in the grid
+    :ivar Dict[Union[str,float],pd.DataFrame] gradients: Dictionary of partial derivatives for each instrument
+    :ivar int nspectra: Number of spectra included in the grid
+    :ivar int nlabels: Number of labels included
+    """
     def __init__(
         self,
         reference: str,
@@ -32,22 +63,6 @@ class ReferenceSpectra:
         alpha_included: bool = True,
         **kwargs,
     ) -> None:
-        """
-        Object for spectra of a specific reference star
-
-        :param str reference: Name of reference star to load (e.g., 'RGB_m1.5')
-        :param str init_res: Initial resolution of high-res reference spectra.
-                             Only 300000 is presently included for default spectra.
-                             Can be approximate if using custom reference spectra.
-        :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
-        :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters
-                                    and before the other elements (i.e., between v_micro and Li)
-        :param kwargs: see below
-
-        Keyword Arguments:
-        :key str ref_spec_file: Full path to file of reference spectra
-        :key str ref_label_file: Full path to file of reference spectra labels
-        """
         if not isinstance(reference, str):
             raise TypeError("reference must be str")
         if not isinstance(init_res, (int, float)):
@@ -134,7 +149,6 @@ class ReferenceSpectra:
         self.spectra = dict(init=spec_df.to_numpy().T)
         self.labels = label_df
         self.gradients: Dict[Union[str, float], pd.DataFrame] = {}
-        self.filters: Dict[Union[str, float], List[str]] = {}
 
         self.nspectra = self.spectra["init"].shape[0]
         self.nlabels = self.labels.shape[0]
@@ -200,6 +214,9 @@ class ReferenceSpectra:
                                   Required for symmetric=False.
         :return:
         """
+        if isinstance(name, InstConfig):
+            name = name.name
+
         self.gradients[name] = calc_gradient(
             spectra=self.spectra[name],
             labels=self.labels,
@@ -276,3 +293,4 @@ class ReferenceSpectra:
         self.spectra["init"] = init_spectra
 
         del self.gradients
+        self.gradients = {}
