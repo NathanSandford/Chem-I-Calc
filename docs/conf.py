@@ -23,7 +23,7 @@ copyright = "2020, Nathan Sandford"
 author = "Nathan Sandford"
 
 # The full version, including alpha/beta/rc tags
-release = "0.2.0dev"
+release = "0.4.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -39,10 +39,10 @@ extensions = [
 
 # autodoc settings
 autodoc_default_options = {
-    'member-order': 'bysource',
-    'members': True,
-    'special-members': '',  # '__init__',
-    'undoc-members': True,
+    "member-order": "bysource",
+    "members": True,
+    "special-members": "",  # '__init__',
+    "undoc-members": True,
 }
 
 # Napoleon settings
