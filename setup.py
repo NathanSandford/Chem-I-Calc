@@ -16,8 +16,8 @@ DESCRIPTION = "Chemical information calculator for resolved stellar spectroscopy
 URL = "https://github.com/NathanSandford/Chem-I-Calc"
 EMAIL = "nathan_sandford@berkeley.edu"
 AUTHOR = "Nathan Sandford"
-REQUIRES_PYTHON = ">=3.5.0"
-VERSION = "0.2.0dev"
+REQUIRES_PYTHON = ">=3.6.0"
+VERSION = "0.4.0"
 
 
 def get_requirements():
@@ -107,14 +107,14 @@ setup(
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Astronomy",
     ],
     # $ setup.py publish support.

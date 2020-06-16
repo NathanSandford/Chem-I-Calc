@@ -157,7 +157,7 @@ def convolve_spec(
     if not (wave.min() < outwave.min() and wave.max() > outwave.max()):
         warn(
             f"outwave ({outwave.min(), outwave.max()}) extends beyond input wave ({wave.min(), wave.max()})",
-            UserWarning
+            UserWarning,
         )
     if not np.all(np.diff(wave) > 0):
         raise ValueError("wave must be sorted")
@@ -247,9 +247,9 @@ def calc_gradient(
                 + "\nCannot perform symmetric gradient calculation"
             )
         dx = np.diag(
-            labels.iloc[:, skip::2].values - labels.iloc[:, (skip + 1)::2].values
+            labels.iloc[:, skip::2].values - labels.iloc[:, (skip + 1) :: 2].values
         ).copy()
-        grad = spectra[skip::2] - spectra[(skip + 1)::2]
+        grad = spectra[skip::2] - spectra[(skip + 1) :: 2]
     else:
         if not ref_included:
             raise ValueError(
@@ -317,8 +317,8 @@ def decode_base64_dict(data):
     :param dict data: encoded array data to decode. Data should have the format encoded by :func:`encode_base64_dict`.
     :return np.ndarray: decoded numpy array
     """
-    b64 = base64.b64decode(data['__ndarray__'])
-    array = np.copy(np.frombuffer(b64, dtype=data['dtype']))
-    if len(data['shape']) > 1:
-        array = array.reshape(data['shape'])
+    b64 = base64.b64decode(data["__ndarray__"])
+    array = np.copy(np.frombuffer(b64, dtype=data["dtype"]))
+    if len(data["shape"]) > 1:
+        array = array.reshape(data["shape"])
     return array

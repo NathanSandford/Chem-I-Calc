@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 data_dir: Path = Path(os.path.dirname(__file__)).joinpath("data")
 data_dir.mkdir(exist_ok=True)
-inst_file = data_dir.joinpath('instruments.json')
+inst_file = data_dir.joinpath("instruments.json")
 ref_label_file = data_dir.joinpath("reference_labels.h5")
 etc_file_dir = data_dir.joinpath("etc_files")
 etc_file_dir.mkdir(exist_ok=True)
@@ -95,36 +95,46 @@ def download_bluemuse_files():
 
     :return:
     """
-    muse_etc_dir = etc_file_dir.joinpath('MUSE')
+    muse_etc_dir = etc_file_dir.joinpath("MUSE")
     muse_etc_dir.mkdir(exist_ok=True)
-    newbluemuse_noatm_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                            + "NewBlueMUSE_noatm.txt?inline=false"
-    radiance_airmass10_05moon_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                                    + "radiance_airmass1.0_0.5moon.txt?inline=false"
-    radiance_airmass10_newmoon_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                                     + "radiance_airmass1.0_newmoon.txt?inline=false"
-    transmission_airmass1_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                                + "transmission_airmass1.txt?inline=false"
-    wfm_nonao_n_url = "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/" \
-                      + "WFM_NONAO_N.dat.txt?inline=false"
+    newbluemuse_noatm_url = (
+        "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/"
+        + "NewBlueMUSE_noatm.txt?inline=false"
+    )
+    radiance_airmass10_05moon_url = (
+        "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/"
+        + "radiance_airmass1.0_0.5moon.txt?inline=false"
+    )
+    radiance_airmass10_newmoon_url = (
+        "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/"
+        + "radiance_airmass1.0_newmoon.txt?inline=false"
+    )
+    transmission_airmass1_url = (
+        "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/"
+        + "transmission_airmass1.txt?inline=false"
+    )
+    wfm_nonao_n_url = (
+        "https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC/-/raw/master/"
+        + "WFM_NONAO_N.dat.txt?inline=false"
+    )
     r = requests.get(newbluemuse_noatm_url)
-    with open(muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath("NewBlueMUSE_noatm.txt"), "wb") as f:
         f.write(r.content)
         print(f"Downloaded {muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt')}")
     r = requests.get(radiance_airmass10_05moon_url)
-    with open(muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath("radiance_airmass1.0_0.5moon.txt"), "wb") as f:
         f.write(r.content)
         print(f"Downloaded {muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt')}")
     r = requests.get(radiance_airmass10_newmoon_url)
-    with open(muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath("radiance_airmass1.0_newmoon.txt"), "wb") as f:
         f.write(r.content)
         print(f"Downloaded {muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt')}")
     r = requests.get(transmission_airmass1_url)
-    with open(muse_etc_dir.joinpath('transmission_airmass1.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath("transmission_airmass1.txt"), "wb") as f:
         f.write(r.content)
         print(f"Downloaded {muse_etc_dir.joinpath('transmission_airmass1.txt')}")
     r = requests.get(wfm_nonao_n_url)
-    with open(muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt'), 'wb') as f:
+    with open(muse_etc_dir.joinpath("WFM_NONAO_N.dat.txt"), "wb") as f:
         f.write(r.content)
         print(f"Downloaded {muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt')}")
 
@@ -151,15 +161,17 @@ def download_all_files(overwrite: bool = True) -> None:
             print(f"Downloading {reference_file}")
             download_package_files(id_str=reference_id, destination=reference_file)
 
-    muse_etc_dir = etc_file_dir.joinpath('MUSE')
+    muse_etc_dir = etc_file_dir.joinpath("MUSE")
     muse_etc_dir.mkdir(exist_ok=True)
-    muse_files = [muse_etc_dir.joinpath('NewBlueMUSE_noatm.txt'),
-                  muse_etc_dir.joinpath('radiance_airmass1.0_0.5moon.txt'),
-                  muse_etc_dir.joinpath('radiance_airmass1.0_newmoon.txt'),
-                  muse_etc_dir.joinpath('transmission_airmass1.txt'),
-                  muse_etc_dir.joinpath('WFM_NONAO_N.dat.txt')]
+    muse_files = [
+        muse_etc_dir.joinpath("NewBlueMUSE_noatm.txt"),
+        muse_etc_dir.joinpath("radiance_airmass1.0_0.5moon.txt"),
+        muse_etc_dir.joinpath("radiance_airmass1.0_newmoon.txt"),
+        muse_etc_dir.joinpath("transmission_airmass1.txt"),
+        muse_etc_dir.joinpath("WFM_NONAO_N.dat.txt"),
+    ]
     if all([file.exists() for file in muse_files]) and not overwrite:
-        print('MUSE ETC files exist')
+        print("MUSE ETC files exist")
     else:
         download_bluemuse_files()
-    print('Download Complete!')
+    print("Download Complete!")

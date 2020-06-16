@@ -28,6 +28,7 @@ class InstConfig:
     :ivar np.ndarray wave: Instrument's wavelength grid
     :ivar Optional[Union[float,np.ndarray]] snr: Signal/Noise of observation (per pixel). Initially None.
     """
+
     def __init__(
         self,
         name: str,
@@ -86,7 +87,9 @@ class InstConfig:
         )
         self._custom_wave = False
 
-    def set_snr(self, snr_input: Union[int, float, np.ndarray, Sig2NoiseQuery], fill_value=None) -> None:
+    def set_snr(
+        self, snr_input: Union[int, float, np.ndarray, Sig2NoiseQuery], fill_value=None
+    ) -> None:
         """
         Sets S/N for instrument configuration.
 
@@ -119,13 +122,14 @@ class InstConfig:
                     )
                 else:
                     snr_interpolator = interp1d(
-                        snr_input[0],
-                        snr_input[1],
-                        bounds_error=True,
+                        snr_input[0], snr_input[1], bounds_error=True,
                     )
                 self.snr = snr_interpolator(self.wave)
             elif snr_input.ndim == 1:
-                warn(f"snr_input is a 1D array. Assuming a linearly spaced wavelength grid from {self.wave.min()} to {self.wave.max()} Angstrom", UserWarning)
+                warn(
+                    f"snr_input is a 1D array. Assuming a linearly spaced wavelength grid from {self.wave.min()} to {self.wave.max()} Angstrom",
+                    UserWarning,
+                )
                 fake_wave = np.linspace(
                     self.wave.min(), self.wave.max(), snr_input.shape[0]
                 )
@@ -146,9 +150,7 @@ class InstConfig:
                 )
             else:
                 snr_interpolator = interp1d(
-                    snr_return[0],
-                    snr_return[1],
-                    bounds_error=True,
+                    snr_return[0], snr_return[1], bounds_error=True,
                 )
             self.snr = snr_interpolator(self.wave)
         else:
@@ -191,6 +193,7 @@ class AllInstruments:
 
     :ivar Dict[str,InstConfig] spectrographs: Dictionary of instrument configurations
     """
+
     def __init__(self, file: str = None) -> None:
         if file == None:
             file = inst_file
@@ -218,7 +221,7 @@ class AllInstruments:
         """
         for key, item in self.spectrographs.items():
             item.summary()
-            print('\n')
+            print("\n")
 
     def get_spectrograph(self, name: str) -> InstConfig:
         """
@@ -228,6 +231,7 @@ class AllInstruments:
         :return: Predefined InstConfig
         """
         return copy.deepcopy(self.spectrographs[name])
+
 
 AllInst = AllInstruments()
 """

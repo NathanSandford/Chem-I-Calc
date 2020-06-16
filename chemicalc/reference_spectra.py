@@ -16,7 +16,7 @@ from chemicalc.file_mgmt import (
     precomputed_res,
     precomputed_ref_id,
     precomputed_label_id,
-    precomputed_alpha_included
+    precomputed_alpha_included,
 )
 
 # noinspection PyTypeChecker
@@ -56,6 +56,7 @@ class ReferenceSpectra:
     :ivar int nspectra: Number of spectra included in the grid
     :ivar int nlabels: Number of labels included
     """
+
     def __init__(
         self,
         reference: str,
@@ -163,8 +164,11 @@ class ReferenceSpectra:
         :param bool symmetric: if True, applies both positive and negative doppler shifts
         :return:
         """
-        warn("This feature is experimental and has not been sufficiently tested on either computational or "
-             "statistical grounds!", UserWarning)
+        warn(
+            "This feature is experimental and has not been sufficiently tested on either computational or "
+            "statistical grounds!",
+            UserWarning,
+        )
         self.labels.loc["RV"] = 0.0
         self.labels["fffff"] = self.labels["aaaaa"]
         self.labels.loc["RV", "fffff"] += d_rv
@@ -204,7 +208,10 @@ class ReferenceSpectra:
         self.resolution[name] = instrument.R_res
 
     def calc_gradient(
-        self, name: Union[str, InstConfig], symmetric: bool = True, ref_included: bool = True,
+        self,
+        name: Union[str, InstConfig],
+        symmetric: bool = True,
+        ref_included: bool = True,
     ) -> None:
         """
         Calculates gradients of the reference spectra with respect to each label.
@@ -227,7 +234,9 @@ class ReferenceSpectra:
         )
         self.gradients[name].columns = self.wavelength[name]
 
-    def zero_gradients(self, name: Union[str, InstConfig], labels: Union[str, List[str]]):
+    def zero_gradients(
+        self, name: Union[str, InstConfig], labels: Union[str, List[str]]
+    ):
         """
         Sets gradients of a spectrum to zero for the specified labels. This is equivalent to setting a delta-function
         prior on those labels (i.e., holding them fixed).
@@ -241,7 +250,9 @@ class ReferenceSpectra:
             name = name.name
         self.gradients[name].loc[labels] = 0
 
-    def mask_wavelength(self, name: Union[str, InstConfig], regions: List[Tuple[float, float]]) -> None:
+    def mask_wavelength(
+        self, name: Union[str, InstConfig], regions: List[Tuple[float, float]]
+    ) -> None:
         """
         Masks the information content of a spectrum by setting the gradient to zero within the bounds of the mask.
         Can be used to mimic the masking of skylines, non-LTE lines, or detector gaps.
@@ -256,7 +267,9 @@ class ReferenceSpectra:
             regions = [regions]
         for region in regions:
             min_wave, max_wave = region
-            mask = (self.wavelength[name] > min_wave) & (self.wavelength[name] < max_wave)
+            mask = (self.wavelength[name] > min_wave) & (
+                self.wavelength[name] < max_wave
+            )
             self.gradients[name].iloc[:, mask] = 0
 
     def get_names(self) -> List[str]:

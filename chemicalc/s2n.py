@@ -53,8 +53,27 @@ wmko_options = {
     "central wavelength (DEIMOS)": ["5000", "6000", "7000", "8000"],
 }
 mmt_options = {
-    "inst_mode": ["BINOSPEC_1000", "BINOSPEC_270", "BINOSPEC_600", "HECTOSPEC_270", "HECTOSPEC_600"],
-    "template": ["O5V", "A0V", "A5V", "B0V", "F0V", "F5V", "G0V", "G2V", "K0V", "K5V", "M5V", "Moon"],
+    "inst_mode": [
+        "BINOSPEC_1000",
+        "BINOSPEC_270",
+        "BINOSPEC_600",
+        "HECTOSPEC_270",
+        "HECTOSPEC_600",
+    ],
+    "template": [
+        "O5V",
+        "A0V",
+        "A5V",
+        "B0V",
+        "F0V",
+        "F5V",
+        "G0V",
+        "G2V",
+        "K0V",
+        "K5V",
+        "M5V",
+        "Moon",
+    ],
     "filter": ["r_filt", "g_filt", "i_filt"],
     "aptype": ["Round", "Square", "Rectangular"],
 }
@@ -326,6 +345,7 @@ class Sig2NoiseQuery:
     """
     Base class for ETC queries
     """
+
     def __init__(self):
         pass
 
@@ -344,6 +364,7 @@ class Sig2NoiseWMKO(Sig2NoiseQuery):
     :param float seeing: Seeing (FWHM) of observation
     :param float redshift: Redshift of the target
     """
+
     def __init__(
         self,
         instrument: str,
@@ -403,6 +424,7 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
     :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
+
     def __init__(
         self,
         grating: str,
@@ -495,6 +517,7 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
     :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
+
     def __init__(
         self,
         grating: str,
@@ -585,6 +608,7 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
     :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
+
     def __init__(
         self,
         exptime: float,
@@ -661,6 +685,7 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
     :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
+
     def __init__(
         self,
         slitwidth: str,
@@ -739,6 +764,7 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
     :param str aptype: Aperture shape. Must be one of "Round", "Square", or "Rectangular".
     :param float apwidth: Width of aperture in arcseconds
     """
+
     def __init__(
         self,
         inst_mode: str,

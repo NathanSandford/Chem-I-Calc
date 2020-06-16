@@ -86,14 +86,15 @@ def calc_crlb(
             chunk_size = grad.shape[1]
             n_chunks = 1
         for i in range(n_chunks):
-            grad_tmp = grad[:, i * chunk_size: (i + 1) * chunk_size]
-            flux_var_tmp = flux_var[i * chunk_size: (i + 1) * chunk_size]
+            grad_tmp = grad[:, i * chunk_size : (i + 1) * chunk_size]
+            flux_var_tmp = flux_var[i * chunk_size : (i + 1) * chunk_size]
             if pixel_corr:
-                flux_covar = sparse.diags(flux_var_tmp, format='csc')
+                flux_covar = sparse.diags(flux_var_tmp, format="csc")
                 for k, covar_factor in enumerate(pixel_corr):
-                    j = k+1
-                    flux_covar += covar_factor * sparse.diags(flux_var_tmp[:-j], j) + covar_factor * sparse.diags(
-                        flux_var_tmp[j:], -j)
+                    j = k + 1
+                    flux_covar += covar_factor * sparse.diags(
+                        flux_var_tmp[:-j], j
+                    ) + covar_factor * sparse.diags(flux_var_tmp[j:], -j)
                 flux_covar_inv = linalg.inv(flux_covar).todense()
             else:
                 flux_covar_inv = np.diag(flux_var_tmp ** -1)
@@ -125,12 +126,15 @@ def calc_crlb(
             else:
                 fisher_df.loc[label, label] += prior ** (-2)
     if bias_grad is not None:
-        warn("Calculating the biased CRLB is an experimental feature and has not been thoroughly tested.", UserWarning)
+        warn(
+            "Calculating the biased CRLB is an experimental feature and has not been thoroughly tested.",
+            UserWarning,
+        )
         I = np.eye(fisher_df.shape[0])
         D = bias_grad
         crlb = pd.DataFrame(
-            np.sqrt(np.diag(((I+D).dot(np.linalg.pinv(fisher_df))).dot((I+D).T))),
-            index=reference.labels.index
+            np.sqrt(np.diag(((I + D).dot(np.linalg.pinv(fisher_df))).dot((I + D).T))),
+            index=reference.labels.index,
         )
     else:
         crlb = pd.DataFrame(
