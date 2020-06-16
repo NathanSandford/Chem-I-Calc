@@ -3,7 +3,7 @@
 A Basic Example
 ===============
 
-Before getting started, we recommend that new Chem-I-Calc users read `Sandford et al. (2020) <url_placeholder>`_ ---
+Before getting started, we recommend that new Chem-I-Calc users read `Sandford et al. (In Press) <url_placeholder>`_ ---
 at least Sections 1-3, and 4.1 --- or our abridged summary: :ref:`Scientific/Statistical Background <background>`.
 
 0. Install Chem-I-Calc and Prerequisites
@@ -49,16 +49,15 @@ There are two ways to instantiate an :py:class:`InstConfig <chemicalc.instrument
 
     from chemicalc import instruments as inst
 
-    d1200g = inst.allInst.get_spectrograph('DEIMOS 1200G')
-
+    d1200g = inst.AllInst.get_spectrograph('DEIMOS 1200G')
     my_spec = inst.InstConfig(name='My Spectrograph',
-                              res=5000,   # Resolving Power
-                              samp=3,     # Pixels / Resolution Element
-                              start=6000  # Blue Wavelength Bound (in Angstrom)
-                              end=10000   # Red Wavelength Bound (in Angstrom)
+                              res=5000,    # Resolving Power
+                              samp=3,      # Pixels / Resolution Element
+                              start=6000,  # Blue Wavelength Bound (in Angstrom)
+                              end=10000,   # Red Wavelength Bound (in Angstrom)
                               )
 
-For more information, see :ref:`Defining Instrument Setups <instruments>`.
+For more information, see :ref:`Instrument Configurations <instruments>`.
 
 1c. Set Spectrograph Signal/Noise
 +++++++++++++++++++++++++++++++++
@@ -133,6 +132,8 @@ Then we calculate the CRLBs using :py:func:`calc_crlb <chemicalc.crlb.calc_crlb>
 
     CRLB_example['DEIMOS 1200G'] = calc_crlb(RGB, d1200g)
     CRLB_example['My Spectrograph'] = calc_crlb(RGB, my_spec)
+
+For more information, see :ref:`Calculating CRLBs <crlb>`.
 
 5. Apply Cutoff and Sort CRLBs
 ------------------------------
