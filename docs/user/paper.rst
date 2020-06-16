@@ -1,7 +1,9 @@
 .. _paper:
 
-Sandford et al. (2020)
-======================
+Sandford et al. (In Press) Notebooks
+====================================
 
 Coming Soon!
+
+For now, check out the :ref:`plotting API <api/chemicalc.plot>`
 
