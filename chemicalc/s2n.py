@@ -447,7 +447,7 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
         self.slitwidth = slitwidth
         self.cwave = cwave
 
-    def query_s2n(self) -> None:
+    def query_s2n(self):
         """
         Query the DEIMOS ETC (http://etc.ucolick.org/web_s2n/deimos)
 
