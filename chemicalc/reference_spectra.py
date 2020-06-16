@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from mendeleev import element
+from chemicalc.instruments import InstConfig
 from chemicalc.utils import (
     doppler_shift,
     convolve_spec,
