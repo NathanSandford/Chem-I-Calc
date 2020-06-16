@@ -204,12 +204,13 @@ class ReferenceSpectra:
         self.resolution[name] = instrument.R_res
 
     def calc_gradient(
-        self, name: str, symmetric: bool = True, ref_included: bool = True,
+        self, name: Union[str, InstConfig], symmetric: bool = True, ref_included: bool = True,
     ) -> None:
         """
         Calculates gradients of the reference spectra with respect to each label.
 
-        :param str name: Name of convolved spectra to calculate gradient for
+        :param Union[str,InstConfig] name: Name of convolved spectra to calculate gradient for.
+            Will also accept an InstConfig object and use InstConfig.name.
         :param bool symmetric: If True, calculates symmetric gradient around reference labels
         :param bool ref_included: If True, expects first spectra to be reference spectra w/ no offsets to any labels.
                                   Required for symmetric=False.
@@ -226,26 +227,31 @@ class ReferenceSpectra:
         )
         self.gradients[name].columns = self.wavelength[name]
 
-    def zero_gradients(self, name: str, labels: Union[str, List[str]]):
+    def zero_gradients(self, name: Union[str, InstConfig], labels: Union[str, List[str]]):
         """
         Sets gradients of a spectrum to zero for the specified labels. This is equivalent to setting a delta-function
         prior on those labels (i.e., holding them fixed).
 
-        :param str name: Name of spectra to apply gradient zeroing to
+        :param Union[str,InstConfig] name: Name of spectra to apply gradient zeroing to.
+            Will also accept an InstConfig object and use InstConfig.name.
         :param Union[str,List[str]] labels: List of labels for which to zero gradients
         :return:
         """
+        if isinstance(name, InstConfig):
+            name = name.name
         self.gradients[name].loc[labels] = 0
 
-    def mask_wavelength(self, name: str, regions: List[Tuple[float, float]]) -> None:
+    def mask_wavelength(self, name: Union[str, InstConfig], regions: List[Tuple[float, float]]) -> None:
         """
         Masks the information content of a spectrum by setting the gradient to zero within the bounds of the mask.
         Can be used to mimic the masking of skylines, non-LTE lines, or detector gaps.
 
-        :param str name: Name of the spectra to apply  mask to
+        :param Union[str,InstConfig] name: Name of the spectra to apply  mask to
         :param List[Tuple[float,float]] regions: List of wavelength bounds on the regions to mask.
         :return:
         """
+        if isinstance(name, InstConfig):
+            name = name.name
         if not isinstance(regions, list):
             regions = [regions]
         for region in regions:
