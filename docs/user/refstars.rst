@@ -94,8 +94,8 @@ Duplicate Spectral Grid
 +++++++++++++++++++++++
 .. automethod:: chemicalc.reference_spectra.ReferenceSpectra.duplicate
 
-Rest ReferenceSpectra Object
-++++++++++++++++++++++++++++
+Reset ReferenceSpectra Object
++++++++++++++++++++++++++++++
 .. automethod:: chemicalc.reference_spectra.ReferenceSpectra.reset
 
 ----
