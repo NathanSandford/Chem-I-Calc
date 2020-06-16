@@ -3,7 +3,7 @@
 Reference Stars
 ===============
 
-The :py:class:`ReferenceSpectra <chemicalc.reference_spectra.ReferenceSpectra>` class represents the spectra of the star
+The ``ReferenceSpectra`` class represents the spectra of the star
 being observed. Here is an overview of the class, as well as some of its important attributes and methods:
 
 Overview
@@ -157,11 +157,11 @@ Custom Reference Stars
 ----------------------
 Some Chem-I-Calc users may wish to use their own spectral grids to calculate the CRLBs for additional reference stars or with
 alternative spectral models (e.g., with 3D, non-LTE atmospheres).
-This can be done by calling :py:class:`ReferenceSpectra <chemicalc.reference_spectra.ReferenceSpectra>` with the keyword
+This can be done by calling ``ReferenceSpectra`` with the keyword
 arguments: :code:`ref_spec_file` and :code:`ref_label_file`. At present, these files must be in the same format as the default
 Chem-I-Calc files (``reference_spectra_300000.h5`` and ``reference_labels.h5``).
 
-.. warning:: Use of custom spectral grids has  not been thoroughly tested. We welcome feedback and code contributions to improve this functionality (see :ref:`Contributing to Chem-I-Calc <contributing>.`)
+.. warning:: Use of custom spectral grids has  not been thoroughly tested. We welcome feedback and code contributions to improve this functionality (see :ref:`Contributing to Chem-I-Calc <contributing>`.)
 
 ----
 
