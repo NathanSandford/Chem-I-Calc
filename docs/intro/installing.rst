@@ -67,6 +67,7 @@ If you run any portion of the code that requires ``reference_spectra_300000.h5``
 .. code-block:: python
 
     import chemicalc.reference_spectra as ref
+
     RGB = ref.ReferenceSpectra(reference="RGB_m1.5")
 
 
@@ -80,6 +81,7 @@ You can also manually call the python function that begins the download process.
 .. code-block:: python
 
     from chemicalc.file_mgmt import download_all_files
+
     download_all_files(overwrite=True)
 
 
@@ -101,6 +103,7 @@ If you are unsure what the full path to the directory is, you can check with the
 .. code-block:: python
 
     from chemicalc.file_mgmt import data_dir
+
     print(data_dir)
 
 ----
@@ -199,4 +202,5 @@ The function :func:`chemicalc.s2n.calculate_muse_snr` is adapted from the calcul
 .. code-block:: python
 
     from chemicalc.file_mgmt import download_bluemuse_files
+
     download_bluemuse_files()
