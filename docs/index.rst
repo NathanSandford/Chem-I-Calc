@@ -8,7 +8,7 @@ which give the best theoretically achievable precision from a set of observation
 
 In this documentation, we hope to provide an overview of the underlying methodology and intended application of Chem-I-Calc.
 However, a more detailed and complete discussion of the scientific motivation, statistical foundations,
-and practical limitations of our methods can be found in `Sandford et al. (2020) <url_placeholder>`_.
+and practical limitations of our methods can be found in `Sandford et al. (In Press) <url_placeholder>`_.
 
 .. toctree::
    :maxdepth: 1
@@ -24,14 +24,12 @@ and practical limitations of our methods can be found in `Sandford et al. (2020)
    :caption: User Guide:
 
    Reference Stars <user/refstars>
-   Defining Instrument Setups <user/instruments>
+   Instrument Configurations <user/instruments>
    Setting the Signal/Noise <user/snr>
-   Combining Multiple Spectra <user/multispec>
-   Including Pixel-to-Pixel Correlation <user/pixel_correlations>
-   Including Priors on Stellar Labels <user/priors>
-   Applying a Spectral Mask <user/mask>
-   Plotting with Chem-I-Calc <user/plotting>
-   Sandford et al. (2020) Notebooks <user/paper>
+   Calculating CRLBs <user/crlb>
+   Plotting CRLBs with Chem-I-Calc <user/plotting>
+   Tutorials <user/tutorials>
+   Sandford et al. (In Press) Notebooks <user/paper>
    API Reference <api/chemicalc>
 
 Authors
@@ -55,4 +53,4 @@ Chemi-I-Calc is being developed by `Nathan Sandford <http://w.astro.berkeley.edu
 `public GitHub repository <https://github.com/NathanSandford/Chem-I-Calc>`_.
 The source code is made available under the terms of the MIT license.
 
-If you make use of this code, please cite Sandford et al. (2020)
+If you make use of this code, please cite Sandford et al. (In Press)
