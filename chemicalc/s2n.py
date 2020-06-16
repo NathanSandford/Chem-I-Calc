@@ -400,7 +400,7 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
     :param str slitwidth: Width of slit in arcseconds. Must be "0.75", "1.0", or "1.5"
     :param str binning: spatial x spectral binning. "1x1" is the only option.
     :param flaot airmass: Airmass of observation
-    :param float  seeing: Seeing (FWHM) of observation in arcseconds
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
     def __init__(
@@ -447,12 +447,10 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
         self.slitwidth = slitwidth
         self.cwave = cwave
 
-    def query_s2n(self, wavelength: Union[str, np.ndarray] = "default") -> None:
+    def query_s2n(self) -> None:
         """
         Query the DEIMOS ETC (http://etc.ucolick.org/web_s2n/deimos)
 
-        :param wavelength: Wavelength grid to interpolate S/N onto.
-                           If "default", the wavelength array of the ETC is used.
         :return:
         """
         url = "http://etc.ucolick.org/web_s2n/deimos"
@@ -476,13 +474,7 @@ class Sig2NoiseDEIMOS(Sig2NoiseWMKO):
         form["redshift"] = str(self.redshift)
         data = browser.submit_selected().json()
         snr = np.array(data["s2n"]).T
-        if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseLRIS(Sig2NoiseWMKO):
@@ -547,12 +539,10 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
         self.slitwidth = slitwidth
         self.dichroic = dichroic
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self):
         """
         Query the LRIS ETC (http://etc.ucolick.org/web_s2n/lris)
 
-        :param wavelength: Wavelength grid to interpolate S/N onto.
-                           If "default", the wavelength array of the ETC is used.
         :return:
         """
         url = "http://etc.ucolick.org/web_s2n/lris"
@@ -577,13 +567,7 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
         form["redshift"] = str(self.redshift)
         data = browser.submit_selected().json()
         snr = np.array(data["s2n"]).T
-        if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseESI(Sig2NoiseWMKO):
@@ -633,12 +617,10 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
         self.binning = binning
         self.slitwidth = slitwidth
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self):
         """
         Query the ESI ETC (http://etc.ucolick.org/web_s2n/esi)
 
-        :param wavelength: Wavelength grid to interpolate S/N onto.
-                           If "default", the wavelength array of the ETC is used.
         :return:
         """
         url = "http://etc.ucolick.org/web_s2n/esi"
@@ -660,13 +642,7 @@ class Sig2NoiseESI(Sig2NoiseWMKO):
         form["redshift"] = str(self.redshift)
         data = browser.submit_selected().json()
         snr = np.array(data["s2n"]).T
-        if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseHIRES(Sig2NoiseWMKO):
@@ -719,12 +695,10 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
         self.binning = binning
         self.slitwidth = slitwidth
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self):
         """
         Query the HIRES ETC (http://etc.ucolick.org/web_s2n/hires)
 
-        :param wavelength: Wavelength grid to interpolate S/N onto.
-                           If "default", the wavelength array of the ETC is used.
         :return:
         """
         url = "http://etc.ucolick.org/web_s2n/hires"
@@ -746,13 +720,7 @@ class Sig2NoiseHIRES(Sig2NoiseWMKO):
         form["redshift"] = str(self.redshift)
         data = browser.submit_selected().json()
         snr = np.array(data["s2n"]).T
-        if type(wavelength) == np.ndarray:
-            snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
@@ -770,8 +738,6 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
     :param float moonage: Moon Phase (days since new moon)
     :param str aptype: Aperture shape. Must be one of "Round", "Square", or "Rectangular".
     :param float apwidth: Width of aperture in arcseconds
-    :param Optional[Union[str,np.array]] extrapolation: Passed on as fill_value argument to scipy.interpolate.interp1d.
-        If None, an error will be raised if the wavelength grid extends beyond the S/N array returned from the ETC.
     """
     def __init__(
         self,
@@ -785,7 +751,6 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
         moonage: float = 0.0,
         aptype: str = "Round",
         apwidth: float = 1.0,
-        extrapolation: Optional[str] = None,
     ):
         Sig2NoiseQuery.__init__(self)
         if inst_mode not in mmt_options["inst_mode"]:
@@ -806,14 +771,11 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
             raise KeyError(f"{aptype} not one of {mmt_options['aptype']}")
         self.aptype = aptype
         self.apwidth = apwidth
-        self.extrapolation = extrapolation
 
-    def query_s2n(self, wavelength="default"):
+    def query_s2n(self):
         """
         Query the Hectospec/Binospec ETC (http://hopper.si.edu/etc-cgi/TEST/sao-etc)
 
-        :param wavelength: Wavelength grid to interpolate S/N onto.
-                           If "default", the wavelength array of the ETC is used.
         :return:
         """
         url = "http://hopper.si.edu/etc-cgi/TEST/sao-etc"
@@ -843,18 +805,7 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
         snr.drop([1, 2, 3, 4], axis=1, inplace=True)
         snr = np.vstack([snr.index.values, snr[5].values]).astype(float)
         snr[0] *= 1e4
-        if type(wavelength) == np.ndarray:
-            if self.extrapolation:
-                snr_interpolator = interp1d(
-                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
-                )
-            else:
-                snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseVLT(Sig2NoiseQuery):
@@ -891,7 +842,6 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         muse_spatial_binning="3",
         muse_spectra_binning="1",
         muse_target_offset=0,
-        extrapolation=None,
         **kwargs,
     ):
         Sig2NoiseQuery.__init__(self)
@@ -1036,10 +986,9 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         if not muse_target_offset >= 0:
             raise ValueError("muse_target_offset must be positive")
         self.muse_target_offset = muse_target_offset
-        self.extrapolation = extrapolation
         self.kwargs = kwargs
 
-    def query_s2n(self, uves_mid_order_only=False, wavelength="default"):
+    def query_s2n(self, uves_mid_order_only=False):
         url = self.urls[self.instrument]
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
@@ -1135,18 +1084,7 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
             snr = self.parse_xshooter_etc()
         else:
             snr = self.parse_basic_etc()
-        if type(wavelength) == np.ndarray:
-            if self.extrapolation:
-                snr_interpolator = interp1d(
-                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
-                )
-            else:
-                snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
     def parse_uves_etc(self):
         if self.uves_mid_order_only:
@@ -1435,7 +1373,6 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
         skymag=20.7,
         src_type="point",
         redshift=0,
-        extrapolation=None
     ):
         Sig2NoiseQuery.__init__(self)
         self.url_base = "http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py"
@@ -1468,10 +1405,9 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
         self.skymag = skymag
         self.src_type = src_type
         self.redshift = redshift
-        self.extrapolation = extrapolation
 
     def query_s2n(
-        self, wavelength="default", smoothed=False,
+        self, smoothed=False,
     ):
         url = (
             f"{self.url_base}?"
@@ -1559,18 +1495,7 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
                 f"{self.spec_mode} not one of {mse_options['spec_mode']}"
             )
         snr = np.vstack([x, y])
-        if type(wavelength) == np.ndarray:
-            if self.extrapolation:
-                snr_interpolator = interp1d(
-                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
-                )
-            else:
-                snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 class Sig2NoiseLCO(Sig2NoiseQuery):
@@ -1591,7 +1516,6 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         binspat="3",
         binspec="1",
         extract_ap=1.5,
-        extrapolation=None
     ):
         Sig2NoiseQuery.__init__(self)
         if template not in lco_options["template"]:
@@ -1631,11 +1555,8 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         self.nexp = nexp
         self.aper = extract_ap
         self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
-        self.extrapolation = extrapolation
 
-    def query_s2n(
-        self, wavelength="default",
-    ):
+    def query_s2n(self):
         url = (
             f"{self.url_base}?"
             + f"template={self.template}&"
@@ -1670,18 +1591,7 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         snr = np.vstack(
             [data["Wavelength_[A]"].values, data["S/N_Aperture_Coadd"]]
         ).astype(float)
-        if type(wavelength) == np.ndarray:
-            if self.extrapolation:
-                snr_interpolator = interp1d(
-                    snr[0], snr[1], bounds_error=False, fill_value=self.extrapolation
-                )
-            else:
-                snr_interpolator = interp1d(snr[0], snr[1])
-            return snr_interpolator(wavelength)
-        elif wavelength == "default":
-            return snr
-        else:
-            raise ValueError("Wavelength input not recognized")
+        return snr
 
 
 def calculate_fobos_snr(
