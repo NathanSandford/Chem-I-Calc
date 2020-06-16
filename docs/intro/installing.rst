@@ -7,7 +7,7 @@ Installing Chem-I-Calc
 ----------------------
 
 Chem-I-Calc is written in pure Python and can be easily installed :ref:`from  PyPI <pip-install>` (recommended for casual users)
-or :ref:`from GitHub <git-install>` (recommended for advanced users).
+or :ref:`from GitHub <git-install>` (recommended for advanced users). It requires Python 3.6 or later.
 Regardless of installation method, we recommend that users install Chem-I-Calc and its :ref:`Python dependencies <dependencies>`
 in a dedicated `Conda environment <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
 (or other virtual Python environment).

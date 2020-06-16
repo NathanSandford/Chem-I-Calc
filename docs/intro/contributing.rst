@@ -3,7 +3,8 @@
 Contributing to Chem-I-Calc
 ===========================
 
-If you would like to contribute to Chem-I-Calc, there are many ways you can get involved!
+| Like what Chem-I-Calc is doing but unsatisfied with some portion of it?
+| Good news! There are many ways you can get involved!
 
 Types of Contributions
 ----------------------
