@@ -3,7 +3,5 @@
 Sandford et al. (In Press) Notebooks
 ====================================
 
-Coming Soon!
-
-For now, check out the :ref:`plotting API <api/chemicalc.plot>`
-
+For now, you can find the Jupyter Notebooks for Sandford et al. (In Press) in the
+`Chem-I-Calc GitHub repository <https://github.com/NathanSandford/Chem-I-Calc/tree/master/notebooks/Sandford_2020>`_.

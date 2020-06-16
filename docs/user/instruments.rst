@@ -3,7 +3,7 @@
 Instrument Configurations
 =========================
 
-The :py:class:`InstConfig <chemicalc.reference_spectra.InstConfig>` class represents the instrumental characteristics of
+The ``InstConfig`` class represents the instrumental characteristics of
 the spectral observations.
 Here is an overview of the class, as well as some of its important attributes and methods:
 
@@ -18,15 +18,15 @@ Attributes
 
 Wavelength
 ++++++++++
-``InstConfig.wave``
+``InstConfig.wave`` description coming soon!
 
 Signal/Noise
 ++++++++++++
-``InstConfig.snr``
+``InstConfig.snr`` description coming soon!
 
 Custom Wavelength Flag
 ++++++++++++++++++++++
-``InstConfig._custom_wave``
+``InstConfig._custom_wave`` description coming soon!
 
 Methods
 -------
@@ -52,8 +52,7 @@ Print Summary of Instrument
 Pre-Configured Instrument Setups
 --------------------------------
 
-To instantiate an :py:class:`InstConfig <chemicalc.reference_spectra.InstConfig>`
-object from a pre-configured instrument setup:
+To instantiate an ``InstConfig`` object from a pre-configured instrument setup:
 
 .. code-block:: python
 
