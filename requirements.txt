@@ -8,3 +8,4 @@ numpy>=1.18.0
 tables>=3.6.0
 setuptools>=45.2.0
 pytest>=5.0.0
+tqdm>=4.32.0
