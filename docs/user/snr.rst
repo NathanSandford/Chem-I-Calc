@@ -30,7 +30,6 @@ S/N Array
 
 If ``snr_input`` is a 2D ``numpy.ndarray``, the first row is the wavelength grid and the second row is the S/N per pixel.
 The S/N is then interpolated onto the instrument's wavelength grid.
-If the wavelength grid does not cover the full extent of the instrument's wavelength grid, the S/N will be extrapolated.
 
 If ``snr_input`` is a 1D ``numpy.ndarray``, the wavelength grid is assumed to be linearly spaced from the instruments starting and ending wavelength.
 The S/N is then interpolated onto the instrument's wavelength grid.
