@@ -3,7 +3,7 @@
 A Basic Example
 ===============
 
-Before getting started, we recommend that new Chem-I-Calc users read `Sandford et al. (In Press) <url_placeholder>`_ ---
+Before getting started, we recommend that new Chem-I-Calc users read `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_ ---
 at least Sections 1-3, and 4.1 --- or our abridged summary: :ref:`Scientific/Statistical Background <background>`.
 
 0. Install Chem-I-Calc and Prerequisites

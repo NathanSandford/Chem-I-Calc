@@ -8,7 +8,7 @@ which give the best theoretically achievable precision from a set of observation
 
 In this documentation, we hope to provide an overview of the underlying methodology and intended application of Chem-I-Calc.
 However, a more detailed and complete discussion of the scientific motivation, statistical foundations,
-and practical limitations of our methods can be found in `Sandford et al. (In Press) <url_placeholder>`_.
+and practical limitations of our methods can be found in `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_.
 
 .. toctree::
    :maxdepth: 1
@@ -53,4 +53,4 @@ Chemi-I-Calc is being developed by `Nathan Sandford <http://w.astro.berkeley.edu
 `public GitHub repository <https://github.com/NathanSandford/Chem-I-Calc>`_.
 The source code is made available under the terms of the MIT license.
 
-If you make use of this code, please cite Sandford et al. (In Press)
+If you make use of this code, please cite `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_
