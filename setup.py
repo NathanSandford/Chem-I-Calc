@@ -17,12 +17,12 @@ URL = "https://github.com/NathanSandford/Chem-I-Calc"
 EMAIL = "nathan_sandford@berkeley.edu"
 AUTHOR = "Nathan Sandford"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.4.0"
+VERSION = "0.5.0dev0"
 
 
 def get_requirements():
     """ Get the requirements from a system file.  """
-    name = 'requirements.txt'
+    name = 'chemicalc/requirements.txt'
 
     requirements_file = os.path.join(here, name)
     install_requires = [line.strip().replace('==', '>=') for line in open(requirements_file)
@@ -31,7 +31,25 @@ def get_requirements():
 
 
 REQUIRED = get_requirements()
+#REQUIRED = ["requests>=2.23.0",
+#            "mendeleev>=0.6.0",
+#            "matplotlib>=3.2.0",
+#            "scipy>=1.4.0",
+#            "mechanicalsoup>=0.12.0",
+#            "pandas>=1.0.0",
+#            "numpy>=1.18.0",
+#            "tables>=3.6.0",
+#            "setuptools>=45.2.0",
+#            "pytest>=5.0.0",
+#            "tqdm>=4.32.0",]
 EXTRAS = {}
+
+PACKAGES = find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"])
+#PACKAGES = ['chemicalc']
+#PACKAGE_DATA = {'chemicalc': ['data/etc_files/*',
+#                              'data/instruments.json',
+#                              'data/reference_labels.h5']}
+
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
@@ -100,7 +118,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    packages=PACKAGES,
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,
