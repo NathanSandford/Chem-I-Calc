@@ -224,7 +224,6 @@ vlt_options = {
     ],
     "uves_ccd_binning": ["1x1", "1x1v", "2x2", "2x1", "3x2"],
     "giraffe_sky_sampling_mode": ["MEDUSA", "IFU052", "ARGUS052", "ARGUS030", ],
-    "giraffe_resolution": ["HR", "LR"],
     "giraffe_slicer": [
         "LR01",
         "LR02",
@@ -381,7 +380,7 @@ class Sig2NoiseWMKO(Sig2NoiseQuery):
     :param str magtype: Magnitude System. Either "Vega" or "AB"
     :param str band: Magnitude band. For valid options see s2n.wmko_options['filter'].
     :param float airmass: Airmass of observation
-    :param float seeing: Seeing (FWHM) of observation
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
     :param float redshift: Redshift of the target
     """
 
@@ -856,6 +855,24 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
 
 
 class Sig2NoiseVLT(Sig2NoiseQuery):
+    """
+    Superclass for VLT ETC Queries
+
+    :param str instrument: VLT instrument. Must be "UVES", "FLAMES-UVES", "FLAMES-GIRAFFE", "X-SHOOTER", or "MUSE"
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (<instrument>)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     # TODO: Implement MARCS stellar template selection
     def __init__(
         self,
@@ -916,6 +933,28 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
 
 
 class Sig2NoiseUVES(Sig2NoiseVLT):
+    """
+    VLT/UVES S/N Query (http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro)
+
+    :param str detector: UVES detector setup. For valid options see s2n.vlt_options['uves_det_cd_name'].
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (UVES)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param str slitwidth: Width of slit in arcseconds. For valid options see s2n.vlt_options['uves_slit_width'].
+    :param str binning: spatial x spectral binning. For valid options see s2n.vlt_options['uves_ccd_binning'].
+    :param bool mid_order_only: If True, returns only peak S/N in each order.
+        Otherwise the S/N at both ends of each order are also included.
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     def __init__(
         self,
         detector: str,
@@ -925,12 +964,12 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
         magtype: str = "Vega",
         template_type: str = "template_spectrum",
         template: str = "Pickles_K2V",
-        slitwidth: str = "1.0",
-        binning: str = "1x1",
         redshift: float = 0,
         airmass: float = 1.1,
         moon_phase: float = 0.0,
         seeing: str = "0.8",
+        slitwidth: str = "1.0",
+        binning: str = "1x1",
         mid_order_only: bool = False,
         **kwargs,
     ):
@@ -1111,6 +1150,26 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
 
 
 class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
+    """
+    VLT/FLAMES-UVES S/N Query (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES)
+
+    :param str detector: UVES detector setup. For valid options see s2n.vlt_options['uves_det_cd_name'].
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (UVES)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param bool mid_order_only: If True, returns only peak S/N in each order.
+        Otherwise the S/N at both ends of each order are also included.
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     def __init__(
         self,
         detector: str,
@@ -1288,6 +1347,28 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
 
 
 class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
+    """
+    VLT/FLAMES-GIRAFFE S/N Query (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro)
+
+    :param str slicer: GIRAFFE slicer. For valid options see s2n.vlt_options['giraffe_slicer'].
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (UVES)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param str sky_sampling_mode: Fiber Mode. Must be one of "MEDUSA", "IFU052", "ARGUS052", or "ARGUS030".
+    :param str ccd_mode: CCD readout mode. Must be one of "standard", "fast", or "slow"
+    :param float fiber_obj_decenter: Displacement of source from fiber center (from 0.0 to 0.6).
+        Only applicable if sky_sampling_mode="MEDUSA".
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     def __init__(
         self,
         slicer: str,
@@ -1414,6 +1495,30 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
 
 
 class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
+    """
+    VLT/X-SHOOTER S/N Query (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=X-SHOOTER+INS.MODE=spectro)
+
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (UVES)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param str uvb_slitwidth: Width of UVB spectrograph slit in arcseconds
+    :param str vis_slitwidth: Width of VIS spectrograph slit in arcseconds
+    :param str nir_slitwidth: Width of NIR spectrograph slit in arcseconds
+    :param str uvb_ccd_binning: UVB CCD gain/binning/readout mode.
+        For valid options see s2n.vlt_options['xshooter_uvb_ccd_binning'].
+    :param str vis_ccd_binning: VIS CCD gain/binning/readout mode.
+        For valid options see s2n.vlt_options['xshooter_vis_ccd_binning'].
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     def __init__(
         self,
         exptime: float,
@@ -1638,6 +1743,28 @@ class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
 
 
 class Sig2NoiseMUSE(Sig2NoiseVLT):
+
+    """
+    VLT/MUSE S/N Query (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr)
+
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str band: Magnitude band. For valid options see s2n.vlt_options['src_target_mag_band (UVES)'].
+    :param str magtype: Magnitude System. Either "Vega" or "AB"
+    :param str template_type: Type of SED template. For now, only "template_spectrum" is supported.
+    :param str template: Spectral template. For valid options see s2n.vlt_options['src_target_spec_type'].
+    :param float redshift: Redshift of the target
+    :param float airmass: Airmass of observation
+    :param float moon_phase: Moon Phase between 0.0 (new) and 1.0 (full)
+    :param str seeing: Seeing (FWHM) of observation in arcseconds.
+        For valid options see s2n.vlt_options['sky_seeing'].
+    :param str mode: MUSE instument mode. For valid options see s2n.vlt_options['muse_mode'].
+    :param str spatial_binning: Spatial binning. For valid options see s2n.vlt_options['muse_spatial_binning'].
+    :param str spectra_binning: Spectral binning. For valid options see s2n.vlt_options['muse_spectra_binning'].
+    :param float target_offset: Displacement of source from fiber center.
+    :param \**kwargs: Other entries in the ETC web form to set.
+        To see what options are available, an inspection of the ETC website is necessary.
+    """
     def __init__(
         self,
         exptime: float,
