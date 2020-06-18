@@ -80,10 +80,10 @@ def download_package_files(id_str: str, destination: Union[str, Path]) -> None:
 
     url = "https://docs.google.com/uc?export=download"
     session = requests.Session()
-    response = session.get(url, params={"id_str": id_str}, stream=True)
+    response = session.get(url, params={"id": id_str}, stream=True)
     token = get_confirm_token(response)
     if token:
-        params = {"id_str": id_str, "confirm": token}
+        params = {"id": id_str, "confirm": token}
         response = session.get(url, params=params, stream=True)
     save_response_content(response, destination)
 
