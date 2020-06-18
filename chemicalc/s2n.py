@@ -11,7 +11,6 @@ import json
 from chemicalc.utils import decode_base64_dict, find_nearest_idx
 from chemicalc.file_mgmt import etc_file_dir, download_bluemuse_files
 
-
 wmko_options = {
     "instrument": ["lris", "deimos", "hires", "esi"],
     "mag type": ["Vega", "AB"],
@@ -116,20 +115,40 @@ mse_options = {
 }
 vlt_options = {
     "instruments": ["UVES", "FLAMES-UVES", "FLAMES-GIRAFFE", "X-SHOOTER", "MUSE"],
-    "src_target_mag_band": [
-        "U",  # NOT MUSE
+    "src_target_mag_band (MUSE)": [
         "B",
         "V",
         "R",
-        "I",  # ALL INSTRUMENTS
-        "J",
-        "H",
-        "K",  # X-SHOOTER ONLY
+        "I",
         "sloan_g_prime",
         "sloan_r_prime",
         "sloan_i_prime",
         "sloan_z_prime",
-    ],  # MUSE ONLY
+    ],
+    "src_target_mag_band (GIRAFFE)": [
+        "U",
+        "B",
+        "V",
+        "R",
+        "I",
+    ],
+    "src_target_mag_band (UVES)": [
+        "U",
+        "B",
+        "V",
+        "R",
+        "I",
+    ],
+    "src_target_mag_band (X-SHOOTER)": [
+        "U",
+        "B",
+        "V",
+        "R",
+        "I",
+        "J",
+        "H",
+        "K",
+    ],
     "src_target_mag_system": ["Vega", "AB"],
     "src_target_type": ["template_spectrum"],
     "src_target_spec_type": [
@@ -204,9 +223,17 @@ vlt_options = {
         "10.0",
     ],
     "uves_ccd_binning": ["1x1", "1x1v", "2x2", "2x1", "3x2"],
-    "giraffe_sky_sampling_mode": ["MEDUSA", "IFU052", "ARGUS052", "ARGUS030",],
+    "giraffe_sky_sampling_mode": ["MEDUSA", "IFU052", "ARGUS052", "ARGUS030", ],
     "giraffe_resolution": ["HR", "LR"],
-    "giraffe_slicer_hr": [
+    "giraffe_slicer": [
+        "LR01",
+        "LR02",
+        "LR03",
+        "LR04",
+        "LR05",
+        "LR06",
+        "LR07",
+        "LR08",
         "HR01",
         "HR02",
         "HR03",
@@ -240,20 +267,10 @@ vlt_options = {
         "HR22A",
         "HR22B",
     ],
-    "giraffe_slicer_lr": [
-        "LR01",
-        "LR02",
-        "LR03",
-        "LR04",
-        "LR05",
-        "LR06",
-        "LR07",
-        "LR08",
-    ],
     "giraffe_ccd_mode": ["standard", "fast", "slow"],
-    "xshooter_uvb_slit_width": ["0.5", "0.8", "1.0", "1.3", "1.6", "5.0"],
-    "xshooter_vis_slit_width": ["0.4", "0.7", "0.9", "1.2", "1.5", "5.0"],
-    "xshooter_nir_slit_width": ["0.4", "0.6", "0.9", "1.2", "1.5", "5.0"],
+    "xshooter_uvb_slitwidth": ["0.5", "0.8", "1.0", "1.3", "1.6", "5.0"],
+    "xshooter_vis_slitwidth": ["0.4", "0.7", "0.9", "1.2", "1.5", "5.0"],
+    "xshooter_nir_slitwidth": ["0.4", "0.6", "0.9", "1.2", "1.5", "5.0"],
     "xshooter_uvb_ccd_binning": [
         "high1x1slow",
         "high1x2slow",
@@ -270,7 +287,7 @@ vlt_options = {
         "low1x2fast",
         "low2x2fast",
     ],
-    "muse_setting": [
+    "muse_mode": [
         "WFM_NONAO_N",  # Wide Field Mode without AO, nominal  wavelength range
         "WFM_NONAO_E",  # Wide Field Mode without AO, extended wavelength range
         "WFM_AO_N",  # Wide Field Mode with AO, nominal wavelength range
@@ -347,6 +364,9 @@ class Sig2NoiseQuery:
     """
 
     def __init__(self):
+        pass
+
+    def query_s2n(self) -> None:
         pass
 
 
@@ -503,7 +523,8 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
     """
     Keck/LRIS S/N Query (http://etc.ucolick.org/web_s2n/lris)
 
-    :param str grating: LRIS red arm grating. Must be one of "600/7500", "600/10000", "1200/9000", "400/8500", or "831/8200".
+    :param str grating: LRIS red arm grating.
+        Must be one of "600/7500", "600/10000", "1200/9000", "400/8500", or "831/8200".
     :param str grism: LRIS blue arm grism. Must be one of "B300" or "B600".
     :param float exptime: Exposure time in seconds
     :param float mag: Magnitude of source
@@ -521,7 +542,7 @@ class Sig2NoiseLRIS(Sig2NoiseWMKO):
     def __init__(
         self,
         grating: str,
-        grism: float,
+        grism: str,
         exptime: float,
         mag: float,
         template: str,
@@ -827,7 +848,7 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
         data = browser.submit_selected()
         snr_text = data.text.split("---")[-1]
         snr = pd.DataFrame([row.split("\t") for row in snr_text.split("\n")[1:-1]])
-        snr.index = snr.pop(0)
+        snr.index = snr.pop('0')
         snr.drop([1, 2, 3, 4], axis=1, inplace=True)
         snr = np.vstack([snr.index.values, snr[5].values]).astype(float)
         snr[0] *= 1e4
@@ -835,187 +856,129 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
 
 
 class Sig2NoiseVLT(Sig2NoiseQuery):
-    # TODO: Refactor to be consistent with WMKO ETC query.
     # TODO: Implement MARCS stellar template selection
     def __init__(
         self,
         instrument: str,
         exptime: float,
-        src_target_mag: float,
-        src_target_mag_band: str = "V",
-        src_target_mag_system: str = "Vega",
-        src_target_type: str = "template_spectrum",
-        src_target_spec_type: str = "Pickles_K2V",
-        src_target_redshift: float = 0,
-        sky_airmass: float = 1.1,
-        sky_moon_fli: float = 0.0,
-        sky_seeing: float = "0.8",
-        uves_det_cd_name="Red__580",
-        uves_slit_width="1.0",
-        uves_ccd_binning="1x1",
-        giraffe_sky_sampling_mode="MEDUSA",
-        giraffe_fiber_obj_decenter=0.0,
-        giraffe_resolution="HR",
-        giraffe_slicer_hr="HR10",
-        giraffe_slicer_lr="LR08",
-        giraffe_ccd_mode="standard",
-        xshooter_uvb_slit_width="0.8",
-        xshooter_vis_slit_width="0.7",
-        xshooter_nir_slit_width="0.9",
-        xshooter_uvb_ccd_binning="high1x1slow",
-        xshooter_vis_ccd_binning="high1x1slow",
-        muse_setting="WFM_NONAO_N",
-        muse_spatial_binning="3",
-        muse_spectra_binning="1",
-        muse_target_offset=0,
-        **kwargs,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_phase: float = 0.0,
+        seeing: str = "0.8",
+        **kwargs
     ):
         Sig2NoiseQuery.__init__(self)
         if instrument not in vlt_options["instruments"]:
             raise KeyError(f"{instrument} not one of {vlt_options['instruments']}")
-        self.instrument = instrument
-        self.urls = {
-            "UVES": "http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro",
-            "FLAMES-UVES": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES",
-            "FLAMES-GIRAFFE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro",
-            "X-SHOOTER": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=X-SHOOTER+INS.MODE=spectro",
-            "MUSE": "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr",
-        }
-        self.url = self.urls[instrument]
         if not exptime > 0:
             raise ValueError("Exposure Time must be positive")
-        self.exptime = exptime
-        self.src_target_mag = src_target_mag
-        if src_target_mag_band not in vlt_options["src_target_mag_band"]:
-            raise KeyError(
-                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band']}"
-            )
-        if src_target_mag_band in ["J", "H", "K"] and instrument != "X-SHOOTER":
-            raise KeyError("J, H, and K bands are only valid for X-SHOOTER")
-        if (
-            src_target_mag_band
-            in ["sloan_g_prime", "sloan_r_prime", "sloan_i_prime", "sloan_z_prime"]
-            and instrument != "MUSE"
-        ):
-            raise KeyError("g', r', i', and z' bands are only valid for MUSE")
-        if src_target_mag_band == "U" and instrument == "MUSE":
-            raise KeyError("U bands is not valid for MUSE")
-        self.src_target_mag_band = src_target_mag_band
-        if src_target_mag_system not in vlt_options["src_target_mag_system"]:
-            raise KeyError(
-                f"{src_target_mag_system} not one of {vlt_options['src_target_mag_system']}"
-            )
-        self.src_target_mag_system = src_target_mag_system
-        if src_target_type not in vlt_options["src_target_type"]:
-            raise KeyError(
-                f"Only {vlt_options['src_target_type']} is supported currently"
-            )
-        self.src_target_type = src_target_type
-        if src_target_spec_type not in vlt_options["src_target_spec_type"]:
-            raise KeyError(
-                f"{src_target_spec_type} not one of {vlt_options['src_target_spec_type']}"
-            )
-        self.src_target_spec_type = src_target_spec_type
+        if magtype not in vlt_options["src_target_mag_system"]:
+            raise KeyError(f"{magtype} not one of {vlt_options['src_target_mag_system']}")
+        if template_type not in vlt_options["src_target_type"]:
+            raise KeyError(f"{template_type} not one of {vlt_options['src_target_type']}")
+        if template not in vlt_options["src_target_spec_type"]:
+            raise KeyError(f"{template} not one of {vlt_options['src_target_spec_type']}")
         if not src_target_redshift >= 0:
             raise ValueError("Redshift must be positive")
-        self.src_target_redshift = src_target_redshift
         if not sky_airmass >= 1.0:
             raise ValueError("Airmass must be > 1.0")
-        self.sky_airmass = sky_airmass
-        if sky_moon_fli < 0.0 or sky_moon_fli > 1.0:
-            raise ValueError("sky_moon_fli must be between 0.0 (new) and 1.0 (full)")
-        self.sky_moon_fli = sky_moon_fli
-        if sky_seeing not in vlt_options["sky_seeing"]:
-            raise KeyError(f"{sky_seeing} not one of {vlt_options['sky_seeing']}")
-        self.sky_seeing = sky_seeing
-        if uves_det_cd_name not in vlt_options["uves_det_cd_name"]:
-            raise KeyError(
-                f"{uves_det_cd_name} not one of {vlt_options['uves_det_cd_name']}"
-            )
-        self.uves_det_cd_name = uves_det_cd_name
-        if uves_slit_width not in vlt_options["uves_slit_width"]:
-            raise KeyError(
-                f"{uves_slit_width} not one of {vlt_options['uves_slit_width']}"
-            )
-        self.uves_slit_width = uves_slit_width
-        if uves_ccd_binning not in vlt_options["uves_ccd_binning"]:
-            raise KeyError(
-                f"{uves_ccd_binning} not one of {vlt_options['uves_ccd_binning']}"
-            )
-        self.uves_ccd_binning = uves_ccd_binning
-        if giraffe_sky_sampling_mode not in vlt_options["giraffe_sky_sampling_mode"]:
-            raise KeyError(
-                f"{giraffe_sky_sampling_mode} not one of {vlt_options['giraffe_sky_sampling_mode']}"
-            )
-        self.giraffe_sky_sampling_mode = giraffe_sky_sampling_mode
-        if not giraffe_fiber_obj_decenter >= 0:
-            raise ValueError("giraffe_fiber_obj_decenter must be positive")
-        self.giraffe_fiber_obj_decenter = giraffe_fiber_obj_decenter
-        if giraffe_resolution not in vlt_options["giraffe_resolution"]:
-            raise KeyError(
-                f"{giraffe_resolution} not one of {vlt_options['giraffe_resolution']}"
-            )
-        self.giraffe_resolution = giraffe_resolution
-        if giraffe_slicer_hr not in vlt_options["giraffe_slicer_hr"]:
-            raise KeyError(
-                f"{giraffe_slicer_hr} not one of {vlt_options['giraffe_slicer_hr']}"
-            )
-        self.giraffe_slicer_hr = giraffe_slicer_hr
-        if giraffe_slicer_lr not in vlt_options["giraffe_slicer_lr"]:
-            raise KeyError(
-                f"{giraffe_slicer_lr} not one of {vlt_options['giraffe_slicer_lr']}"
-            )
-        self.giraffe_slicer_lr = giraffe_slicer_lr
-        if giraffe_ccd_mode not in vlt_options["giraffe_ccd_mode"]:
-            raise KeyError(
-                f"{giraffe_ccd_mode} not one of {vlt_options['giraffe_ccd_mode']}"
-            )
-        self.giraffe_ccd_mode = giraffe_ccd_mode
-        if xshooter_uvb_slit_width not in vlt_options["xshooter_uvb_slit_width"]:
-            raise KeyError(
-                f"{xshooter_uvb_slit_width} not one of {vlt_options['xshooter_uvb_slit_width']}"
-            )
-        self.xshooter_uvb_slit_width = xshooter_uvb_slit_width
-        if xshooter_vis_slit_width not in vlt_options["xshooter_vis_slit_width"]:
-            raise KeyError(
-                f"{xshooter_vis_slit_width} not one of {vlt_options['xshooter_vis_slit_width']}"
-            )
-        self.xshooter_vis_slit_width = xshooter_vis_slit_width
-        if xshooter_nir_slit_width not in vlt_options["xshooter_nir_slit_width"]:
-            raise KeyError(
-                f"{xshooter_nir_slit_width} not one of {vlt_options['xshooter_nir_slit_width']}"
-            )
-        self.xshooter_nir_slit_width = xshooter_nir_slit_width
-        if xshooter_uvb_ccd_binning not in vlt_options["xshooter_uvb_ccd_binning"]:
-            raise KeyError(
-                f"{xshooter_uvb_ccd_binning} not one of {vlt_options['xshooter_uvb_ccd_binning']}"
-            )
-        self.xshooter_uvb_ccd_binning = xshooter_uvb_ccd_binning
-        if xshooter_vis_ccd_binning not in vlt_options["xshooter_vis_ccd_binning"]:
-            raise KeyError(
-                f"{xshooter_vis_ccd_binning} not one of {vlt_options['xshooter_vis_ccd_binning']}"
-            )
-        self.xshooter_vis_ccd_binning = xshooter_vis_ccd_binning
-        if muse_setting not in vlt_options["muse_setting"]:
-            raise KeyError(f"{muse_setting} not one of {vlt_options['muse_setting']}")
-        self.muse_setting = muse_setting
-        if muse_spatial_binning not in vlt_options["muse_spatial_binning"]:
-            raise KeyError(
-                f"{muse_spatial_binning} not one of {vlt_options['muse_spatial_binning']}"
-            )
-        self.muse_spatial_binning = muse_spatial_binning
-        if muse_spectra_binning not in vlt_options["muse_spectra_binning"]:
-            raise KeyError(
-                f"{muse_spectra_binning} not one of {vlt_options['muse_spectra_binning']}"
-            )
-        self.muse_spectra_binning = muse_spectra_binning
-        if not muse_target_offset >= 0:
-            raise ValueError("muse_target_offset must be positive")
-        self.muse_target_offset = muse_target_offset
+        if moon_phase < 0.0 or moon_phase > 1.0:
+            raise ValueError("moon_phase must be between 0.0 (new) and 1.0 (full)")
+        if seeing not in vlt_options["sky_seeing"]:
+            raise KeyError(f"{seeing} not one of {vlt_options['sky_seeing']}")
+        self.instrument = instrument
+        self.exptime = exptime
+        self.mag = mag
+        self.band = band
+        self.magtype = magtype
+        self.template_type = template_type
+        self.template = template
+        self.redshift = redshift
+        self.airmass = airmass
+        self.moon_phase = moon_phase
+        self.seeing = seeing
         self.kwargs = kwargs
 
-    def query_s2n(self, uves_mid_order_only=False):
-        url = self.urls[self.instrument]
+    def query_s2n(self) -> None:
+        """
+        No generic S/N query, see specific instrument subclasses
+
+        :return:
+        """
+        raise NotImplementedError(
+            "No generic S/N query, see specific instrument children classes"
+        )
+
+
+class Sig2NoiseUVES(Sig2NoiseVLT):
+    def __init__(
+        self,
+        detector: str,
+        exptime: float,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        slitwidth: str = "1.0",
+        binning: str = "1x1",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_phase: float = 0.0,
+        seeing: str = "0.8",
+        mid_order_only: bool = False,
+        **kwargs,
+    ):
+        Sig2NoiseVLT.__init__(
+            self,
+            "UVES",
+            exptime,
+            mag,
+            band,
+            magtype,
+            template_type,
+            template,
+            redshift,
+            airmass,
+            moon_phase,
+            seeing,
+            **kwargs,
+        )
+        self.url = "http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro"
+        if self.band not in vlt_options["src_target_mag_band (UVES)"]:
+            raise KeyError(
+                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (UVES)']}"
+            )
+        if detector not in vlt_options["uves_det_cd_name"]:
+            raise KeyError(
+                f"{detector} not one of {vlt_options['uves_det_cd_name']}"
+            )
+        if slitwidth not in vlt_options["uves_slit_width"]:
+            raise KeyError(
+                f"{slitwidth} not one of {vlt_options['uves_slit_width']}"
+            )
+        if binning not in vlt_options["uves_ccd_binning"]:
+            raise KeyError(
+                f"{binning} not one of {vlt_options['uves_ccd_binning']}"
+            )
+        self.detector = detector
+        self.slitwidth = slitwidth
+        self.binning = binning
+        self.mid_order_only = mid_order_only
+        self.data = None
+
+    def query_s2n(self):
+        """
+        Query the UVES ETC (http://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES++INS.MODE=spectro)
+
+        :return:
+        """
+        url = self.url
         browser = mechanicalsoup.StatefulBrowser()
         browser.open(url)
         form = browser.select_form()
@@ -1023,191 +986,552 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         form.new_control(type="select", name="SKY.SEEING.ZENITH.V", value="")
         form["POSTFILE.FLAG"] = 0
         # Source Parameters
-        form["SRC.TARGET.MAG"] = self.src_target_mag
-        form["SRC.TARGET.MAG.BAND"] = self.src_target_mag_band
-        form["SRC.TARGET.MAG.SYSTEM"] = self.src_target_mag_system
-        form["SRC.TARGET.TYPE"] = self.src_target_type
-        form["SRC.TARGET.SPEC.TYPE"] = self.src_target_spec_type
-        form["SRC.TARGET.REDSHIFT"] = self.src_target_redshift
+        form["SRC.TARGET.MAG"] = self.mag
+        form["SRC.TARGET.MAG.BAND"] = self.band
+        form["SRC.TARGET.MAG.SYSTEM"] = self.magtype
+        form["SRC.TARGET.TYPE"] = self.template_type
+        form["SRC.TARGET.SPEC.TYPE"] = self.template
+        form["SRC.TARGET.REDSHIFT"] = self.redshift
         form["SRC.TARGET.GEOM"] = "seeing_ltd"
         # Sky Parameters
-        form["SKY.AIRMASS"] = self.sky_airmass
-        form["SKY.MOON.FLI"] = self.sky_moon_fli
+        form["SKY.AIRMASS"] = self.airmass
+        form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
         form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
         form["SKYMODEL.MOON.SUN.SEP"] = 0
-        if self.instrument == "UVES":
-            self.uves_mid_order_only = uves_mid_order_only
-            form["INS.NAME"] = "UVES"
-            form["INS.MODE"] = "spectro"
-            form["INS.PRE_SLIT.FILTER.NAME"] = "ADC"
-            form["INS.IMAGE_SLICERS.NAME"] = "None"
-            form["INS.BELOW_SLIT.FILTER.NAME"] = "NONE"
-            form["INS.DET.SPECTRAL_FORMAT.NAME"] = "STANDARD"
-            form["INS.DET.CD.NAME"] = self.uves_det_cd_name
-            form["INS.SLIT.FROM_USER.WIDTH.VAL"] = self.uves_slit_width
-            form["INS.DET.CCD.BINNING.VAL"] = self.uves_ccd_binning
-            form["INS.DET.EXP.TIME.VAL"] = self.exptime
-            form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
-            form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
-            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-        if self.instrument == "FLAMES-UVES":
-            self.uves_mid_order_only = uves_mid_order_only
-            form["INS.NAME"] = "UVES"
-            form["INS.MODE"] = "FLAMES"
-            form["INS.DET.CD.NAME"] = self.uves_det_cd_name
-            form["INS.DET.EXP.TIME.VAL"] = self.exptime
-            form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
-            form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
-            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-        if self.instrument == "FLAMES-GIRAFFE":
-            form["INS.NAME"] = "GIRAFFE"
-            form["INS.MODE"] = "spectro"
-            form["INS.SKY.SAMPLING.MODE"] = self.giraffe_sky_sampling_mode
-            form["INS.GIRAFFE.FIBER.OBJ.DECENTER"] = self.giraffe_fiber_obj_decenter
-            form["INS.GIRAFFE.RESOLUTION"] = self.giraffe_resolution
-            form["INS.IMAGE.SLICERS.NAME.HR"] = self.giraffe_slicer_hr
-            form["INS.IMAGE.SLICERS.NAME.LR"] = self.giraffe_slicer_lr
-            form["DET.CCD.MODE"] = self.giraffe_ccd_mode
-            form["USR.OUT.MODE"] = "USR.OUT.MODE.EXPOSURE.TIME"
-            form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exptime
-            form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = "1"
-        if self.instrument == "X-SHOOTER":
-            form["INS.NAME"] = "X-SHOOTER"
-            form["INS.MODE"] = "spectro"
-            form["INS.ARM.UVB.FLAG"] = "1"
-            form["INS.ARM.VIS.FLAG"] = "1"
-            form["INS.ARM.NIR.FLAG"] = "1"
-            form["INS.SLIT.FROM_USER.WIDTH.VAL.UVB"] = self.xshooter_uvb_slit_width
-            form["INS.SLIT.FROM_USER.WIDTH.VAL.VIS"] = self.xshooter_vis_slit_width
-            form["INS.SLIT.FROM_USER.WIDTH.VAL.NIR"] = self.xshooter_nir_slit_width
-            form["INS.DET.DIT.UVB"] = self.exptime
-            form["INS.DET.DIT.VIS"] = self.exptime
-            form["INS.DET.DIT.NIR"] = self.exptime
-            form["INS.DET.CCD.BINNING.VAL.UVB"] = self.xshooter_uvb_ccd_binning
-            form["INS.DET.CCD.BINNING.VAL.VIS"] = self.xshooter_vis_ccd_binning
-            form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
-        if self.instrument == "MUSE":
-            form["INS.NAME"] = "MUSE"
-            form["INS.MODE"] = "swspectr"
-            form["INS.MUSE.SETTING.KEY"] = self.muse_setting
-            form["INS.MUSE.SPATIAL.NPIX.LINEAR"] = self.muse_spatial_binning
-            form["INS.MUSE.SPECTRAL.NPIX.LINEAR"] = self.muse_spectra_binning
-            form["SRC.TARGET.GEOM.DISTANCE"] = self.muse_target_offset
-            form["USR.OBS.SETUP.TYPE"] = "givenexptime"
-            form["DET.IR.NDIT"] = 1
-            form["DET.IR.DIT"] = self.exptime
-            form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
+        # Instrument Specifics
+        form["INS.NAME"] = "UVES"
+        form["INS.MODE"] = "spectro"
+        form["INS.PRE_SLIT.FILTER.NAME"] = "ADC"
+        form["INS.IMAGE_SLICERS.NAME"] = "None"
+        form["INS.BELOW_SLIT.FILTER.NAME"] = "NONE"
+        form["INS.DET.SPECTRAL_FORMAT.NAME"] = "STANDARD"
+        form["INS.DET.CD.NAME"] = self.detector
+        form["INS.SLIT.FROM_USER.WIDTH.VAL"] = self.slitwidth
+        form["INS.DET.CCD.BINNING.VAL"] = self.binning
+        form["INS.DET.EXP.TIME.VAL"] = self.exptime
+        form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
+        form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
+        form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
         for key in self.kwargs:
             form[key] = self.kwargs[key]
         self.data = browser.submit_selected()
-        if self.instrument in ["UVES", "FLAMES-UVES"]:
-            snr = self.parse_uves_etc()
-        elif self.instrument == "X-SHOOTER":
-            snr = self.parse_xshooter_etc()
+        if self.mid_order_only:
+            snr = self.parse_etc_mid()
         else:
-            snr = self.parse_basic_etc()
+            snr = self.parse_etc()
         return snr
 
-    def parse_uves_etc(self):
-        if self.uves_mid_order_only:
-            snr_url1 = (
-                "https://www.eso.org"
-                + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
-            )
-            snr_url2 = (
-                "https://www.eso.org"
-                + self.data.text.split('ASCII DATA INFO: URL="')[2].split('" TITLE')[0]
-            )
-            snr_txt1 = requests.post(snr_url1).text
-            snr_txt2 = requests.post(snr_url2).text
-            snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
-            snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
-            uves_snr = pd.concat([snr1, snr2])
-            uves_snr.index = uves_snr.pop(0)
-            uves_snr.sort_index(inplace=True)
-            uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(
-                float
-            )
-        else:
-            mit_tab1 = pd.read_html(
-                '<table class="echelleTable'
-                + self.data.text.split('<table class="echelleTable')[1].split(
-                    "</table>"
-                )[0]
+    def parse_etc(self):
+        mit_tab1 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[1].split(
+                "</table>"
             )[0]
-            mit_tab1.columns = mit_tab1.loc[0]
-            mit_tab1.drop(0, axis=0, inplace=True)
-            mit_tab2 = pd.read_html(
-                '<table class="echelleTable'
-                + self.data.text.split('<table class="echelleTable')[2].split(
-                    "</table>"
-                )[0]
+        )[0]
+        mit_tab1.columns = mit_tab1.loc[0]
+        mit_tab1.drop(0, axis=0, inplace=True)
+        mit_tab2 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[2].split(
+                "</table>"
             )[0]
-            mit_tab2.columns = mit_tab2.loc[1]
-            mit_tab2.drop([0, 1], axis=0, inplace=True)
-            eev_tab1 = pd.read_html(
-                '<table class="echelleTable'
-                + self.data.text.split('<table class="echelleTable')[3].split(
-                    "</table>"
-                )[0]
+        )[0]
+        mit_tab2.columns = mit_tab2.loc[1]
+        mit_tab2.drop([0, 1], axis=0, inplace=True)
+        eev_tab1 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[3].split(
+                "</table>"
             )[0]
-            eev_tab1.columns = eev_tab1.loc[0]
-            eev_tab1.drop(0, axis=0, inplace=True)
-            eev_tab2 = pd.read_html(
-                '<table class="echelleTable'
-                + self.data.text.split('<table class="echelleTable')[4].split(
-                    "</table>"
-                )[0]
+        )[0]
+        eev_tab1.columns = eev_tab1.loc[0]
+        eev_tab1.drop(0, axis=0, inplace=True)
+        eev_tab2 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[4].split(
+                "</table>"
             )[0]
-            eev_tab2.columns = eev_tab2.loc[1]
-            eev_tab2.drop([0, 1], axis=0, inplace=True)
-            mit_wave_mid = mit_tab1["wav of central column (nm)"]
-            mit_wave_min = mit_tab1["FSR l Min (nm)"]
-            mit_wave_max = mit_tab1["FSR l Max (nm)"]
-            mit_snr_min = mit_tab2["S/N*"].iloc[:, 0]
-            mit_snr_mid = mit_tab2["S/N*"].iloc[:, 1]
-            mit_snr_max = mit_tab2["S/N*"].iloc[:, 2]
-            eev_wave_mid = eev_tab1["wav of central column (nm)"]
-            eev_wave_min = eev_tab1["FSR l Min (nm)"]
-            eev_wave_max = eev_tab1["FSR l Max (nm)"]
-            eev_snr_min = eev_tab2["S/N*"].iloc[:, 0]
-            eev_snr_mid = eev_tab2["S/N*"].iloc[:, 1]
-            eev_snr_max = eev_tab2["S/N*"].iloc[:, 2]
-            mit_wave = pd.concat([mit_wave_min, mit_wave_mid, mit_wave_max])
-            mit_snr = pd.concat([mit_snr_min, mit_snr_mid, mit_snr_max])
-            mit_snr.index = mit_wave
-            mit_snr.sort_index(inplace=True)
-            mit_snr = mit_snr.groupby(mit_snr.index).max()
-            eev_wave = pd.concat([eev_wave_min, eev_wave_mid, eev_wave_max])
-            eev_snr = pd.concat([eev_snr_min, eev_snr_mid, eev_snr_max])
-            eev_snr.index = eev_wave
-            eev_snr.sort_index(inplace=True)
-            eev_snr = eev_snr.groupby(eev_snr.index).max()
-            uves_snr = pd.concat([eev_snr, mit_snr])
-            uves_snr = np.vstack(
-                [uves_snr.index.values, uves_snr.iloc[:].values]
-            ).astype(float)
+        )[0]
+        eev_tab2.columns = eev_tab2.loc[1]
+        eev_tab2.drop([0, 1], axis=0, inplace=True)
+        mit_wave_mid = mit_tab1["wav of central column (nm)"]
+        mit_wave_min = mit_tab1["FSR l Min (nm)"]
+        mit_wave_max = mit_tab1["FSR l Max (nm)"]
+        mit_snr_min = mit_tab2["S/N*"].iloc[:, 0]
+        mit_snr_mid = mit_tab2["S/N*"].iloc[:, 1]
+        mit_snr_max = mit_tab2["S/N*"].iloc[:, 2]
+        eev_wave_mid = eev_tab1["wav of central column (nm)"]
+        eev_wave_min = eev_tab1["FSR l Min (nm)"]
+        eev_wave_max = eev_tab1["FSR l Max (nm)"]
+        eev_snr_min = eev_tab2["S/N*"].iloc[:, 0]
+        eev_snr_mid = eev_tab2["S/N*"].iloc[:, 1]
+        eev_snr_max = eev_tab2["S/N*"].iloc[:, 2]
+        mit_wave = pd.concat([mit_wave_min, mit_wave_mid, mit_wave_max])
+        mit_snr = pd.concat([mit_snr_min, mit_snr_mid, mit_snr_max])
+        mit_snr.index = mit_wave
+        mit_snr.sort_index(inplace=True)
+        mit_snr = mit_snr.groupby(mit_snr.index).max()
+        eev_wave = pd.concat([eev_wave_min, eev_wave_mid, eev_wave_max])
+        eev_snr = pd.concat([eev_snr_min, eev_snr_mid, eev_snr_max])
+        eev_snr.index = eev_wave
+        eev_snr.sort_index(inplace=True)
+        eev_snr = eev_snr.groupby(eev_snr.index).max()
+        uves_snr = pd.concat([eev_snr, mit_snr])
+        uves_snr = np.vstack(
+            [uves_snr.index.values, uves_snr.iloc[:].values]
+        ).astype(float)
         uves_snr[0] *= 10
         return uves_snr
 
-    def parse_basic_etc(self):
-        snr_url = (
+    def parse_etc_mid(self):
+        snr_url1 = (
             "https://www.eso.org"
             + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
         )
+        snr_url2 = (
+            "https://www.eso.org"
+            + self.data.text.split('ASCII DATA INFO: URL="')[2].split('" TITLE')[0]
+        )
+        snr_txt1 = requests.post(snr_url1).text
+        snr_txt2 = requests.post(snr_url2).text
+        snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
+        snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
+        uves_snr = pd.concat([snr1, snr2])
+        uves_snr.index = uves_snr.pop('0')
+        uves_snr.sort_index(inplace=True)
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(
+            float
+        )
+        uves_snr[0] *= 10
+        return uves_snr
+
+
+class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
+    def __init__(
+        self,
+        detector: str,
+        exptime: float,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_fli: float = 0.0,
+        seeing: str = "0.8",
+        mid_order_only: bool = False,
+        **kwargs,
+    ):
+        Sig2NoiseVLT.__init__(
+            self,
+            "FLAMES-UVES",
+            exptime,
+            mag,
+            band,
+            magtype,
+            template_type,
+            template,
+            redshift,
+            airmass,
+            moon_fli,
+            seeing,
+            **kwargs,
+        )
+        self.url = "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES"
+        if self.band not in vlt_options["src_target_mag_band (UVES)"]:
+            raise KeyError(
+                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (UVES)']}"
+            )
+        if detector not in vlt_options["uves_det_cd_name"]:
+            raise KeyError(
+                f"{detector} not one of {vlt_options['uves_det_cd_name']}"
+            )
+        self.detector = detector
+        self.mid_order_only = mid_order_only
+        self.data = None
+
+    def query_s2n(self):
+        """
+        Query the FLAMES-UVES ETC (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=UVES+INS.MODE=FLAMES)
+
+        :return:
+        """
+        url = self.url
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form.new_control(type="select", name="SRC.TARGET.MAG.BAND", value="")
+        form.new_control(type="select", name="SKY.SEEING.ZENITH.V", value="")
+        form["POSTFILE.FLAG"] = 0
+        # Source Parameters
+        form["SRC.TARGET.MAG"] = self.mag
+        form["SRC.TARGET.MAG.BAND"] = self.band
+        form["SRC.TARGET.MAG.SYSTEM"] = self.magtype
+        form["SRC.TARGET.TYPE"] = self.template_type
+        form["SRC.TARGET.SPEC.TYPE"] = self.template
+        form["SRC.TARGET.REDSHIFT"] = self.redshift
+        form["SRC.TARGET.GEOM"] = "seeing_ltd"
+        # Sky Parameters
+        form["SKY.AIRMASS"] = self.airmass
+        form["SKY.MOON.FLI"] = self.moon_phase
+        form["USR.SEEING.OR.IQ"] = "seeing_given"
+        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        # Default Sky Background
+        form["almanac_time_option"] = "almanac_time_option_ut_time"
+        form["SKYMODEL.TARGET.ALT"] = 65.38
+        form["SKYMODEL.MOON.SUN.SEP"] = 0
+        # Instrument Specifics
+        form["INS.NAME"] = "UVES"
+        form["INS.MODE"] = "FLAMES"
+        form["INS.DET.CD.NAME"] = self.detector
+        form["INS.DET.EXP.TIME.VAL"] = self.exptime
+        form["INS.GEN.TABLE.SF.SWITCH.VAL"] = "yes"
+        form["INS.GEN.TABLE.RES.SWITCH.VAL"] = "yes"
+        form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
+        for key in self.kwargs:
+            form[key] = self.kwargs[key]
+        self.data = browser.submit_selected()
+        if self.mid_order_only:
+            snr = self.parse_etc_mid()
+        else:
+            snr = self.parse_etc()
+        return snr
+
+    def parse_etc(self):
+        mit_tab1 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[1].split(
+                "</table>"
+            )[0]
+        )[0]
+        mit_tab1.columns = mit_tab1.loc[0]
+        mit_tab1.drop(0, axis=0, inplace=True)
+        mit_tab2 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[2].split(
+                "</table>"
+            )[0]
+        )[0]
+        mit_tab2.columns = mit_tab2.loc[1]
+        mit_tab2.drop([0, 1], axis=0, inplace=True)
+        eev_tab1 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[3].split(
+                "</table>"
+            )[0]
+        )[0]
+        eev_tab1.columns = eev_tab1.loc[0]
+        eev_tab1.drop(0, axis=0, inplace=True)
+        eev_tab2 = pd.read_html(
+            '<table class="echelleTable'
+            + self.data.text.split('<table class="echelleTable')[4].split(
+                "</table>"
+            )[0]
+        )[0]
+        eev_tab2.columns = eev_tab2.loc[1]
+        eev_tab2.drop([0, 1], axis=0, inplace=True)
+        mit_wave_mid = mit_tab1["wav of central column (nm)"]
+        mit_wave_min = mit_tab1["FSR l Min (nm)"]
+        mit_wave_max = mit_tab1["FSR l Max (nm)"]
+        mit_snr_min = mit_tab2["S/N*"].iloc[:, 0]
+        mit_snr_mid = mit_tab2["S/N*"].iloc[:, 1]
+        mit_snr_max = mit_tab2["S/N*"].iloc[:, 2]
+        eev_wave_mid = eev_tab1["wav of central column (nm)"]
+        eev_wave_min = eev_tab1["FSR l Min (nm)"]
+        eev_wave_max = eev_tab1["FSR l Max (nm)"]
+        eev_snr_min = eev_tab2["S/N*"].iloc[:, 0]
+        eev_snr_mid = eev_tab2["S/N*"].iloc[:, 1]
+        eev_snr_max = eev_tab2["S/N*"].iloc[:, 2]
+        mit_wave = pd.concat([mit_wave_min, mit_wave_mid, mit_wave_max])
+        mit_snr = pd.concat([mit_snr_min, mit_snr_mid, mit_snr_max])
+        mit_snr.index = mit_wave
+        mit_snr.sort_index(inplace=True)
+        mit_snr = mit_snr.groupby(mit_snr.index).max()
+        eev_wave = pd.concat([eev_wave_min, eev_wave_mid, eev_wave_max])
+        eev_snr = pd.concat([eev_snr_min, eev_snr_mid, eev_snr_max])
+        eev_snr.index = eev_wave
+        eev_snr.sort_index(inplace=True)
+        eev_snr = eev_snr.groupby(eev_snr.index).max()
+        uves_snr = pd.concat([eev_snr, mit_snr])
+        uves_snr = np.vstack(
+            [uves_snr.index.values, uves_snr.iloc[:].values]
+        ).astype(float)
+        uves_snr[0] *= 10
+        return uves_snr
+
+    def parse_etc_mid(self):
+        snr_url1 = (
+            "https://www.eso.org"
+            + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+        )
+        snr_url2 = (
+            "https://www.eso.org"
+            + self.data.text.split('ASCII DATA INFO: URL="')[2].split('" TITLE')[0]
+        )
+        snr_txt1 = requests.post(snr_url1).text
+        snr_txt2 = requests.post(snr_url2).text
+        snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
+        snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
+        uves_snr = pd.concat([snr1, snr2])
+        uves_snr.index = uves_snr.pop('0')
+        uves_snr.sort_index(inplace=True)
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(
+            float
+        )
+        uves_snr[0] *= 10
+        return uves_snr
+
+
+class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
+    def __init__(
+        self,
+        slicer: str,
+        exptime: float,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_fli: float = 0.0,
+        seeing: str = "0.8",
+        sky_sampling_mode="MEDUSA",
+        ccd_mode="standard",
+        fiber_obj_decenter=0.0,
+        **kwargs,
+    ):
+        Sig2NoiseVLT.__init__(
+            self,
+            "FLAMES-GIRAFFE",
+            exptime,
+            mag,
+            band,
+            magtype,
+            template_type,
+            template,
+            redshift,
+            airmass,
+            moon_fli,
+            seeing,
+            **kwargs,
+        )
+        self.url = "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro"
+        if self.band not in vlt_options["src_target_mag_band (GIRAFFE)"]:
+            raise KeyError(
+                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (GIRAFFE)']}"
+            )
+        if slicer not in vlt_options["giraffe_slicer"]:
+            raise KeyError(
+                f"{slicer} not one of {vlt_options['giraffe_slicer']}"
+            )
+        if sky_sampling_mode not in vlt_options["giraffe_sky_sampling_mode"]:
+            raise KeyError(
+                f"{sky_sampling_mode} not one of {vlt_options['giraffe_sky_sampling_mode']}"
+            )
+        if ccd_mode not in vlt_options["giraffe_ccd_mode"]:
+            raise KeyError(
+                f"{ccd_mode} not one of {vlt_options['giraffe_ccd_mode']}"
+            )
+        if not fiber_obj_decenter >= 0:
+            raise ValueError("giraffe_fiber_obj_decenter must be positive")
+        self.slicer = slicer
+        self.sky_sampling_mode = sky_sampling_mode
+        self.ccd_mode = ccd_mode
+        self.fiber_obj_decenter = fiber_obj_decenter
+        self.data = None
+
+    def query_s2n(self):
+        """
+        Query the FLAMES-GIRAFFE ETC (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=GIRAFFE+INS.MODE=spectro)
+
+        :return:
+        """
+        url = self.url
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form.new_control(type="select", name="SRC.TARGET.MAG.BAND", value="")
+        form.new_control(type="select", name="SKY.SEEING.ZENITH.V", value="")
+        form["POSTFILE.FLAG"] = 0
+        # Source Parameters
+        form["SRC.TARGET.MAG"] = self.mag
+        form["SRC.TARGET.MAG.BAND"] = self.band
+        form["SRC.TARGET.MAG.SYSTEM"] = self.magtype
+        form["SRC.TARGET.TYPE"] = self.template_type
+        form["SRC.TARGET.SPEC.TYPE"] = self.template
+        form["SRC.TARGET.REDSHIFT"] = self.redshift
+        form["SRC.TARGET.GEOM"] = "seeing_ltd"
+        # Sky Parameters
+        form["SKY.AIRMASS"] = self.airmass
+        form["SKY.MOON.FLI"] = self.moon_phase
+        form["USR.SEEING.OR.IQ"] = "seeing_given"
+        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        # Default Sky Background
+        form["almanac_time_option"] = "almanac_time_option_ut_time"
+        form["SKYMODEL.TARGET.ALT"] = 65.38
+        form["SKYMODEL.MOON.SUN.SEP"] = 0
+        # Instrument Specifics
+        form["INS.NAME"] = "GIRAFFE"
+        form["INS.MODE"] = "spectro"
+        form["INS.SKY.SAMPLING.MODE"] = self.sky_sampling_mode
+        form["INS.GIRAFFE.FIBER.OBJ.DECENTER"] = self.fiber_obj_decenter
+        if self.slicer[:2] == 'LR':
+            form["INS.GIRAFFE.RESOLUTION"] = 'LR'
+            form["INS.IMAGE.SLICERS.NAME.LR"] = self.slicer
+        elif self.slicer[:2] == 'HR':
+            form["INS.GIRAFFE.RESOLUTION"] = 'HR'
+            form["INS.IMAGE.SLICERS.NAME.HR"] = self.slicer
+        else:
+            raise RuntimeError(f"{self.slicer} should start with either 'LR' or 'HR'")
+        form["DET.CCD.MODE"] = self.ccd_mode
+        form["USR.OUT.MODE"] = "USR.OUT.MODE.EXPOSURE.TIME"
+        form["USR.OUT.MODE.EXPOSURE.TIME"] = self.exptime
+        form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = "1"
+        for key in self.kwargs:
+            form[key] = self.kwargs[key]
+        self.data = browser.submit_selected()
+        snr = self.parse_etc()
+        return snr
+
+    def parse_etc(self):
+        snr_url = (
+                "https://www.eso.org"
+                + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+        )
         snr_txt = requests.post(snr_url).text
         snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
-        snr.index = snr.pop(0)
+        snr.index = snr.pop('0')
         snr.sort_index(inplace=True)
         snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
         return snr
 
-    def parse_xshooter_etc(self):
+
+class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
+    def __init__(
+        self,
+        exptime: float,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_fli: float = 0.0,
+        seeing: str = "0.8",
+        uvb_slitwidth: str = "0.8",
+        vis_slitwidth: str = "0.7",
+        nir_slitwidth: str = "0.9",
+        uvb_ccd_binning: str = "high1x1slow",
+        vis_ccd_binning: str = "high1x1slow",
+        **kwargs,
+    ):
+        Sig2NoiseVLT.__init__(
+            self,
+            "X-SHOOTER",
+            exptime,
+            mag,
+            band,
+            magtype,
+            template_type,
+            template,
+            redshift,
+            airmass,
+            moon_fli,
+            seeing,
+            **kwargs,
+        )
+        self.url = "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=X-SHOOTER+INS.MODE=spectro"
+        if self.band not in vlt_options["src_target_mag_band (X-SHOOTER)"]:
+            raise KeyError(
+                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (X-SHOOTER)']}"
+            )
+        if uvb_slitwidth not in vlt_options["xshooter_uvb_slitwidth"]:
+            raise KeyError(
+                f"{uvb_slitwidth} not one of {vlt_options['xshooter_uvb_slitwidth']}"
+            )
+        if vis_slitwidth not in vlt_options["xshooter_vis_slitwidth"]:
+            raise KeyError(
+                f"{vis_slitwidth} not one of {vlt_options['xshooter_vis_slitwidth']}"
+            )
+        if nir_slitwidth not in vlt_options["xshooter_nir_slitwidth"]:
+            raise KeyError(
+                f"{nir_slitwidth} not one of {vlt_options['xshooter_nir_slitwidth']}"
+            )
+        if uvb_ccd_binning not in vlt_options["xshooter_uvb_ccd_binning"]:
+            raise KeyError(
+                f"{uvb_ccd_binning} not one of {vlt_options['xshooter_uvb_ccd_binning']}"
+            )
+        if vis_ccd_binning not in vlt_options["xshooter_vis_ccd_binning"]:
+            raise KeyError(
+                f"{vis_ccd_binning} not one of {vlt_options['xshooter_vis_ccd_binning']}"
+            )
+        self.uvb_slitwidth = uvb_slitwidth
+        self.vis_slitwidth = vis_slitwidth
+        self.nir_slitwidth = nir_slitwidth
+        self.uvb_ccd_binning = uvb_ccd_binning
+        self.vis_ccd_binning = vis_ccd_binning
+        self.data = None
+
+    def query_s2n(self):
+        """
+        Query the X-SHOOTER ETC (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=X-SHOOTER+INS.MODE=spectro)
+
+        :return:
+        """
+        url = self.url
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form.new_control(type="select", name="SRC.TARGET.MAG.BAND", value="")
+        form.new_control(type="select", name="SKY.SEEING.ZENITH.V", value="")
+        form["POSTFILE.FLAG"] = 0
+        # Source Parameters
+        form["SRC.TARGET.MAG"] = self.mag
+        form["SRC.TARGET.MAG.BAND"] = self.band
+        form["SRC.TARGET.MAG.SYSTEM"] = self.magtype
+        form["SRC.TARGET.TYPE"] = self.template_type
+        form["SRC.TARGET.SPEC.TYPE"] = self.template
+        form["SRC.TARGET.REDSHIFT"] = self.redshift
+        form["SRC.TARGET.GEOM"] = "seeing_ltd"
+        # Sky Parameters
+        form["SKY.AIRMASS"] = self.airmass
+        form["SKY.MOON.FLI"] = self.moon_phase
+        form["USR.SEEING.OR.IQ"] = "seeing_given"
+        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        # Default Sky Background
+        form["almanac_time_option"] = "almanac_time_option_ut_time"
+        form["SKYMODEL.TARGET.ALT"] = 65.38
+        form["SKYMODEL.MOON.SUN.SEP"] = 0
+        # Instrument Specifics
+        form["INS.NAME"] = "X-SHOOTER"
+        form["INS.MODE"] = "spectro"
+        form["INS.ARM.UVB.FLAG"] = "1"
+        form["INS.ARM.VIS.FLAG"] = "1"
+        form["INS.ARM.NIR.FLAG"] = "1"
+        form["INS.SLIT.FROM_USER.WIDTH.VAL.UVB"] = self.uvb_slitwidth
+        form["INS.SLIT.FROM_USER.WIDTH.VAL.VIS"] = self.vis_slitwidth
+        form["INS.SLIT.FROM_USER.WIDTH.VAL.NIR"] = self.nir_slitwidth
+        form["INS.DET.DIT.UVB"] = self.exptime
+        form["INS.DET.DIT.VIS"] = self.exptime
+        form["INS.DET.DIT.NIR"] = self.exptime
+        form["INS.DET.CCD.BINNING.VAL.UVB"] = self.uvb_ccd_binning
+        form["INS.DET.CCD.BINNING.VAL.VIS"] = self.vis_ccd_binning
+        form["INS.GEN.GRAPH.S2N.SWITCH.VAL"] = "yes"
+        for key in self.kwargs:
+            form[key] = self.kwargs[key]
+        self.data = browser.submit_selected()
+        snr = self.parse_etc()
+        return snr
+
+    def parse_etc(self):
         def combine_xshooter_snr(snr_min_df, snr_mid_df, snr_max_df, offset):
             snr_mid_df.index = snr_mid_df.pop(0)
             snr_max_df.index = snr_max_df.pop(0)
@@ -1278,37 +1602,155 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         snr_txt2_min = requests.post(snr_url2_min).text
         snr_txt3_min = requests.post(snr_url3_min).text
         snr1_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_mid.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt1_mid.split("\n")[:-1]], dtype='float64'
         )
         snr2_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_mid.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt2_mid.split("\n")[:-1]], dtype='float64'
         )
         snr3_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_mid.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt3_mid.split("\n")[:-1]], dtype='float64'
         )
         snr1_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_max.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt1_max.split("\n")[:-1]], dtype='float64'
         )
         snr2_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_max.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt2_max.split("\n")[:-1]], dtype='float64'
         )
         snr3_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_max.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt3_max.split("\n")[:-1]], dtype='float64'
         )
         snr1_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_min.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt1_min.split("\n")[:-1]], dtype='float64'
         )
         snr2_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_min.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt2_min.split("\n")[:-1]], dtype='float64'
         )
         snr3_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_min.split("\n")[:-1]], dtype=float
+            [row.split("\t") for row in snr_txt3_min.split("\n")[:-1]], dtype='float64'
         )
         snr1 = combine_xshooter_snr(snr1_min_df, snr1_mid_df, snr1_max_df, offset=1)
         snr2 = combine_xshooter_snr(snr2_min_df, snr2_mid_df, snr2_max_df, offset=0)
         snr3 = combine_xshooter_snr(snr3_min_df, snr3_mid_df, snr3_max_df, offset=1)
         snr = pd.concat([snr1, snr2, snr3])
         snr = np.vstack([snr.index.values, snr[1].values])
+        snr[0] *= 10
+        return snr
+
+
+class Sig2NoiseMUSE(Sig2NoiseVLT):
+    def __init__(
+        self,
+        exptime: float,
+        mag: float,
+        band: str = "V",
+        magtype: str = "Vega",
+        template_type: str = "template_spectrum",
+        template: str = "Pickles_K2V",
+        redshift: float = 0,
+        airmass: float = 1.1,
+        moon_fli: float = 0.0,
+        seeing: str = "0.8",
+        mode: str = "WFM_NONAO_N",
+        spatial_binning: str = "3",
+        spectra_binning: str = "1",
+        target_offset: float = 0,
+        **kwargs,
+    ):
+        Sig2NoiseVLT.__init__(
+            self,
+            "MUSE",
+            exptime,
+            mag,
+            band,
+            magtype,
+            template_type,
+            template,
+            redshift,
+            airmass,
+            moon_fli,
+            seeing,
+            **kwargs,
+        )
+        self.url = "https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr"
+        if self.band not in vlt_options["src_target_mag_band (MUSE)"]:
+            raise KeyError(
+                f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (MUSE)']}"
+            )
+        if mode not in vlt_options["muse_mode"]:
+            raise KeyError(f"{mode} not one of {vlt_options['muse_mode']}")
+        if spatial_binning not in vlt_options["muse_spatial_binning"]:
+            raise KeyError(
+                f"{spatial_binning} not one of {vlt_options['muse_spatial_binning']}"
+            )
+        if spectra_binning not in vlt_options["muse_spectra_binning"]:
+            raise KeyError(
+                f"{spectra_binning} not one of {vlt_options['muse_spectra_binning']}"
+            )
+        if not target_offset >= 0:
+            raise ValueError("muse_target_offset must be positive")
+        self.mode = mode
+        self.spatial_binning = spatial_binning
+        self.spectra_binning = spectra_binning
+        self.target_offset = target_offset
+        self.data = None
+
+    def query_s2n(self):
+        """
+        Query the MUSE ETC (https://www.eso.org/observing/etc/bin/gen/form?INS.NAME=MUSE+INS.MODE=swspectr)
+
+        :return:
+        """
+        url = self.url
+        browser = mechanicalsoup.StatefulBrowser()
+        browser.open(url)
+        form = browser.select_form()
+        form.new_control(type="select", name="SRC.TARGET.MAG.BAND", value="")
+        form.new_control(type="select", name="SKY.SEEING.ZENITH.V", value="")
+        form["POSTFILE.FLAG"] = 0
+        # Source Parameters
+        form["SRC.TARGET.MAG"] = self.mag
+        form["SRC.TARGET.MAG.BAND"] = self.band
+        form["SRC.TARGET.MAG.SYSTEM"] = self.magtype
+        form["SRC.TARGET.TYPE"] = self.template_type
+        form["SRC.TARGET.SPEC.TYPE"] = self.template
+        form["SRC.TARGET.REDSHIFT"] = self.redshift
+        form["SRC.TARGET.GEOM"] = "seeing_ltd"
+        # Sky Parameters
+        form["SKY.AIRMASS"] = self.airmass
+        form["SKY.MOON.FLI"] = self.moon_phase
+        form["USR.SEEING.OR.IQ"] = "seeing_given"
+        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        # Default Sky Background
+        form["almanac_time_option"] = "almanac_time_option_ut_time"
+        form["SKYMODEL.TARGET.ALT"] = 65.38
+        form["SKYMODEL.MOON.SUN.SEP"] = 0
+        # Instrument Specifics
+        form["INS.NAME"] = "MUSE"
+        form["INS.MODE"] = "swspectr"
+        form["INS.MUSE.SETTING.KEY"] = self.mode
+        form["INS.MUSE.SPATIAL.NPIX.LINEAR"] = self.spatial_binning
+        form["INS.MUSE.SPECTRAL.NPIX.LINEAR"] = self.spectra_binning
+        form["SRC.TARGET.GEOM.DISTANCE"] = self.target_offset
+        form["USR.OBS.SETUP.TYPE"] = "givenexptime"
+        form["DET.IR.NDIT"] = 1
+        form["DET.IR.DIT"] = self.exptime
+        form["USR.OUT.DISPLAY.SN.V.WAVELENGTH"] = 1
+        for key in self.kwargs:
+            form[key] = self.kwargs[key]
+        self.data = browser.submit_selected()
+        snr = self.parse_etc()
+        return snr
+
+    def parse_etc(self):
+        snr_url = (
+                "https://www.eso.org"
+                + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+        )
+        snr_txt = requests.post(snr_url).text
+        snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
+        snr.index = snr.pop('0')
+        snr.sort_index(inplace=True)
+        snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
         return snr
 
