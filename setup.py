@@ -17,7 +17,7 @@ URL = "https://github.com/NathanSandford/Chem-I-Calc"
 EMAIL = "nathan_sandford@berkeley.edu"
 AUTHOR = "Nathan Sandford"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.5.1"
+VERSION = "0.5.2dev"
 
 
 def get_requirements():
