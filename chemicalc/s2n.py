@@ -125,30 +125,9 @@ vlt_options = {
         "sloan_i_prime",
         "sloan_z_prime",
     ],
-    "src_target_mag_band (GIRAFFE)": [
-        "U",
-        "B",
-        "V",
-        "R",
-        "I",
-    ],
-    "src_target_mag_band (UVES)": [
-        "U",
-        "B",
-        "V",
-        "R",
-        "I",
-    ],
-    "src_target_mag_band (X-SHOOTER)": [
-        "U",
-        "B",
-        "V",
-        "R",
-        "I",
-        "J",
-        "H",
-        "K",
-    ],
+    "src_target_mag_band (GIRAFFE)": ["U", "B", "V", "R", "I",],
+    "src_target_mag_band (UVES)": ["U", "B", "V", "R", "I",],
+    "src_target_mag_band (X-SHOOTER)": ["U", "B", "V", "R", "I", "J", "H", "K",],
     "src_target_mag_system": ["Vega", "AB"],
     "src_target_type": ["template_spectrum"],
     "src_target_spec_type": [
@@ -223,7 +202,7 @@ vlt_options = {
         "10.0",
     ],
     "uves_ccd_binning": ["1x1", "1x1v", "2x2", "2x1", "3x2"],
-    "giraffe_sky_sampling_mode": ["MEDUSA", "IFU052", "ARGUS052", "ARGUS030", ],
+    "giraffe_sky_sampling_mode": ["MEDUSA", "IFU052", "ARGUS052", "ARGUS030",],
     "giraffe_slicer": [
         "LR01",
         "LR02",
@@ -847,7 +826,7 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
         data = browser.submit_selected()
         snr_text = data.text.split("---")[-1]
         snr = pd.DataFrame([row.split("\t") for row in snr_text.split("\n")[1:-1]])
-        snr.index = snr.pop('0')
+        snr.index = snr.pop("0")
         snr.drop([1, 2, 3, 4], axis=1, inplace=True)
         snr = np.vstack([snr.index.values, snr[5].values]).astype(float)
         snr[0] *= 1e4
@@ -873,6 +852,7 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     # TODO: Implement MARCS stellar template selection
     def __init__(
         self,
@@ -887,7 +867,7 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         airmass: float = 1.1,
         moon_phase: float = 0.0,
         seeing: str = "0.8",
-        **kwargs
+        **kwargs,
     ):
         Sig2NoiseQuery.__init__(self)
         if instrument not in vlt_options["instruments"]:
@@ -895,11 +875,17 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
         if not exptime > 0:
             raise ValueError("Exposure Time must be positive")
         if magtype not in vlt_options["src_target_mag_system"]:
-            raise KeyError(f"{magtype} not one of {vlt_options['src_target_mag_system']}")
+            raise KeyError(
+                f"{magtype} not one of {vlt_options['src_target_mag_system']}"
+            )
         if template_type not in vlt_options["src_target_type"]:
-            raise KeyError(f"{template_type} not one of {vlt_options['src_target_type']}")
+            raise KeyError(
+                f"{template_type} not one of {vlt_options['src_target_type']}"
+            )
         if template not in vlt_options["src_target_spec_type"]:
-            raise KeyError(f"{template} not one of {vlt_options['src_target_spec_type']}")
+            raise KeyError(
+                f"{template} not one of {vlt_options['src_target_spec_type']}"
+            )
         if not src_target_redshift >= 0:
             raise ValueError("Redshift must be positive")
         if not sky_airmass >= 1.0:
@@ -955,6 +941,7 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     def __init__(
         self,
         detector: str,
@@ -994,17 +981,11 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
                 f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (UVES)']}"
             )
         if detector not in vlt_options["uves_det_cd_name"]:
-            raise KeyError(
-                f"{detector} not one of {vlt_options['uves_det_cd_name']}"
-            )
+            raise KeyError(f"{detector} not one of {vlt_options['uves_det_cd_name']}")
         if slitwidth not in vlt_options["uves_slit_width"]:
-            raise KeyError(
-                f"{slitwidth} not one of {vlt_options['uves_slit_width']}"
-            )
+            raise KeyError(f"{slitwidth} not one of {vlt_options['uves_slit_width']}")
         if binning not in vlt_options["uves_ccd_binning"]:
-            raise KeyError(
-                f"{binning} not one of {vlt_options['uves_ccd_binning']}"
-            )
+            raise KeyError(f"{binning} not one of {vlt_options['uves_ccd_binning']}")
         self.detector = detector
         self.slitwidth = slitwidth
         self.binning = binning
@@ -1067,33 +1048,25 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
     def parse_etc(self):
         mit_tab1 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[1].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[1].split("</table>")[0]
         )[0]
         mit_tab1.columns = mit_tab1.loc[0]
         mit_tab1.drop(0, axis=0, inplace=True)
         mit_tab2 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[2].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[2].split("</table>")[0]
         )[0]
         mit_tab2.columns = mit_tab2.loc[1]
         mit_tab2.drop([0, 1], axis=0, inplace=True)
         eev_tab1 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[3].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[3].split("</table>")[0]
         )[0]
         eev_tab1.columns = eev_tab1.loc[0]
         eev_tab1.drop(0, axis=0, inplace=True)
         eev_tab2 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[4].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[4].split("</table>")[0]
         )[0]
         eev_tab2.columns = eev_tab2.loc[1]
         eev_tab2.drop([0, 1], axis=0, inplace=True)
@@ -1120,9 +1093,9 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
         eev_snr.sort_index(inplace=True)
         eev_snr = eev_snr.groupby(eev_snr.index).max()
         uves_snr = pd.concat([eev_snr, mit_snr])
-        uves_snr = np.vstack(
-            [uves_snr.index.values, uves_snr.iloc[:].values]
-        ).astype(float)
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr.iloc[:].values]).astype(
+            float
+        )
         uves_snr[0] *= 10
         return uves_snr
 
@@ -1140,11 +1113,9 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
         snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
         snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
         uves_snr = pd.concat([snr1, snr2])
-        uves_snr.index = uves_snr.pop('0')
+        uves_snr.index = uves_snr.pop("0")
         uves_snr.sort_index(inplace=True)
-        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(
-            float
-        )
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(float)
         uves_snr[0] *= 10
         return uves_snr
 
@@ -1170,6 +1141,7 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     def __init__(
         self,
         detector: str,
@@ -1207,9 +1179,7 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
                 f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (UVES)']}"
             )
         if detector not in vlt_options["uves_det_cd_name"]:
-            raise KeyError(
-                f"{detector} not one of {vlt_options['uves_det_cd_name']}"
-            )
+            raise KeyError(f"{detector} not one of {vlt_options['uves_det_cd_name']}")
         self.detector = detector
         self.mid_order_only = mid_order_only
         self.data = None
@@ -1264,33 +1234,25 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
     def parse_etc(self):
         mit_tab1 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[1].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[1].split("</table>")[0]
         )[0]
         mit_tab1.columns = mit_tab1.loc[0]
         mit_tab1.drop(0, axis=0, inplace=True)
         mit_tab2 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[2].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[2].split("</table>")[0]
         )[0]
         mit_tab2.columns = mit_tab2.loc[1]
         mit_tab2.drop([0, 1], axis=0, inplace=True)
         eev_tab1 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[3].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[3].split("</table>")[0]
         )[0]
         eev_tab1.columns = eev_tab1.loc[0]
         eev_tab1.drop(0, axis=0, inplace=True)
         eev_tab2 = pd.read_html(
             '<table class="echelleTable'
-            + self.data.text.split('<table class="echelleTable')[4].split(
-                "</table>"
-            )[0]
+            + self.data.text.split('<table class="echelleTable')[4].split("</table>")[0]
         )[0]
         eev_tab2.columns = eev_tab2.loc[1]
         eev_tab2.drop([0, 1], axis=0, inplace=True)
@@ -1317,9 +1279,9 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
         eev_snr.sort_index(inplace=True)
         eev_snr = eev_snr.groupby(eev_snr.index).max()
         uves_snr = pd.concat([eev_snr, mit_snr])
-        uves_snr = np.vstack(
-            [uves_snr.index.values, uves_snr.iloc[:].values]
-        ).astype(float)
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr.iloc[:].values]).astype(
+            float
+        )
         uves_snr[0] *= 10
         return uves_snr
 
@@ -1337,11 +1299,9 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
         snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
         snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
         uves_snr = pd.concat([snr1, snr2])
-        uves_snr.index = uves_snr.pop('0')
+        uves_snr.index = uves_snr.pop("0")
         uves_snr.sort_index(inplace=True)
-        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(
-            float
-        )
+        uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(float)
         uves_snr[0] *= 10
         return uves_snr
 
@@ -1369,6 +1329,7 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     def __init__(
         self,
         slicer: str,
@@ -1408,17 +1369,13 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
                 f"{src_target_mag_band} not one of {vlt_options['src_target_mag_band (GIRAFFE)']}"
             )
         if slicer not in vlt_options["giraffe_slicer"]:
-            raise KeyError(
-                f"{slicer} not one of {vlt_options['giraffe_slicer']}"
-            )
+            raise KeyError(f"{slicer} not one of {vlt_options['giraffe_slicer']}")
         if sky_sampling_mode not in vlt_options["giraffe_sky_sampling_mode"]:
             raise KeyError(
                 f"{sky_sampling_mode} not one of {vlt_options['giraffe_sky_sampling_mode']}"
             )
         if ccd_mode not in vlt_options["giraffe_ccd_mode"]:
-            raise KeyError(
-                f"{ccd_mode} not one of {vlt_options['giraffe_ccd_mode']}"
-            )
+            raise KeyError(f"{ccd_mode} not one of {vlt_options['giraffe_ccd_mode']}")
         if not fiber_obj_decenter >= 0:
             raise ValueError("giraffe_fiber_obj_decenter must be positive")
         self.slicer = slicer
@@ -1462,11 +1419,11 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
         form["INS.MODE"] = "spectro"
         form["INS.SKY.SAMPLING.MODE"] = self.sky_sampling_mode
         form["INS.GIRAFFE.FIBER.OBJ.DECENTER"] = self.fiber_obj_decenter
-        if self.slicer[:2] == 'LR':
-            form["INS.GIRAFFE.RESOLUTION"] = 'LR'
+        if self.slicer[:2] == "LR":
+            form["INS.GIRAFFE.RESOLUTION"] = "LR"
             form["INS.IMAGE.SLICERS.NAME.LR"] = self.slicer
-        elif self.slicer[:2] == 'HR':
-            form["INS.GIRAFFE.RESOLUTION"] = 'HR'
+        elif self.slicer[:2] == "HR":
+            form["INS.GIRAFFE.RESOLUTION"] = "HR"
             form["INS.IMAGE.SLICERS.NAME.HR"] = self.slicer
         else:
             raise RuntimeError(f"{self.slicer} should start with either 'LR' or 'HR'")
@@ -1482,12 +1439,12 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
 
     def parse_etc(self):
         snr_url = (
-                "https://www.eso.org"
-                + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+            "https://www.eso.org"
+            + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
         )
         snr_txt = requests.post(snr_url).text
         snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
-        snr.index = snr.pop('0')
+        snr.index = snr.pop("0")
         snr.sort_index(inplace=True)
         snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
@@ -1519,6 +1476,7 @@ class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     def __init__(
         self,
         exptime: float,
@@ -1707,31 +1665,31 @@ class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
         snr_txt2_min = requests.post(snr_url2_min).text
         snr_txt3_min = requests.post(snr_url3_min).text
         snr1_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_mid.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt1_mid.split("\n")[:-1]], dtype="float64"
         )
         snr2_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_mid.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt2_mid.split("\n")[:-1]], dtype="float64"
         )
         snr3_mid_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_mid.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt3_mid.split("\n")[:-1]], dtype="float64"
         )
         snr1_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_max.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt1_max.split("\n")[:-1]], dtype="float64"
         )
         snr2_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_max.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt2_max.split("\n")[:-1]], dtype="float64"
         )
         snr3_max_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_max.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt3_max.split("\n")[:-1]], dtype="float64"
         )
         snr1_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt1_min.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt1_min.split("\n")[:-1]], dtype="float64"
         )
         snr2_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt2_min.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt2_min.split("\n")[:-1]], dtype="float64"
         )
         snr3_min_df = pd.DataFrame(
-            [row.split("\t") for row in snr_txt3_min.split("\n")[:-1]], dtype='float64'
+            [row.split("\t") for row in snr_txt3_min.split("\n")[:-1]], dtype="float64"
         )
         snr1 = combine_xshooter_snr(snr1_min_df, snr1_mid_df, snr1_max_df, offset=1)
         snr2 = combine_xshooter_snr(snr2_min_df, snr2_mid_df, snr2_max_df, offset=0)
@@ -1765,6 +1723,7 @@ class Sig2NoiseMUSE(Sig2NoiseVLT):
     :param \**kwargs: Other entries in the ETC web form to set.
         To see what options are available, an inspection of the ETC website is necessary.
     """
+
     def __init__(
         self,
         exptime: float,
@@ -1870,104 +1829,48 @@ class Sig2NoiseMUSE(Sig2NoiseVLT):
 
     def parse_etc(self):
         snr_url = (
-                "https://www.eso.org"
-                + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
+            "https://www.eso.org"
+            + self.data.text.split('ASCII DATA INFO: URL="')[1].split('" TITLE')[0]
         )
         snr_txt = requests.post(snr_url).text
         snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
-        snr.index = snr.pop('0')
+        snr.index = snr.pop("0")
         snr.sort_index(inplace=True)
         snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
         return snr
 
 
-def calculate_mods_snr(F, wave, t_exp, airmass=1.1, mode="dichroic", side=None):
-    assert mode in ["dichroic", "direct"], 'Mode must be either "dichroic" or "direct"'
-    if mode is "direct":
-        assert side in ["red", "blue"], 'Side must be "red" or "blue" if mode is direct'
-    assert len(F) == len(wave), "Flux and Wavelength must be the same length"
-    log_t_exp = np.log10(t_exp)
-    log_F = np.log10(F)
-    g_blue = 2.5  # electron / ADU
-    g_red = 2.6  # electron / ADU
-    sigma_RO_red = 2.5  # electron
-    sigma_RO_blue = 2.5  # electron
-    A_per_pix_red = 0.85
-    A_per_pix_blue = 0.50
-    slit_loss_factor = 0.76
-    atm_extinct_curve = np.genfromtxt(etc_file_dir.joinpath("LBTO_atm_extinct.txt")).T
-    atm_extinct = interp1d(
-        x=atm_extinct_curve[0],
-        y=atm_extinct_curve[1],
-        bounds_error=False,
-        fill_value="extrapolate",
-    )
-    log_S_0_red = np.genfromtxt(etc_file_dir.joinpath("MODS_red_S_0.txt")).T
-    log_S_0_blue = np.genfromtxt(etc_file_dir.joinpath("MODS_blue_S_0.txt")).T
-    g = np.zeros_like(wave)
-    if mode == "dichroic":
-        log_S_0_r = interp1d(
-            log_S_0_red[0], log_S_0_red[2], bounds_error=False, fill_value="extrapolate"
-        )
-        log_S_0_b = interp1d(
-            log_S_0_blue[0],
-            log_S_0_blue[2],
-            bounds_error=False,
-            fill_value="extrapolate",
-        )
-        log_S_red = (
-            log_S_0_r(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
-        )
-        log_S_blue = (
-            log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
-        )
-        S_red = 10 ** log_S_red * slit_loss_factor * A_per_pix_red
-        S_blue = 10 ** log_S_blue * slit_loss_factor * A_per_pix_blue
-        snr_red = g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
-        snr_blue = g_blue * S_blue / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
-        snr = np.max([snr_red, snr_blue], axis=0)
-    elif mode == "direct":
-        if side == "red":
-            log_S_0_r = interp1d(
-                log_S_0_red[0],
-                log_S_0_red[1],
-                bounds_error=False,
-                fill_value="extrapolate",
-            )
-            log_S_red = (
-                log_S_0_r(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
-            )
-            S_red = 10 ** log_S_red * slit_loss_factor * A_per_pix_red
-            snr = g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
-        elif side == "blue":
-            log_S_0_b = interp1d(
-                log_S_0_blue[0],
-                log_S_0_blue[1],
-                bounds_error=False,
-                fill_value="extrapolate",
-            )
-            log_S_blue = (
-                log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
-            )
-            S_blue = 10 ** log_S_blue * slit_loss_factor * A_per_pix_blue
-            snr = g_blue * S_blue / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
-    return np.array([wave, snr])
-
-
 class Sig2NoiseMSE(Sig2NoiseQuery):
+    """
+    MSE S/N Query (http://etc-dev.cfht.hawaii.edu/mse/)
+
+    :param float exptime: Exposure time in seconds
+    :param float mag: Magnitude of source
+    :param str template: Spectral template. For valid options see s2n.mse_options['template'].
+    :param str spec_mode: MSE mode. Must be "LR" (low resolution), "MR" (medium resolution), or "HR" (high resolution)
+    :param str band: Magnitude band. For valid options see s2n.mse_options['filter'].
+    :param str airmass: Airmass of observation. Must be one of mse_options['airmass'].
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param float skymag: Background sky magnitude of observation
+    :param str src_type: Spatial profile of source. Must be one of mse_options['src_type'].
+    :param float redshift: Redshift of the target.
+    :param bool smoothed: If True, uses smoothed S/N,
+    """
+
     def __init__(
         self,
-        exptime,
-        mag,
-        template,
-        spec_mode="LR",
-        filter="g",
-        airmass="1.2",
-        seeing=0.5,
-        skymag=20.7,
-        src_type="point",
-        redshift=0,
+        exptime: float,
+        mag: float,
+        template: str,
+        spec_mode: str = "LR",
+        band: str = "g",
+        airmass: str = "1.2",
+        seeing: float = 0.5,
+        skymag: float = 20.7,
+        src_type: str = "point",
+        redshift: float = 0,
+        smoothed: bool = False,
     ):
         Sig2NoiseQuery.__init__(self)
         self.url_base = "http://etc-dev.cfht.hawaii.edu/cgi-bin/mse/mse_wrapper.py"
@@ -1994,16 +1897,15 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
         self.mag = mag
         self.template = template
         self.spec_mode = spec_mode
-        self.filter = filter
+        self.band = band
         self.airmass = airmass
         self.seeing = seeing
         self.skymag = skymag
         self.src_type = src_type
         self.redshift = redshift
+        self.smoothed = smoothed
 
-    def query_s2n(
-        self, smoothed=False,
-    ):
+    def query_s2n(self):
         url = (
             f"{self.url_base}?"
             + f"sessionID={self.sessionID}&"
@@ -2021,7 +1923,7 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
             + f"src_type={self.src_type}&"
             + f"tgtmag={self.mag}&"
             + f"redshift={self.redshift}&"
-            + f"band={self.filter}&"
+            + f"band={self.band}&"
             + f"template={self.template}"
         )
         response = requests.post(url)
@@ -2050,7 +1952,7 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
         x = {i: x[j] for i, j in enumerate(order)}
         y = {i: y[j] for i, j in enumerate(order)}
         x = {i: x[2 * i] for i in range(int(len(x) / 2))}
-        if smoothed:
+        if self.smoothed:
             y = {
                 i: (
                     y[2 * i]
@@ -2094,25 +1996,43 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
 
 
 class Sig2NoiseLCO(Sig2NoiseQuery):
+    """
+    Superclass for LCO ETC Queries (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+
+    :param instrument: LCO instrument. Valid options are "MIKE", "LDSS3", "IMACS", and "MAGE".
+    :param telescope: LCO telescope. "MAGELLAN1" for IMACS and MAGE. "MAGELLAN2" for LDSS3 and MIKE.
+    :param exptime: Exposure time in seconds
+    :param mag: Magnitude of source
+    :param template: Spectral template. For valid options see s2n.lco_options['template'].
+    :param band: Magnitude band. For valid options see s2n.lco_options['filter'].
+    :param airmass: Airmass of observation
+    :param seeing: Seeing (FWHM) of observation in arcseconds
+    :param nmoon: Days from since new moon. For valid options see s2n.lco_options['nmoon'].
+    :param nexp: Number of exposures
+    :param slitwidth: Width of slit in arcseconds
+    :param binspat: Binning in the spatial direction. For valid options see s2n.lco_options['binspat'].
+    :param binspec: Binning in the spectral direction. For valid options see s2n.lco_options['binspec'].
+    :param extract_ap: Size of extraction aperture in arcseconds.
+    """
     def __init__(
         self,
-        exptime,
-        mag,
-        template="flat",
-        band="g",
-        airmass=1.1,
-        seeing=0.5,
-        nmoon="0",
-        telescope="MAGELLAN2",
-        instrument="MIKE",
-        mode="BLUE",
-        nexp=1,
-        slitwidth=1.0,
-        binspat="3",
-        binspec="1",
-        extract_ap=1.5,
+        instrument: str,
+        telescope: str,
+        exptime: float,
+        mag: float,
+        template: str = "flat",
+        band: str = "g",
+        airmass: float = 1.1,
+        seeing: float = 0.5,
+        nmoon: str = "0",
+        nexp: int = 1,
+        slitwidth: float = 1.0,
+        binspat: str = "3",
+        binspec: str = "1",
+        extract_ap: float = 1.5,
     ):
         Sig2NoiseQuery.__init__(self)
+        self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
         if template not in lco_options["template"]:
             raise KeyError(f"{template} not one of {lco_options['template']}")
         if band not in lco_options["tempfilter"]:
@@ -2123,8 +2043,6 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
             raise KeyError(
                 f"{instrument} not one of {lco_options[telescope+'_telescope']}"
             )
-        if mode not in lco_options[instrument + "_mode"]:
-            raise KeyError(f"{mode} not one of {lco_options[instrument+'_mode']}")
         if binspat not in lco_options["binspat"]:
             raise KeyError(f"{binspat} not one of {lco_options['binspat']}")
         if binspec not in lco_options["binspec"]:
@@ -2139,7 +2057,6 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         self.tempfilter = f"sdss_{band}.dat"
         self.telescope = telescope
         self.instrument = instrument
-        self.mode = mode
         self.dslit = slitwidth
         self.binspat = binspat
         self.binspec = binspec
@@ -2149,9 +2066,13 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         self.texp = exptime
         self.nexp = nexp
         self.aper = extract_ap
-        self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
 
     def query_s2n(self):
+        if not hasattr(self, "mode"):
+            raise AttributeError(
+                "Query has no attribute 'mode'."
+                + "Try using the instrument specific query (e.g., Sig2NoiseMIKE) instead of this general one."
+            )
         url = (
             f"{self.url_base}?"
             + f"template={self.template}&"
@@ -2189,6 +2110,332 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         return snr
 
 
+class Sig2NoiseIMACS(Sig2NoiseLCO):
+    """
+    Magellan/IMACS S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+
+    :param mode: IMACS mode. For valid options see s2n.lco_options['IMACS_mode'].
+    :param exptime: Exposure time in seconds
+    :param mag: Magnitude of source
+    :param template: Spectral template. For valid options see s2n.lco_options['template'].
+    :param band: Magnitude band. For valid options see s2n.lco_options['filter'].
+    :param airmass: Airmass of observation
+    :param seeing: Seeing (FWHM) of observation in arcseconds
+    :param nmoon: Days from since new moon. For valid options see s2n.lco_options['nmoon'].
+    :param nexp: Number of exposures
+    :param slitwidth: Width of slit in arcseconds
+    :param binspat: Binning in the spatial direction. For valid options see s2n.lco_options['binspat'].
+    :param binspec: Binning in the spectral direction. For valid options see s2n.lco_options['binspec'].
+    :param extract_ap: Size of extraction aperture in arcseconds.
+    """
+    def __init__(
+        self,
+        mode: str,
+        exptime: float,
+        mag: float,
+        template: str = "flat",
+        band: str = "g",
+        airmass: float = 1.1,
+        seeing: float = 0.5,
+        nmoon: str = "0",
+        nexp: int = 1,
+        slitwidth: float = 1.0,
+        binspat: str = "3",
+        binspec: str = "1",
+        extract_ap: float = 1.5,
+    ):
+        Sig2NoiseLCO.__init__(
+            self,
+            "IMACS",
+            "MAGELLAN1",
+            exptime,
+            mag,
+            template,
+            band,
+            airmass,
+            seeing,
+            nmoon,
+            nexp,
+            slitwidth,
+            binspat,
+            binspec,
+            extract_ap,
+        )
+        if mode not in lco_options["IMACS_mode"]:
+            raise KeyError(f"{mode} not one of {lco_options['IMACS_mode']}")
+        self.mode = mode
+
+
+class Sig2NoiseMAGE(Sig2NoiseLCO):
+    """
+    Magellan/MAGE S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+
+    :param mode: MAGE mode. "ECHELLETTE" is currently the only option.
+    :param exptime: Exposure time in seconds
+    :param mag: Magnitude of source
+    :param template: Spectral template. For valid options see s2n.lco_options['template'].
+    :param band: Magnitude band. For valid options see s2n.lco_options['filter'].
+    :param airmass: Airmass of observation
+    :param seeing: Seeing (FWHM) of observation in arcseconds
+    :param nmoon: Days from since new moon. For valid options see s2n.lco_options['nmoon'].
+    :param nexp: Number of exposures
+    :param slitwidth: Width of slit in arcseconds
+    :param binspat: Binning in the spatial direction. For valid options see s2n.lco_options['binspat'].
+    :param binspec: Binning in the spectral direction. For valid options see s2n.lco_options['binspec'].
+    :param extract_ap: Size of extraction aperture in arcseconds.
+    """
+    def __init__(
+        self,
+        mode: str,
+        exptime: float,
+        mag: float,
+        template: str = "flat",
+        band: str = "g",
+        airmass: float = 1.1,
+        seeing: float = 0.5,
+        nmoon: str = "0",
+        nexp: int = 1,
+        slitwidth: float = 1.0,
+        binspat: str = "3",
+        binspec: str = "1",
+        extract_ap: float = 1.5,
+    ):
+        Sig2NoiseLCO.__init__(
+            self,
+            "MAGE",
+            "MAGELLAN1",
+            exptime,
+            mag,
+            template,
+            band,
+            airmass,
+            seeing,
+            nmoon,
+            nexp,
+            slitwidth,
+            binspat,
+            binspec,
+            extract_ap,
+        )
+        if mode not in lco_options["MAGE_mode"]:
+            raise KeyError(f"{mode} not one of {lco_options['MAGE_mode']}")
+        self.mode = mode
+
+
+class Sig2NoiseMIKE(Sig2NoiseLCO):
+    """
+    Magellan/MIKE S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+
+    :param mode: MIKE mode. Valid options are "BLUE" and "RED".
+    :param exptime: Exposure time in seconds
+    :param mag: Magnitude of source
+    :param template: Spectral template. For valid options see s2n.lco_options['template'].
+    :param band: Magnitude band. For valid options see s2n.lco_options['filter'].
+    :param airmass: Airmass of observation
+    :param seeing: Seeing (FWHM) of observation in arcseconds
+    :param nmoon: Days from since new moon. For valid options see s2n.lco_options['nmoon'].
+    :param nexp: Number of exposures
+    :param slitwidth: Width of slit in arcseconds
+    :param binspat: Binning in the spatial direction. For valid options see s2n.lco_options['binspat'].
+    :param binspec: Binning in the spectral direction. For valid options see s2n.lco_options['binspec'].
+    :param extract_ap: Size of extraction aperture in arcseconds.
+    """
+    def __init__(
+        self,
+        mode: str,
+        exptime: float,
+        mag: float,
+        template: str = "flat",
+        band: str = "g",
+        airmass: float = 1.1,
+        seeing: float = 0.5,
+        nmoon: str = "0",
+        nexp: int = 1,
+        slitwidth: float = 1.0,
+        binspat: str = "3",
+        binspec: str = "1",
+        extract_ap: float = 1.5,
+    ):
+        Sig2NoiseLCO.__init__(
+            self,
+            "MIKE",
+            "MAGELLAN2",
+            exptime,
+            mag,
+            template,
+            band,
+            airmass,
+            seeing,
+            nmoon,
+            nexp,
+            slitwidth,
+            binspat,
+            binspec,
+            extract_ap,
+        )
+        if mode not in lco_options["MIKE_mode"]:
+            raise KeyError(f"{mode} not one of {lco_options['MIKE_mode']}")
+        self.mode = mode
+
+
+class Sig2NoiseLDSS3(Sig2NoiseLCO):
+    """
+    Magellan/LDSS-3 S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+
+    :param mode: LDSS-3 mode. Valid options are "VPHALL", "VPHBLUE", and "VPHRED".
+    :param exptime: Exposure time in seconds
+    :param mag: Magnitude of source
+    :param template: Spectral template. For valid options see s2n.lco_options['template'].
+    :param band: Magnitude band. For valid options see s2n.lco_options['filter'].
+    :param airmass: Airmass of observation
+    :param seeing: Seeing (FWHM) of observation in arcseconds
+    :param nmoon: Days from since new moon. For valid options see s2n.lco_options['nmoon'].
+    :param nexp: Number of exposures
+    :param slitwidth: Width of slit in arcseconds
+    :param binspat: Binning in the spatial direction. For valid options see s2n.lco_options['binspat'].
+    :param binspec: Binning in the spectral direction. For valid options see s2n.lco_options['binspec'].
+    :param extract_ap: Size of extraction aperture in arcseconds.
+    """
+    def __init__(
+        self,
+        mode: str,
+        exptime: float,
+        mag: float,
+        template: str = "flat",
+        band: str = "g",
+        airmass: float = 1.1,
+        seeing: float = 0.5,
+        nmoon: str = "0",
+        nexp: int = 1,
+        slitwidth: float = 1.0,
+        binspat: str = "3",
+        binspec: str = "1",
+        extract_ap: float = 1.5,
+    ):
+        Sig2NoiseLCO.__init__(
+            self,
+            "LDSS3",
+            "MAGELLAN2",
+            exptime,
+            mag,
+            template,
+            band,
+            airmass,
+            seeing,
+            nmoon,
+            nexp,
+            slitwidth,
+            binspat,
+            binspec,
+            extract_ap,
+        )
+        if mode not in lco_options["LDSS3_mode"]:
+            raise KeyError(f"{mode} not one of {lco_options['LDSS3_mode']}")
+        self.mode = mode
+
+
+def calculate_mods_snr(
+    F: np.ndarray,
+    wave: np.ndarray,
+    t_exp: float,
+    airmass: float = 1.1,
+    slitloss: float = 0.76,
+    mode: str = "dichroic",
+    side: Optional[str] = None,
+) -> np.ndarray:
+    """
+    Calculate S/N for LBT/MODS. Based on the calculations and data presented here:
+    https://sites.google.com/a/lbto.org/mods/preparing-to-observe/sensitivity
+
+    :param np.ndarray F: Flux (ergs s^-1 Angstrom^-1  cm^-2)
+    :param np.ndarray wave: Wavelength array (Angstrom)
+    :param float t_exp: Exposure time in seconds
+    :param float airmass: Airmass of observation
+    :param float slitloss: Slit loss factor (i.e., the fraction of the flux that makes it through the slit).
+    :param str mode: "dichroic" for both red and blue detectors or "direct" for just one or the other.
+    :param Optional[str] side: Detector to use if mode="direct". Must be either "red" or "blue".
+    :return np.ndarray: S/N as a function of wavelength for LBT/MODS
+    """
+    if mode not in ["dichroic", "direct"]:
+        raise KeyError("mode must be either 'dichroic' or 'direct'.")
+    if mode == "direct" and side not in ["red", "blue"]:
+        raise KeyError("side must be either 'red' or 'blue' if mode is 'direct'.")
+    if len(F) != len(wave):
+        raise ValueError("Flux and wavelength must be the same length.")
+    if airmass < 1.0:
+        raise ValueError("Airmass must be greater than or equal to 1.")
+    log_t_exp = np.log10(t_exp)
+    log_F = np.log10(F)
+    g_blue = 2.5  # electron / ADU
+    g_red = 2.6  # electron / ADU
+    sigma_RO_red = 2.5  # electron
+    sigma_RO_blue = 2.5  # electron
+    A_per_pix_red = 0.85
+    A_per_pix_blue = 0.50
+    slitloss = 0.76
+    atm_extinct_curve = np.genfromtxt(etc_file_dir.joinpath("LBTO_atm_extinct.txt")).T
+    atm_extinct = interp1d(
+        x=atm_extinct_curve[0],
+        y=atm_extinct_curve[1],
+        bounds_error=False,
+        fill_value="extrapolate",
+    )
+    log_S_0_red = np.genfromtxt(etc_file_dir.joinpath("MODS_red_S_0.txt")).T
+    log_S_0_blue = np.genfromtxt(etc_file_dir.joinpath("MODS_blue_S_0.txt")).T
+    g = np.zeros_like(wave)
+    if mode == "dichroic":
+        log_S_0_r = interp1d(
+            log_S_0_red[0], log_S_0_red[2], bounds_error=False, fill_value="extrapolate"
+        )
+        log_S_0_b = interp1d(
+            log_S_0_blue[0],
+            log_S_0_blue[2],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+        log_S_red = (
+            log_S_0_r(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
+        )
+        log_S_blue = (
+            log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
+        )
+        S_red = 10 ** log_S_red * slitloss * A_per_pix_red
+        S_blue = 10 ** log_S_blue * slitloss * A_per_pix_blue
+        snr_red = g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
+        snr_blue = g_blue * S_blue / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
+        snr = np.max([snr_red, snr_blue], axis=0)
+    elif mode == "direct":
+        if side == "red":
+            log_S_0_r = interp1d(
+                log_S_0_red[0],
+                log_S_0_red[1],
+                bounds_error=False,
+                fill_value="extrapolate",
+            )
+            log_S_red = (
+                log_S_0_r(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
+            )
+            S_red = 10 ** log_S_red * slitloss * A_per_pix_red
+            snr = g_red * S_red / np.sqrt(g_red * S_red + sigma_RO_red ** 2)
+        elif side == "blue":
+            log_S_0_b = interp1d(
+                log_S_0_blue[0],
+                log_S_0_blue[1],
+                bounds_error=False,
+                fill_value="extrapolate",
+            )
+            log_S_blue = (
+                log_S_0_b(wave) + log_F + log_t_exp - 0.4 * atm_extinct(wave) * airmass
+            )
+            S_blue = 10 ** log_S_blue * slitloss * A_per_pix_blue
+            snr = g_blue * S_blue / np.sqrt(g_blue * S_blue + sigma_RO_blue ** 2)
+        else:
+            raise RuntimeError("Improper side argument")
+    else:
+        raise RuntimeError("Improper mode argument")
+    return np.array([wave, snr])
+
+
 def calculate_fobos_snr(
     spec_file: Optional[str] = None,
     spec_wave: Union[str, float] = "WAVE",
@@ -2215,36 +2462,45 @@ def calculate_fobos_snr(
     snr_units: str = "pixel",
     sky_err: float = 0.1,
     print_summary: bool = True,
-):
+) -> np.ndarray:
     """
     This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/python/enyo/scripts/fobos_etc.py
 
-    :param spec_file:
-    :param spec_wave:
-    :param spec_wave_units:
-    :param spec_flux:
-    :param spec_flux_units:
-    :param spot_fwhm:
-    :param spec_res_indx:
-    :param spec_res_value:
-    :param spec_table:
-    :param mag:
-    :param mag_band:
-    :param mag_system:
-    :param sky_mag:
-    :param sky_mag_band:
-    :param sky_mag_system:
-    :param redshift:
-    :param emline:
-    :param sersic:
-    :param uniform:
-    :param exptime:
-    :param fwhm:
-    :param airmass:
-    :param snr_units:
-    :param sky_err:
-    :param print_summary:
-    :return:
+    :param Optional[str] spec_file: A fits or ascii file with the object spectrum to use. If None, a flat spectrum is used.
+    :param Union[str,float]spec_wave: Extension or column number with the wavelengths.
+    :param str spec_wave_units: Wavelength units
+    :param Union[str,float] spec_flux: Extension or column number with the flux.
+    :param Optional[str] spec_flux_units: Input units of the flux density. Must be interpretable by astropy.units.Unit.
+        Assumes 1e-17 erg / (cm2 s angstrom) if units are not provided.
+    :param float spot_fwhm: FHWM of the monochromatic spot size on the detector in pixels.
+    :param Optional[Union[str,float]] spec_res_indx: Extension or column number with the flux.
+    :param Optional[float] spec_res_value: Single value for the spectral resolution (R = lambda/dlambda) for the full spectrum.
+    :param Optional[Union[str,float]] spec_table: Extension in the fits file with the binary table data.
+    :param float mag: Total apparent magnitude of the source
+    :param str mag_band: Broad-band used for the provided magnitude. Must be u, g, r, i, or z.
+    :param str mag_system: Magnitude system. Must be either AB or Vega.
+    :param Optional[float] sky_mag: Surface brightness of the sky in mag/arcsec^2 in the defined broadband.
+        If not provided, default dark-sky spectrum is used.
+    :param str sky_mag_band: Broad-band used for the provided sky surface brightness. Must be u, g, r, i, or z.
+    :param str sky_mag_system: Magnitude system. Must be either AB or Vega.
+    :param float redshift: Redshift of the object, z
+    :param Optional[str] emline: File with emission lines to add to the spectrum.
+    :param Optional[Tuple[float,float,float,float]] sersic: Use a Sersic profile to describe the object surface-brightness  distribution; order
+        must be effective radius, Sersic index, ellipticity (1-b/a), position angle (deg).
+    :param bool uniform: Instead of a point source or Sersic profile,
+        assume the surface brightness distribution is uniform over the fiber face.
+        If set, the provided magnitude is assumed to be a surface brightness.
+        See the MAG option.
+    :param float exptime: Exposure time (s)
+    :param float fwhm: On-sky PSF FWHM (arcsec)
+    :param float airmass: Airmass
+    :param str snr_units: The units for the S/N. Options are pixel, angstrom, resolution.
+    :param float sky_err: The fraction of the Poisson error in the sky incurred when subtracting the sky from the observation.
+        Set to 0 for a sky subtraction that adds no error to the sky-subtracted spectrum;
+        set to 1 for a sky-subtraction error that is the same as the Poisson error in the sky spectrum
+        acquired during the observation.
+    :param bool print_summary: If True, prints a summary of the calculations.
+    :return np.ndarray: S/N as a function of wavelength for Keck/FOBOS
     """
     try:
         from enyo.etc import (
@@ -2422,16 +2678,16 @@ def calculate_wfos_snr(
     spec_wave_units: str = "angstrom",
     spec_flux: Union[str, float] = "FLUX",
     spec_flux_units: Optional[str] = None,
-    spot_fwhm: float = 5.8,
+    #spot_fwhm: float = 5.8,  #  Not used
     spec_res_indx: Optional[Union[str, float]] = None,
     spec_res_value: Optional[float] = None,
     spec_table: Optional[Union[str, float]] = None,
     mag: float = 24.0,
     mag_band: str = "g",
     mag_system: str = "AB",
-    sky_mag: Optional[float] = None,
-    sky_mag_band: str = "g",
-    sky_mag_system: str = "AB",
+    #sky_mag: Optional[float] = None,  #  Not used
+    #sky_mag_band: str = "g",  #  Not used
+    #sky_mag_system: str = "AB",  #  Not used
     redshift: float = 0.0,
     emline: Optional[str] = None,
     sersic: Optional[Tuple[float, float, float, float]] = None,
@@ -2461,48 +2717,70 @@ def calculate_wfos_snr(
     extract_size: Optional[float] = None,
     return_R: bool = False,
     print_summary: bool = True,
-):
+)  -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """
     This is slightly modified code from https://github.com/Keck-FOBOS/enyo/blob/master/enyo/scripts/wfos_etc.py
 
-    :param spec_file:
-    :param spec_wave:
-    :param spec_wave_units:
-    :param spec_flux:
-    :param spec_flux_units:
-    :param spot_fwhm:
-    :param spec_res_indx:
-    :param spec_res_value:
-    :param spec_table:
-    :param mag:
-    :param mag_band:
-    :param mag_system:
-    :param sky_mag:
-    :param sky_mag_band:
-    :param sky_mag_system:
-    :param redshift:
-    :param emline:
-    :param sersic:
-    :param uniform:
-    :param exptime:
-    :param fwhm:
-    :param airmass:
-    :param snr_units:
-    :param sky_err:
-    :param refl:
-    :param blue_grat:
-    :param blue_wave:
-    :param blue_angle:
-    :param blue_binning:
-    :param red_grat:
-    :param red_wave:
-    :param red_angle:
-    :param red_binning:
-    :param slit:
-    :param extract_size:
-    :param return_R:
-    :param print_summary:
-    :return:
+    :param Optional[str] spec_file: A fits or ascii file with the object spectrum to use. If None, a flat spectrum is used.
+    :param Union[str,float]spec_wave: Extension or column number with the wavelengths.
+    :param str spec_wave_units: Wavelength units
+    :param Union[str,float] spec_flux: Extension or column number with the flux.
+    :param Optional[str] spec_flux_units: Input units of the flux density. Must be interpretable by astropy.units.Unit.
+        Assumes 1e-17 erg / (cm2 s angstrom) if units are not provided.
+    :param Optional[Union[str,float]] spec_res_indx: Extension or column number with the flux.
+    :param Optional[float] spec_res_value: Single value for the spectral resolution (R = lambda/dlambda) for the full spectrum.
+    :param Optional[Union[str,float]] spec_table: Extension in the fits file with the binary table data.
+    :param float mag: Total apparent magnitude of the source
+    :param str mag_band: Broad-band used for the provided magnitude. Must be u, g, r, i, or z.
+    :param str mag_system: Magnitude system. Must be either AB or Vega.
+    :param float redshift: Redshift of the object, z
+    :param Optional[str] emline: File with emission lines to add to the spectrum.
+    :param Optional[Tuple[float,float,float,float]] sersic: Use a Sersic profile to describe the object surface-brightness  distribution; order
+        must be effective radius, Sersic index, ellipticity (1-b/a), position angle (deg).
+    :param bool uniform: Instead of a point source or Sersic profile,
+        assume the surface brightness distribution is uniform over the fiber face.
+        If set, the provided magnitude is assumed to be a surface brightness.
+        See the MAG option.
+    :param float exptime: Exposure time (s)
+    :param float fwhm: On-sky PSF FWHM (arcsec)
+    :param float airmass: Airmass
+    :param str snr_units: The units for the S/N. Options are pixel, angstrom, resolution.
+    :param float sky_err: The fraction of the Poisson error in the sky incurred when subtracting the sky from the observation.
+        Set to 0 for a sky subtraction that adds no error to the sky-subtracted spectrum;
+        set to 1 for a sky-subtraction error that is the same as the Poisson error in the sky spectrum
+        acquired during the observation.
+    :param str refl: Select the reflectivity curve for TMT.
+        Must be either 'req' or 'goal' for the required or goal reflectivity performance.
+    :param str blue_grat: Grating to use in the blue arm.
+        For valid options see enyo.etc.spectrographs.WFOSGrating.available_gratings.keys()
+    :param Optional[float] blue_wave: Central wavelength for the blue arm.
+        If None, will use the peak-efficiency wavelength.
+    :param Optional[float] blue_angle: Grating angle for blue grating.
+        If None, will use then angle the provides the best efficiency for the on-axis spectrum.
+    :param Optional[Tuple[int,int]] blue_binning: On-chip binning for the blue grating. Order is spectral then spatial.
+        I.e., to bin 2 pixels spectrally and no binning spatial, use (2, 1)
+    :param str red_grat: Grating to use in the red arm.
+        For valid options see enyo.etc.spectrographs.WFOSGrating.available_gratings.keys()
+    :param Optional[float] red_wave: Central wavelength for the red arm.
+        If None, will use the peak-efficiency wavelength.
+    :param Optional[float] red_angle: Grating angle for red grating.
+        If None, will use then angle the provides the best efficiency for the on-axis spectrum.
+    :param Optional[Tuple[int,int]] red_binning: On-chip binning for the red grating. Order is spectral then spatial.
+        I.e., to bin 2 pixels spectrally and no binning spatial, use (2, 1)
+    :param Optional[Tuple[float,float,float,float,float]] slit: Slit properties:
+        x field center, y field center, width, length, rotation.
+        The rotation is in degrees, everything else is in on-sky arcsec.
+        The slit width is in the *unrotated* frame, meaning the effective slit width for a rotated slit is
+        slit_width/cos(rotation). For the field center, x is along the dispersion direction with a valid range of
+        +/- 90 arcsec, and y is in the cross-dispersion direction with a valid range of +/- 249 arcsec.
+        Coordinate (0,0) is on axis.
+    :param Optional[float] extract_size: Extraction aperture in arcsec *along the slit* centered on the source.
+        At the detector, the extraction aperture is narrower by cos(slit rotation).
+        If not provided, set to the FWHM of the seeing disk.
+    :param bool return_R: If True, also returns the resolution as a function of wavelength.
+    :param bool print_summary: If True, prints a summary of the calculations.
+    :return Union[np.ndarray,Tuple[np.ndarray,np.ndarray]]: S/N as a function of wavelength for Keck/WFOS.
+        If return_R, a tuple of S/N and resolving power as a function of wavelength.
     """
     try:
         from enyo.etc import (
