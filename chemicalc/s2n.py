@@ -3101,33 +3101,34 @@ def calculate_wfos_snr(
 
 
 def calculate_muse_snr(
-    wave,
-    flux,
-    exptime,
-    nexp,
-    blueMUSE=False,
-    airmass=1.0,
-    seeing=0.8,
-    moon="d",
-    pointsource=True,
-    nspatial=3,
-    nspectral=1,
+    wave: np.ndarray,
+    flux: np.ndarray,
+    exptime: float,
+    nexp: int,
+    blueMUSE: bool = False,
+    airmass: float = 1.0,
+    seeing: float = 0.8,
+    moon: str = "d",
+    pointsource: bool = True,
+    nspatial: float = 3,
+    nspectral: float = 1,
 ):
     """
-    This code is adapted from https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC
+    Calculates the S/N for VLT/MUSE and VLT/blueMUSE.
+    This code is adapted from https://git-cral.univ-lyon1.fr/johan.richard/BlueMUSE-ETC.
 
-    :param wave:
-    :param flux:
-    :param exptime:
-    :param nexp:
-    :param blueMUSE:
-    :param airmass:
-    :param seeing:
-    :param moon:
-    :param pointsource:
-    :param nspatial:
-    :param nspectral:
-    :return:
+    :param np.ndarray wave: Wavelength array corresponding to flux array
+    :param np.ndarray flux: Flux of source (ergs s^-1 Angstrom^-1 cm^-2)
+    :param float exptime: Exposure time in seconds
+    :param int nexp: Number of exposures
+    :param bool blueMUSE: If True, performs calculation for blueMUSE. If False, performs calculation for MUSE.
+    :param float airmass: Airmass of observation
+    :param float seeing: Seeing (FWHM) of observation in arcseconds
+    :param str moon: "d" for dark conditions. "g" for grey conditions.
+    :param bool pointsource: True if source is a point source. False if source is extended.
+    :param int nspatial: Binning in the spacial direction
+    :param int nspectral: Binning in the spectral direction
+    :return np.ndarray: S/N as a function of wavelength for VLT/(blue)MUSE
     """
     MUSE_etc_dir = etc_file_dir.joinpath("MUSE")
     muse_files = [
@@ -3156,6 +3157,7 @@ def calculate_muse_snr(
         wmusetrans = musetrans[:, 0] * 10.0  # in Angstroms
         valmusetrans = musetrans[:, 1]
     else:
+        warn("We recommend chemicalc.s2n.Sig2NoiseMUSE to directly query the VLT/MUSE ETC.", UserWarning)
         spaxel = 0.2  # spaxel scale (arcsecs)
         fins = 0.15  # Instrument image quality (arcsecs)
         lmin = 4750.0  # minimum wavelength
@@ -3238,12 +3240,14 @@ def calculate_muse_snr(
         skyemflux = (
             skyemtable[:, 1] * airmass
         )  # in photons / s / m2 / micron / arcsec2 approximated at given airmass
-    else:  # dark conditions - no moon
+    elif moon == "d":  # dark conditions - no moon
         skyemtable = np.loadtxt(
             MUSE_etc_dir.joinpath("radiance_airmass1.0_newmoon.txt")
         )  # sky spectrum (grey) - 0.5 FLI
         skyemw = skyemtable[:, 0] * 10.0  # in Angstroms
         skyemflux = skyemtable[:, 1] * airmass  # in photons / s / m2 / micron / arcsec2
+    else:
+        raise KeyError("moon must be either 'd' (dark) or 'g' (grey)")
     # Interpolate sky spectrum at instrumental wavelengths
     sky = np.interp(wrange, skyemw, skyemflux)
     # loads sky transmission
