@@ -6,7 +6,7 @@ It takes advantage of the Fisher information matrix and the Cramér-Rao inequali
 to quickly calculate the Cramér-Rao lower bounds (CRLBs), which give the best
 theoretically achievable precision from a set of observations.
 
-For documentation, visit: https://chem-i-calc.readthedocs.io/en/latest/index.html
+For installation instructions and documentation, visit: https://chem-i-calc.readthedocs.io
 
 ## Authors
 - Nathan Sandford (UC Berkeley, nathan_sandford@berkeley.edu)
