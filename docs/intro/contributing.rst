@@ -80,10 +80,12 @@ with
 
     git clone https://github.com/<YOUR-GITHUB-USERNAME>/Chem-I-Calc.git
 
-3. Create a branch for local development
+3. Create a branch for local development stemming from the develop branch:
 
 .. code-block:: bash
-
+    cd Chem-I-Calc
+    git checkout develop
+    git pull
     git checkout -b name-of-bugfix-or-feature
 
 4. Make your contribution! If you are changing or adding to the functionality of the code, please make the relevant changes or additions to the docstrings, the readthedocs documentation, and the test suite.

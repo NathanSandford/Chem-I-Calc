@@ -5,8 +5,7 @@ Scientific/Statistical Background
 
 **Coming Soon!**
 
-.. note:: For now, we recommend you read through `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_
---- at least Sections 1-3 and 4.1.
+.. note:: For now, we recommend you read through `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_ --- at least Sections 1-3 and 4.1.
 
 Motivation
 ----------

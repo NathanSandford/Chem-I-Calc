@@ -1,6 +1,6 @@
 # Chem-I-Calc: The Chemical Information Calculator
 
-Chem-I-Calc is a python package for evaluating the chemical information content
+Chem-I-Calc is an open source python package for evaluating the chemical information content
 of resolved star spectroscopy.
 It takes advantage of the Fisher information matrix and the Cramér-Rao inequality
 to quickly calculate the Cramér-Rao lower bounds (CRLBs), which give the best
