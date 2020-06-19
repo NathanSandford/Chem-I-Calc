@@ -1887,8 +1887,8 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
             raise KeyError(f"{template} not one of {mse_options['template']}")
         if spec_mode not in mse_options["spec_mode"]:
             raise KeyError(f"{spec_mode} not one of {mse_options['spec_mode']}")
-        if filter not in mse_options["filter"]:
-            raise KeyError(f"{filter} not one of {mse_options['filter']}")
+        if band not in mse_options["filter"]:
+            raise KeyError(f"{band} not one of {mse_options['filter']}")
         if airmass not in mse_options["airmass"]:
             raise KeyError(f"{airmass} not one of {mse_options['airmass']}")
         if src_type not in mse_options["src_type"]:
