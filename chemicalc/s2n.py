@@ -1017,7 +1017,7 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
         form["SKY.AIRMASS"] = self.airmass
         form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
-        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        form["SKY.SEEING.ZENITH.V"] = self.seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
@@ -1209,7 +1209,7 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
         form["SKY.AIRMASS"] = self.airmass
         form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
-        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        form["SKY.SEEING.ZENITH.V"] = self.seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
@@ -1409,7 +1409,7 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
         form["SKY.AIRMASS"] = self.airmass
         form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
-        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        form["SKY.SEEING.ZENITH.V"] = self.seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
@@ -1568,7 +1568,7 @@ class Sig2NoiseXSHOOTER(Sig2NoiseVLT):
         form["SKY.AIRMASS"] = self.airmass
         form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
-        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        form["SKY.SEEING.ZENITH.V"] = self.seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
@@ -1805,7 +1805,7 @@ class Sig2NoiseMUSE(Sig2NoiseVLT):
         form["SKY.AIRMASS"] = self.airmass
         form["SKY.MOON.FLI"] = self.moon_phase
         form["USR.SEEING.OR.IQ"] = "seeing_given"
-        form["SKY.SEEING.ZENITH.V"] = self.sky_seeing
+        form["SKY.SEEING.ZENITH.V"] = self.seeing
         # Default Sky Background
         form["almanac_time_option"] = "almanac_time_option_ut_time"
         form["SKYMODEL.TARGET.ALT"] = 65.38
