@@ -826,7 +826,7 @@ class Sig2NoiseHectoBinoSpec(Sig2NoiseQuery):
         data = browser.submit_selected()
         snr_text = data.text.split("---")[-1]
         snr = pd.DataFrame([row.split("\t") for row in snr_text.split("\n")[1:-1]])
-        snr.index = snr.pop("0")
+        snr.index = snr.pop(0)
         snr.drop([1, 2, 3, 4], axis=1, inplace=True)
         snr = np.vstack([snr.index.values, snr[5].values]).astype(float)
         snr[0] *= 1e4
@@ -1113,7 +1113,7 @@ class Sig2NoiseUVES(Sig2NoiseVLT):
         snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
         snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
         uves_snr = pd.concat([snr1, snr2])
-        uves_snr.index = uves_snr.pop("0")
+        uves_snr.index = uves_snr.pop(0)
         uves_snr.sort_index(inplace=True)
         uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(float)
         uves_snr[0] *= 10
@@ -1299,7 +1299,7 @@ class Sig2NoiseFLAMESUVES(Sig2NoiseVLT):
         snr1 = pd.DataFrame([row.split("\t") for row in snr_txt1.split("\n")[:-1]])
         snr2 = pd.DataFrame([row.split("\t") for row in snr_txt2.split("\n")[:-1]])
         uves_snr = pd.concat([snr1, snr2])
-        uves_snr.index = uves_snr.pop("0")
+        uves_snr.index = uves_snr.pop(0)
         uves_snr.sort_index(inplace=True)
         uves_snr = np.vstack([uves_snr.index.values, uves_snr[1].values]).astype(float)
         uves_snr[0] *= 10
@@ -1444,7 +1444,7 @@ class Sig2NoiseFLAMESGIRAFFE(Sig2NoiseVLT):
         )
         snr_txt = requests.post(snr_url).text
         snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
-        snr.index = snr.pop("0")
+        snr.index = snr.pop(0)
         snr.sort_index(inplace=True)
         snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
@@ -1834,7 +1834,7 @@ class Sig2NoiseMUSE(Sig2NoiseVLT):
         )
         snr_txt = requests.post(snr_url).text
         snr = pd.DataFrame([row.split(" ") for row in snr_txt.split("\n")[:-1]])
-        snr.index = snr.pop("0")
+        snr.index = snr.pop(0)
         snr.sort_index(inplace=True)
         snr = np.vstack([snr.index.values, snr[1].values]).astype(float)
         snr[0] *= 10
