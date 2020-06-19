@@ -886,9 +886,9 @@ class Sig2NoiseVLT(Sig2NoiseQuery):
             raise KeyError(
                 f"{template} not one of {vlt_options['src_target_spec_type']}"
             )
-        if not src_target_redshift >= 0:
+        if not redshift >= 0:
             raise ValueError("Redshift must be positive")
-        if not sky_airmass >= 1.0:
+        if not airmass >= 1.0:
             raise ValueError("Airmass must be > 1.0")
         if moon_phase < 0.0 or moon_phase > 1.0:
             raise ValueError("moon_phase must be between 0.0 (new) and 1.0 (full)")
