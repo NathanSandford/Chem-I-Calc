@@ -1,6 +1,8 @@
 0.5.2dev
 ========
 
+- Updated Hectochelle configuration to match H3 survey
+
 0.5.1
 =====
 
