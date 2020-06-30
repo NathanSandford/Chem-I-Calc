@@ -19,7 +19,7 @@
 },
 
 "MMT": {
-  "Hectochelle": {"name": "Hectochelle", "res": 20000, "samp": 6, "start": 5160, "end": 5280},
+  "Hectochelle": {"name": "Hectochelle", "res": 32000, "samp": 2, "start": 5150, "end": 5300},
   "Hectospec 270": {"name": "Hectospec 270", "res": 1500, "samp": 5, "start": 3900, "end": 9200},
   "Hectospec 600": {"name": "Hectospec 600", "res": 5000, "samp": 5, "start": 5300, "end": 7800},
   "Binospec 270": {"name": "Binospec 270", "res": 1300, "samp": 4, "start": 3900, "end": 9200},
