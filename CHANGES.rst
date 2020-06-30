@@ -1,5 +1,8 @@
-0.5.2
-=====
+0.5.3dev
+========
+
+0.5.2 (Zenodo)
+==============
 
 - Updated Hectochelle configuration to match H3 survey
 
