@@ -158,7 +158,9 @@ def sort_crlb(
     :param pd.DataFrame crlb: dataframe of CRLBs
     :param float cutoff: Cutoff precision of labels
     :param str sort_by: Name of dataframe column to sort labels by.
-                        Default uses the column with the most labels recovered below the cutoff
+                        'default' uses the column with the most labels recovered below the cutoff.
+                        'alphabetical' sorts elemental labels alphabetically.
+                        'atomic_number' sorts the elements by the order they appear on the periodic table.
     :param bool fancy_labels: Replaces Teff, logg, and v_micro with math-formatted labels (for plotting).
     :return pd.DataFrame: Sorted CRLB dataframe
     """
@@ -168,25 +170,30 @@ def sort_crlb(
     if not isinstance(cutoff, (int, float)):
         raise TypeError("cutoff must be int or float")
     if not isinstance(sort_by, str):
-        raise TypeError(f"sort_by must be str in {list(crlb.columns)} or 'default'")
+        raise TypeError(f"sort_by must be str in {list(crlb.columns)}, 'default', 'alphabetical', or 'atomic_number'")
     crlb_temp = crlb[:3].copy()
     crlb[crlb > cutoff] = np.NaN
     crlb[:3] = crlb_temp
-    if sort_by == "default":
-        sort_by_index = np.sum(pd.isna(crlb)).idxmin()
-    else:
-        if sort_by in list(crlb.columns):
-            sort_by_index = sort_by
-        else:
-            raise KeyError(
-                f"{sort_by} not in crlb \n Try 'default' or one of {list(crlb.columns)}"
-            )
     valid_ele = np.concatenate(
-        [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
-    )
-    valid_ele_sorted = np.concatenate(
-        [crlb.index[:3], crlb.loc[valid_ele][3:].sort_values(sort_by_index).index]
-    )
+            [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
+        )
+    if sort_by == "atomic_number":
+        valid_ele_sorted = valid_ele
+    elif sort_by == "alphabetical":
+        valid_ele_sorted = np.concatenate([valid_ele[:3], sorted(valid_ele[3:])])
+    else:
+        if sort_by == "default":
+            sort_by_index = np.sum(pd.isna(crlb)).idxmin()
+        else:
+            if sort_by in list(crlb.columns):
+                sort_by_index = sort_by
+            else:
+                raise KeyError(
+                    f"{sort_by} not in crlb \n Try 'default', 'atomic_number', 'alphabetical', or one of {list(crlb.columns)}"
+                )
+        valid_ele_sorted = np.concatenate(
+            [crlb.index[:3], crlb.loc[valid_ele][3:].sort_values(sort_by_index).index]
+        )
     crlb = crlb.loc[valid_ele_sorted]
     if len(crlb.index) == 3:
         warn(f"No elements w/ CRLBs < cutoff ({cutoff})", UserWarning)
