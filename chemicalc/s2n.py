@@ -1997,7 +1997,7 @@ class Sig2NoiseMSE(Sig2NoiseQuery):
 
 class Sig2NoiseLCO(Sig2NoiseQuery):
     """
-    Superclass for LCO ETC Queries (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+    Superclass for LCO ETC Queries (http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html)
 
     :param instrument: LCO instrument. Valid options are "MIKE", "LDSS3", "IMACS", and "MAGE".
     :param telescope: LCO telescope. "MAGELLAN1" for IMACS and MAGE. "MAGELLAN2" for LDSS3 and MIKE.
@@ -2032,7 +2032,7 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
         extract_ap: float = 1.5,
     ):
         Sig2NoiseQuery.__init__(self)
-        self.url_base = "http://alyth.lco.cl/cgi-bin/gblanc_cgi/lcoetc/lcoetc_sspec.py"
+        self.url_base = "http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html"
         if template not in lco_options["template"]:
             raise KeyError(f"{template} not one of {lco_options['template']}")
         if band not in lco_options["tempfilter"]:
@@ -2112,7 +2112,7 @@ class Sig2NoiseLCO(Sig2NoiseQuery):
 
 class Sig2NoiseIMACS(Sig2NoiseLCO):
     """
-    Magellan/IMACS S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+    Magellan/IMACS S/N Query (http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html)
 
     :param mode: IMACS mode. For valid options see s2n.lco_options['IMACS_mode'].
     :param exptime: Exposure time in seconds
@@ -2168,7 +2168,7 @@ class Sig2NoiseIMACS(Sig2NoiseLCO):
 
 class Sig2NoiseMAGE(Sig2NoiseLCO):
     """
-    Magellan/MAGE S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+    Magellan/MAGE S/N Query (http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html)
 
     :param mode: MAGE mode. "ECHELLETTE" is currently the only option.
     :param exptime: Exposure time in seconds
@@ -2224,7 +2224,7 @@ class Sig2NoiseMAGE(Sig2NoiseLCO):
 
 class Sig2NoiseMIKE(Sig2NoiseLCO):
     """
-    Magellan/MIKE S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+    Magellan/MIKE S/N Query (http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html)
 
     :param mode: MIKE mode. Valid options are "BLUE" and "RED".
     :param exptime: Exposure time in seconds
@@ -2280,7 +2280,7 @@ class Sig2NoiseMIKE(Sig2NoiseLCO):
 
 class Sig2NoiseLDSS3(Sig2NoiseLCO):
     """
-    Magellan/LDSS-3 S/N Query (http://alyth.lco.cl/gblanc_www/lcoetc/lcoetc_sspec.html)
+    Magellan/LDSS-3 S/N Query (http://www.lco.cl/scripts/lcoetc/lcoetc_sspec.html)
 
     :param mode: LDSS-3 mode. Valid options are "VPHALL", "VPHBLUE", and "VPHRED".
     :param exptime: Exposure time in seconds
