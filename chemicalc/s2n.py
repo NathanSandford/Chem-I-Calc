@@ -2372,7 +2372,6 @@ def calculate_mods_snr(
     sigma_RO_blue = 2.5  # electron
     A_per_pix_red = 0.85
     A_per_pix_blue = 0.50
-    slitloss = 0.76
     atm_extinct_curve = np.genfromtxt(etc_file_dir.joinpath("LBTO_atm_extinct.txt")).T
     atm_extinct = interp1d(
         x=atm_extinct_curve[0],
