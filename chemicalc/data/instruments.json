@@ -15,6 +15,9 @@
   "ESI Echelle 0.30\"": {"name": "ESI Echelle 0.30\"", "res": 13400, "samp": 2, "start": 3900, "end": 11000},
   "ESI Echelle 0.50\"": {"name": "ESI Echelle 0.50\"", "res": 8000, "samp": 3, "start": 3900, "end": 11000},
   "ESI Echelle 0.75\"": {"name": "ESI Echelle 0.75\"", "res": 5400, "samp": 5, "start": 3900, "end": 11000},
+  "KCWI (BL; Large)": {"name": "KCWI (BL; Large)", "res": 900, "samp": 7, "start": 3500, "end": 5600},
+  "KCWI (BL; Medium)": {"name": "KCWI (BL; Medium)", "res": 1800, "samp": 4, "start": 3500, "end": 5600},
+  "KCWI (BL; Small)": {"name": "KCWI (BL; Small)", "res": 3600, "samp": 2, "start": 3500, "end": 5600},
   "FOBOS": {"name": "FOBOS", "res": 3500, "samp": 6, "start": 3100, "end": 10000},
   "KPF": {"name": "KPF", "res": 90000, "samp": 3, "start": 4450, "end": 8700},
   "KPF (UV)": {"name": "KPF (UV)", "res": 8000, "samp": 3, "start": 3850, "end": 4050}
