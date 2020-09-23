@@ -103,6 +103,10 @@ class ReferenceSpectra:
                 download_package_files(
                     id_str=precomputed_label_id, destination=self.ref_label_file
                 )
+            if alpha_included and reference not in precomputed_alpha_included:
+                raise ValueError(
+                    f"alpha offsets not currently included for {reference}"
+                )
 
         ref_list_spec = list(
             pd.DataFrame(pd.read_hdf(self.ref_spec_file, "ref_list")).values.flatten()
@@ -114,11 +118,7 @@ class ReferenceSpectra:
             raise ValueError(
                 f"{reference} is not included in ref_label_file and/or ref_spec_file"
             )
-        else:
-            if alpha_included and reference not in precomputed_alpha_included:
-                raise ValueError(
-                    f"alpha offsets not currently included for {reference}"
-                )
+
         wave_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, "highres_wavelength"))
         spec_df = pd.DataFrame(pd.read_hdf(self.ref_spec_file, reference))
         label_df = pd.DataFrame(pd.read_hdf(self.ref_label_file, reference))
