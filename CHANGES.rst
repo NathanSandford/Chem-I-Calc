@@ -1,5 +1,8 @@
-0.5.3
+0.5.4dev
 ========
+
+0.5.3
+=====
 
 - Updated LCO ETC URL
 - New/Adjusted Instruments
