@@ -6,9 +6,21 @@
   "DEIMOS 1200B": {"name": "DEIMOS 1200B", "res": 4000, "samp": 4, "start": 4000, "end": 6600},
   "LRIS 600/4000 (b)": {"name": "LRIS 600/4000 (b)", "res": 1800, "samp": 4, "start": 3900, "end": 5500},
   "LRIS 1200/7500 (r)": {"name": "LRIS 1200/7500 (r)", "res": 4000, "samp": 5, "start": 7700, "end": 9000},
-  "HIRESr 1.0\"": {"name": "HIRESr 1.0\"", "res": 35000, "samp": 3, "start": 3900, "end": 8350},
-  "HIRESr 0.8\"": {"name": "HIRESr 0.8\"", "res": 49000, "samp": 3, "start": 3900, "end": 8350},
-  "FOBOS": {"name": "FOBOS", "res": 3500, "samp": 6, "start": 3100, "end": 10000}
+  "HIRESr 0.40\"": {"name": "HIRESr 0.40\"", "res": 86600, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 0.57\"": {"name": "HIRESr 0.57\"", "res": 66400, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 0.80\"": {"name": "HIRESr 0.80\"", "res": 52000, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 0.86\"": {"name": "HIRESr 0.86\"", "res": 50000, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 1.15\"": {"name": "HIRESr 1.15\"", "res": 37500, "samp": 3, "start": 3900, "end": 8350},
+  "HIRESr 1.72\"": {"name": "HIRESr 1.72\"", "res": 24700, "samp": 3, "start": 3900, "end": 8350},
+  "ESI Echelle 0.30\"": {"name": "ESI Echelle 0.30\"", "res": 13400, "samp": 2, "start": 3900, "end": 11000},
+  "ESI Echelle 0.50\"": {"name": "ESI Echelle 0.50\"", "res": 8000, "samp": 3, "start": 3900, "end": 11000},
+  "ESI Echelle 0.75\"": {"name": "ESI Echelle 0.75\"", "res": 5400, "samp": 5, "start": 3900, "end": 11000},
+  "KCWI (BL; Large)": {"name": "KCWI (BL; Large)", "res": 900, "samp": 7, "start": 3500, "end": 5600},
+  "KCWI (BL; Medium)": {"name": "KCWI (BL; Medium)", "res": 1800, "samp": 4, "start": 3500, "end": 5600},
+  "KCWI (BL; Small)": {"name": "KCWI (BL; Small)", "res": 3600, "samp": 2, "start": 3500, "end": 5600},
+  "FOBOS": {"name": "FOBOS", "res": 3500, "samp": 6, "start": 3100, "end": 10000},
+  "KPF": {"name": "KPF", "res": 90000, "samp": 3, "start": 4450, "end": 8700},
+  "KPF (UV)": {"name": "KPF (UV)", "res": 8000, "samp": 3, "start": 3850, "end": 4050}
 },
 
 "Magellan": {
