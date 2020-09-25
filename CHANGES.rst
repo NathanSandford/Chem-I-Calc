@@ -1,5 +1,13 @@
-0.5.3dev
+0.5.3
 ========
+
+- Updated LCO ETC URL
+- New/Adjusted Instruments
+    - KPF
+    - HIRES
+    - KCWI (BL)
+- Hotfix for including [alpha/Fe] offsets in a custom reference file
+- Hotfix for MODS ETC slitloss
 
 0.5.2 (Zenodo)
 ==============
