@@ -171,14 +171,16 @@ def sort_crlb(
     if not isinstance(cutoff, (int, float)):
         raise TypeError("cutoff must be int or float")
     if not isinstance(sort_by, str):
-        raise TypeError(f"sort_by must be str in {list(crlb.columns)}, 'default', 'alphabetical', or 'atomic_number'")
+        raise TypeError(
+            f"sort_by must be str in {list(crlb.columns)}, 'default', 'alphabetical', or 'atomic_number'"
+        )
     crlb_temp = crlb[:3].copy()
     # noinspection PyTypeChecker
     crlb[crlb > cutoff] = np.NaN
     crlb[:3] = crlb_temp
     valid_ele = np.concatenate(
-            [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
-        )
+        [crlb.index[:3], crlb.index[3:][np.min(crlb[3:], axis=1) < cutoff]]
+    )
     if sort_by == "atomic_number":
         valid_ele_sorted = valid_ele
     elif sort_by == "alphabetical":
@@ -242,18 +244,18 @@ def crlb_windows(
     :return pd.DataFrame: DataFrame of CRLBs.
     """
     CRLB_Windows = init_crlb_df(reference)
-    window_starts = np.arange(
-        start=wave_min,
-        stop=wave_max-width+0.01,
-        step=step)
+    window_starts = np.arange(start=wave_min, stop=wave_max - width + 0.01, step=step)
     window_ends = window_starts + width
     for i in range(len(window_starts)):
         start = float(window_starts[i])
         end = float(window_ends[i])
-        window = inst.InstConfig(f'{start:.0f}-{end:.0f}',
-                                 res=res, samp=samp, start=start, end=end)
+        window = InstConfig(
+            f"{start:.0f}-{end:.0f}", res=res, samp=samp, start=start, end=end
+        )
         star.convolve(window)
         star.calc_gradient(window)
         window.set_snr(snr_input, fill_value=snr_fill_value)
-        CRLB_Windows[window.name] = calc_crlb(reference, window, priors=priors, use_alpha=use_alpha, chunk_size=chunk_size)
+        CRLB_Windows[window.name] = calc_crlb(
+            reference, window, priors=priors, use_alpha=use_alpha, chunk_size=chunk_size
+        )
     return CRLB_Windows
