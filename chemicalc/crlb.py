@@ -172,6 +172,7 @@ def sort_crlb(
     if not isinstance(sort_by, str):
         raise TypeError(f"sort_by must be str in {list(crlb.columns)}, 'default', 'alphabetical', or 'atomic_number'")
     crlb_temp = crlb[:3].copy()
+    # noinspection PyTypeChecker
     crlb[crlb > cutoff] = np.NaN
     crlb[:3] = crlb_temp
     valid_ele = np.concatenate(
@@ -202,3 +203,56 @@ def sort_crlb(
             crlb.index[3:]
         )
     return crlb
+
+
+def crlb_windows(
+    reference: ReferenceSpectra,
+    res: float,
+    samp: float,
+    wave_min: float,
+    wave_max: float,
+    width: float,
+    step: float,
+    snr_input: Union[int, float, np.ndarray, Sig2NoiseQuery],
+    snr_fill_value: bool = None,
+    priors: Optional[Dict["str", float]] = None,
+    use_alpha: bool = False,
+    chunk_size: int = 10000,
+) -> pd.DataFrame:
+    """
+    Wrapper for calculating the Cramer-Rao Lower Bound over a range of wavelength windows.
+
+    :param ReferenceSpectra reference: Reference star object
+    :param float res: Resolving power (:math:`\\lambda/d\\lambda`)
+    :param float samp: Pixels per Resolution element
+    :param float wave_min: Minimum wavelengths of the windows in Angstrom
+    :param float wave_max: Maximum wavelengths of the windows in Angstrom
+    :param float width: Width of windows in Angstrom
+    :param float step: How far in Angstrom to advance the window for each calculation
+    :param snr_input: Signal-To-Noise Ratio. See instruments.set_snr() for details.
+    :param snr_fill_value: Argument passed on to scipy.interpolate.interp1d to handle S/N for wavelength regions that extend
+            beyond the coverage of snr_input. Common choices are "extrapolate" (to linearly extrapolate) or 0
+            (to set S/N to zero).
+            If None, an error will be raised if snr_input does not span the full wavelength range of the instrument.
+    :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
+    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
+                           (see chemicalc.reference_spectra.alpha_el)
+    :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
+    :return pd.DataFrame: DataFrame of CRLBs.
+    """
+    CRLB_Windows = init_crlb_df(reference)
+    window_starts = np.arange(
+        start=wave_min,
+        stop=wave_max-width+0.01,
+        step=step)
+    window_ends = window_starts + window_width
+    for i in range(len(window_starts)):
+        start = float(window_starts[i])
+        end = float(window_ends[i])
+        window = inst.InstConfig(f'{start:.0f}-{end:.0f}',
+                                 res=res, samp=samp, start=start, end=end)
+        star.convolve(window)
+        star.calc_gradient(window)
+        window.set_snr(snr_input, fill_value=snr_fill_value)
+        CRLB_Windows[window.name] = calc_crlb(reference, window, priors=priors, use_alpha=use_alpha, chunk_size=chunk_size)
+    return CRLB_Windows
