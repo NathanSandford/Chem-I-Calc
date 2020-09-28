@@ -252,8 +252,8 @@ def crlb_windows(
         window = InstConfig(
             f"{start:.0f}-{end:.0f}", res=res, samp=samp, start=start, end=end
         )
-        star.convolve(window)
-        star.calc_gradient(window)
+        reference.convolve(window)
+        reference.calc_gradient(window)
         window.set_snr(snr_input, fill_value=snr_fill_value)
         CRLB_Windows[window.name] = calc_crlb(
             reference, window, priors=priors, use_alpha=use_alpha, chunk_size=chunk_size
