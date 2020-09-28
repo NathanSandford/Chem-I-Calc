@@ -6,6 +6,7 @@ from scipy import sparse
 from scipy.sparse import linalg
 from chemicalc.reference_spectra import ReferenceSpectra, alpha_el
 from chemicalc.instruments import InstConfig
+from chemicalc.s2n import Sig2NoiseQuery
 
 
 def init_crlb_df(reference: ReferenceSpectra) -> pd.DataFrame:
