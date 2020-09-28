@@ -246,7 +246,7 @@ def crlb_windows(
         start=wave_min,
         stop=wave_max-width+0.01,
         step=step)
-    window_ends = window_starts + window_width
+    window_ends = window_starts + width
     for i in range(len(window_starts)):
         start = float(window_starts[i])
         end = float(window_ends[i])
