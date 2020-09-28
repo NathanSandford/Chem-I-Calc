@@ -22,4 +22,4 @@ Copyright 2019-2020 Nathan Sandford and contributors.
 
 The source code is made available under the terms of the MIT license.
 
-If you make use of this code, please cite [Sandford et al. (In Press)](https://arxiv.org/abs/2006.08640)
+If you make use of this code, please cite [Sandford et al. (2020)](https://ui.adsabs.harvard.edu/abs/2020ApJS..249...24S/abstract) and [Sandford (2020)](https://ui.adsabs.harvard.edu/abs/2020zndo...3924672S/abstract).
