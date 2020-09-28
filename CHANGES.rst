@@ -1,5 +1,6 @@
 0.5.4dev
 ========
+- Wrapper function for calculating CRLBs of wavelength windows
 
 0.5.3
 =====
