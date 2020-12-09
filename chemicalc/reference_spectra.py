@@ -135,7 +135,7 @@ class ReferenceSpectra:
             label_df.index = ["Teff", "logg", "v_micro", "alpha"] + elements_included
             if (
                 np.abs(
-                    label_df.loc["alpha"][[4, 6, 7]].max() - label_df.loc["alpha"][0]
+                    label_df.loc["alpha"][[4, 7, 8]].max() - label_df.loc["alpha"][0]
                 )
                 < 0.001
             ):
