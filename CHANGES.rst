@@ -1,6 +1,9 @@
 0.5.4dev
 ========
 - Wrapper function for calculating CRLBs of wavelength windows
+- New/Adjusted Instruments
+    - MOSFIRE
+- Bugfix for alpha offset checking
 
 0.5.3
 =====
