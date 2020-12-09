@@ -28,6 +28,10 @@ alpha_el: List[str] = ["O", "Ne", "Mg", "Si", "S", "Ar", "Ca", "Ti"]
 """
 List[str]: List of elements considered when calculating bulk [:math:`\\alpha`/H].
 """
+bulk_abund: Dict[str, List[str]] = {"alpha": alpha_el}
+"""
+Dict[str, List[str]]: Dictionary of bulk abundances.
+"""
 
 
 class ReferenceSpectra:
@@ -39,7 +43,7 @@ class ReferenceSpectra:
                          Only 300000 is presently included for default spectra.
                          Can be approximate if using custom reference spectra.
     :param bool scale_by_iron: If true, scales all elemental abundances by [Fe/H]
-    :param bool alpha_included: If true, will include an alpha label after the atmospheric parameters
+    :param Optional[Dict[str, List[str]]] bulk_abundances: Bulk abundances (i.e., alpha) to include as label after the atmospheric parameters
                                 and before the other elements (i.e., between v_micro and Li)
     :param \**kwargs: see below
 
@@ -62,7 +66,7 @@ class ReferenceSpectra:
         reference: str,
         init_res: float = precomputed_res[0],
         scale_by_iron: bool = False,
-        alpha_included: bool = True,
+        bulk_abundances: Optional[Dict[str, List[str]]] = bulk_abund,
         **kwargs,
     ) -> None:
         if not isinstance(reference, str):
@@ -71,6 +75,7 @@ class ReferenceSpectra:
             raise TypeError("init_res must be float")
         self.reference = reference
         self.resolution = {"init": init_res}
+        self.bulk_abundances = bulk_abundances
 
         if "ref_spec_file" in kwargs:
             self.ref_spec_file = Path(kwargs["ref_spec_file"])
@@ -103,7 +108,7 @@ class ReferenceSpectra:
                 download_package_files(
                     id_str=precomputed_label_id, destination=self.ref_label_file
                 )
-            if alpha_included and reference not in precomputed_alpha_included:
+            if 'alpha' in bulk_abundances.keys() and reference not in precomputed_alpha_included:
                 raise ValueError(
                     f"alpha offsets not currently included for {reference}"
                 )
@@ -124,26 +129,46 @@ class ReferenceSpectra:
         label_df = pd.DataFrame(pd.read_hdf(self.ref_label_file, reference))
         if scale_by_iron:
             label_df.loc[set(elements_included) ^ {"Fe"}] -= label_df.loc["Fe"]
-        if alpha_included:
-            label_df = pd.concat(
-                [
-                    label_df.iloc[:3],
-                    pd.DataFrame(label_df.loc[alpha_el].mean()).T,
-                    label_df.iloc[3:],
-                ]
-            )
-            label_df.index = ["Teff", "logg", "v_micro", "alpha"] + elements_included
-            if (
-                np.abs(
-                    label_df.loc["alpha"][[4, 7, 8]].max() - label_df.loc["alpha"][0]
+        if bulk_abundances is not None:
+            for bulk_el, elements in bulk_abundances.items():
+                element_start = np.argwhere(label_df.index == elements_included[0])[0][0]
+                label_df = pd.concat(
+                    [
+                        label_df.iloc[:element_start],
+                        pd.DataFrame(label_df.loc[elements].mean()).T,
+                        label_df.iloc[element_start:],
+                    ]
                 )
-                < 0.001
-            ):
-                warn(
-                    "Expected offset in alpha not found. Are you sure this reference spectra includes alpha gradients?"
-                    + "\nIf so, they must come immediately after v_micro offsets in both the label and spectra files.",
-                    UserWarning,
-                )
+                label_df.index = list(label_df.index[:element_start]) + [bulk_el] + list(
+                    label_df.index[(element_start + 1):])
+                if (np.abs(
+                        label_df.loc[bulk_el][[element_start, 2 * element_start + 1, 2 * element_start + 2]].max() -
+                        label_df.loc[bulk_el][0]
+                ) < 0.001):
+                    warn(
+                        f"Expected offset in '{bulk_el}' not found. Are you sure this reference spectra includes '{bulk_el}' gradients?"
+                        + "\nIf so, they must come immediately after v_micro (and other bulk abundance) offsets in both the label and spectra files.",
+                        UserWarning,
+                    )
+            #label_df = pd.concat(
+            #    [
+            #        label_df.iloc[:3],
+            #        pd.DataFrame(label_df.loc[alpha_el].mean()).T,
+            #        label_df.iloc[3:],
+            #    ]
+            #)
+            #label_df.index = ["Teff", "logg", "v_micro", "alpha"] + elements_included
+            #if (
+            #    np.abs(
+            #        label_df.loc["alpha"][[4, 7, 8]].max() - label_df.loc["alpha"][0]
+            #    )
+            #    < 0.001
+            #):
+            #    warn(
+            #        "Expected offset in alpha not found. Are you sure this reference spectra includes alpha gradients?"
+            #        + "\nIf so, they must come immediately after v_micro offsets in both the label and spectra files.",
+            #        UserWarning,
+            #    )
         else:
             label_df.index = ["Teff", "logg", "v_micro"] + elements_included
 

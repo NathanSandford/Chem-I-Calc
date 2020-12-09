@@ -29,7 +29,7 @@ def calc_crlb(
     pixel_corr: Optional[List[float]] = None,
     priors: Optional[Dict["str", float]] = None,
     bias_grad: Optional[pd.DataFrame] = None,
-    use_alpha: bool = False,
+    use_bulk: Optional[List] = None,
     output_fisher: bool = False,
     chunk_size: int = 10000,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -42,7 +42,7 @@ def calc_crlb(
                                              This may considerably slow down the computation.
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
     :param Optional[pd.DataFrame] bias_grad: Gradient of the bias matrix
-    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
+    :param Optional[List] use_bulk: If true, uses bulk abundance gradients and zeros gradients of individual elements
                            (see chemicalc.reference_spectra.alpha_el)
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
@@ -72,12 +72,19 @@ def calc_crlb(
                 f"Reference star does not have gradients for {instrument.name}"
             )
         grad_backup = reference.gradients[instrument.name].copy()
-        if use_alpha and "alpha" not in reference.labels.index:
-            raise ValueError("alpha not included in reference file")
-        elif use_alpha:
-            reference.zero_gradients(name=instrument.name, labels=alpha_el)
-        elif not use_alpha and "alpha" in reference.labels.index:
-            reference.zero_gradients(name=instrument.name, labels=["alpha"])
+        if use_bulk is not None:
+            for bulk_abund in use_bulk:
+                if bulk_abund not in reference.bulk_abundances.keys():
+                    raise ValueError(f"{bulk_abund} not included in reference file")
+        for bulk_abund, bulk_el in reference.bulk_abundances.items():
+            if bulk_abund not in use_bulk:
+                reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
+            else:
+                reference.zero_gradients(name=instrument.name, labels=bulk_el)
+                #all_bulk_el = [item for sublist in reference.bulk_abundances.values() for item in sublist]
+                #if len(all_bulk_el) == len(set(all_bulk_el)):
+                #    duplicates = set([x for x in all_bulk_el if all_bulk_el.count(x) > 1])
+                #    raise ValueError(f"duplicate elements ({duplicates}) are not allowed in multiple bulk_abundances.")
         grad = reference.gradients[instrument.name].values
         reference.gradients[instrument.name] = grad_backup
         flux_var = instrument.snr ** (-2)
