@@ -77,7 +77,9 @@ def calc_crlb(
                 if bulk_abund not in reference.bulk_abundances.keys():
                     raise ValueError(f"{bulk_abund} not included in reference file")
         for bulk_abund, bulk_el in reference.bulk_abundances.items():
-            if bulk_abund not in use_bulk:
+            if not use_bulk:
+                reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
+            elif bulk_abund not in use_bulk:
                 reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
             else:
                 reference.zero_gradients(name=instrument.name, labels=bulk_el)
