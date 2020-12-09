@@ -186,10 +186,9 @@ def plot_crlb(
         for j, col in enumerate(
             all_cols
         ):  # Placeholder to make x-axis match between panels
-            mask = np.isfinite(all_crlb.iloc[:, j].values)
             ax.plot(
-                all_crlb.iloc[:, j].index[mask],
-                all_crlb.iloc[:, j].values[mask],
+                all_crlb.index,
+                np.zeros_like(all_crlb.index),
                 marker="",
                 markersize=0,
                 linestyle="",
