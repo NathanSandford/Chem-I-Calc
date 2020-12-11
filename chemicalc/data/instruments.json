@@ -17,7 +17,7 @@
   "ESI Echelle 0.75\"": {"name": "ESI Echelle 0.75\"", "res": 5400, "samp": 5, "start": 3900, "end": 11000},
   "MOSFIRE 0.7\" (Y)": {"name": "MOSFIRE 0.7\" (Y)", "res": 3390, "samp": 3, "start": 9720, "end": 11250},
   "MOSFIRE 0.7\" (J)": {"name": "MOSFIRE 0.7\" (J)", "res": 3320, "samp": 3, "start": 11530, "end": 13520},
-  "MOSFIRE 0.7\" (H)": {"name": "MOSFIRE 0.7\" (H)", "res": 3650, "samp": 3, "start": 14680, "end": 18040},
+  "MOSFIRE 0.7\" (H)": {"name": "MOSFIRE 0.7\" (H)", "res": 3650, "samp": 3, "start": 14680, "end": 18000},
   "KCWI (BL; Large)": {"name": "KCWI (BL; Large)", "res": 900, "samp": 7, "start": 3500, "end": 5600},
   "KCWI (BL; Medium)": {"name": "KCWI (BL; Medium)", "res": 1800, "samp": 4, "start": 3500, "end": 5600},
   "KCWI (BL; Small)": {"name": "KCWI (BL; Small)", "res": 3600, "samp": 2, "start": 3500, "end": 5600},
