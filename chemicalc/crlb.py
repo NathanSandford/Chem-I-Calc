@@ -77,15 +77,16 @@ def calc_crlb(
             for bulk_abund in use_bulk:
                 if bulk_abund not in reference.bulk_abundances.keys():
                     raise ValueError(f"{bulk_abund} not included in reference file")
-        for bulk_abund, bulk_el in reference.bulk_abundances.items():
-            if use_bulk is None or bulk_abund not in use_bulk:
-                reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
-            else:
-                reference.zero_gradients(name=instrument.name, labels=bulk_el)
-                #all_bulk_el = [item for sublist in reference.bulk_abundances.values() for item in sublist]
-                #if len(all_bulk_el) == len(set(all_bulk_el)):
-                #    duplicates = set([x for x in all_bulk_el if all_bulk_el.count(x) > 1])
-                #    raise ValueError(f"duplicate elements ({duplicates}) are not allowed in multiple bulk_abundances.")
+        if reference.bulk_abundances is not None:
+            for bulk_abund, bulk_el in reference.bulk_abundances.items():
+                if use_bulk is None or bulk_abund not in use_bulk:
+                    reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
+                else:
+                    reference.zero_gradients(name=instrument.name, labels=bulk_el)
+                    #all_bulk_el = [item for sublist in reference.bulk_abundances.values() for item in sublist]
+                    #if len(all_bulk_el) == len(set(all_bulk_el)):
+                    #    duplicates = set([x for x in all_bulk_el if all_bulk_el.count(x) > 1])
+                    #    raise ValueError(f"duplicate elements ({duplicates}) are not allowed in multiple bulk_abundances.")
         grad = reference.gradients[instrument.name].values
         reference.gradients[instrument.name] = grad_backup
         flux_var = instrument.snr ** (-2)
