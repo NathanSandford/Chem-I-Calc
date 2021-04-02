@@ -108,10 +108,11 @@ class ReferenceSpectra:
                 download_package_files(
                     id_str=precomputed_label_id, destination=self.ref_label_file
                 )
-            if 'alpha' in bulk_abundances.keys() and reference not in precomputed_alpha_included:
-                raise ValueError(
-                    f"alpha offsets not currently included for {reference}"
-                )
+            if bulk_abundances is not None:
+                if 'alpha' in bulk_abundances.keys() and reference not in precomputed_alpha_included:
+                    raise ValueError(
+                        f"alpha offsets not currently included for {reference}"
+                    )
 
         ref_list_spec = list(
             pd.DataFrame(pd.read_hdf(self.ref_spec_file, "ref_list")).values.flatten()
