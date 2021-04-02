@@ -29,7 +29,7 @@ def calc_crlb(
     pixel_corr: Optional[List[float]] = None,
     priors: Optional[Dict["str", float]] = None,
     bias_grad: Optional[pd.DataFrame] = None,
-    use_bulk: Optional[Listr[str]] = None,
+    use_bulk: Optional[List[str]] = None,
     output_fisher: bool = False,
     chunk_size: int = 10000,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
