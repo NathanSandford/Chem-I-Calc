@@ -29,7 +29,7 @@ def calc_crlb(
     pixel_corr: Optional[List[float]] = None,
     priors: Optional[Dict["str", float]] = None,
     bias_grad: Optional[pd.DataFrame] = None,
-    use_bulk: Optional[List] = None,
+    use_bulk: Optional[Listr[str]] = None,
     output_fisher: bool = False,
     chunk_size: int = 10000,
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -42,8 +42,9 @@ def calc_crlb(
                                              This may considerably slow down the computation.
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
     :param Optional[pd.DataFrame] bias_grad: Gradient of the bias matrix
-    :param Optional[List] use_bulk: If true, uses bulk abundance gradients and zeros gradients of individual elements
-                           (see chemicalc.reference_spectra.alpha_el)
+    :param Optional[List] use_bulk: List of bulk abundances to consider;
+            zeros gradients of individual elements contained in that bulk abundance.
+            (see chemicalc.reference_spectra.alpha_el)
     :param bool output_fisher: If true, outputs Fisher information matrix
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
     :return Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: DataFrame of CRLBs.
@@ -77,9 +78,7 @@ def calc_crlb(
                 if bulk_abund not in reference.bulk_abundances.keys():
                     raise ValueError(f"{bulk_abund} not included in reference file")
         for bulk_abund, bulk_el in reference.bulk_abundances.items():
-            if not use_bulk:
-                reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
-            elif bulk_abund not in use_bulk:
+            if use_bulk is None or bulk_abund not in use_bulk:
                 reference.zero_gradients(name=instrument.name, labels=[bulk_abund])
             else:
                 reference.zero_gradients(name=instrument.name, labels=bulk_el)
@@ -228,7 +227,7 @@ def crlb_windows(
     snr_input: Union[int, float, np.ndarray, Sig2NoiseQuery],
     snr_fill_value: bool = None,
     priors: Optional[Dict["str", float]] = None,
-    use_alpha: bool = False,
+    use_bulk: Optional[List[str]] = None,
     chunk_size: int = 10000,
 ) -> pd.DataFrame:
     """
@@ -247,8 +246,9 @@ def crlb_windows(
             (to set S/N to zero).
             If None, an error will be raised if snr_input does not span the full wavelength range of the instrument.
     :param Optional[Dict[str,float]] priors: 1-sigma Gaussian priors for labels
-    :param bool use_alpha: If true, uses bulk alpha gradients and zeros gradients of individual alpha elements
-                           (see chemicalc.reference_spectra.alpha_el)
+    :param Optional[List[str]] use_bulk: List of bulk abundances to consider;
+            zeros gradients of individual elements contained in that bulk abundance.
+            (see chemicalc.reference_spectra.bulk_abundances)
     :param int chunk_size: Number of pixels to break spectra into. Helps with memory usage for large spectra.
     :return pd.DataFrame: DataFrame of CRLBs.
     """
@@ -265,6 +265,6 @@ def crlb_windows(
         reference.calc_gradient(window)
         window.set_snr(snr_input, fill_value=snr_fill_value)
         CRLB_Windows[window.name] = calc_crlb(
-            reference, window, priors=priors, use_alpha=use_alpha, chunk_size=chunk_size
+            reference, window, priors=priors, use_bulk=use_bulk, chunk_size=chunk_size
         )
     return CRLB_Windows
