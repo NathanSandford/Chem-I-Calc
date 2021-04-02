@@ -1,5 +1,6 @@
 from typing import Any, List, Tuple, Dict, Union, Optional, cast
 from warnings import warn
+from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from scipy import sparse
@@ -256,7 +257,7 @@ def crlb_windows(
     CRLB_Windows = init_crlb_df(reference)
     window_starts = np.arange(start=wave_min, stop=wave_max - width + 0.01, step=step)
     window_ends = window_starts + width
-    for i in range(len(window_starts)):
+    for i in tqdm(range(len(window_starts))):
         start = float(window_starts[i])
         end = float(window_ends[i])
         window = InstConfig(
