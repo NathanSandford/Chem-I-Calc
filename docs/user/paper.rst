@@ -1,7 +1,7 @@
 .. _paper:
 
-Sandford et al. (In Press) Notebooks
+Sandford et al. (2020) Notebooks
 ====================================
 
-For now, you can find the Jupyter Notebooks for `Sandford et al. (In Press) <https://arxiv.org/abs/2006.08640>`_ in the
+You can find the Jupyter Notebooks for `Sandford et al. (2020) <https://ui.adsabs.harvard.edu/abs/2020ApJS..249...24S/abstract>`_ in the
 `Chem-I-Calc GitHub repository <https://github.com/NathanSandford/Chem-I-Calc/tree/master/notebooks/Sandford_2020>`_.
