@@ -81,8 +81,8 @@ Manually
 
 The file is hosted on Google Drive, so it is also possible to manually download ``reference_spectra_300000.h5`` using the following link:
 
-- `reference_spectra_300000.h5 <https://drive.google.com/open?id=1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2>`_
-- `reference_labels.h5 <https://drive.google.com/open?id=1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor>`_
+- `reference_spectra_300000.h5 <https://drive.google.com/file/d/1DqO7lIDTr7FZke1oMKLnq_oyct4ox_9e>`_
+- `reference_labels.h5 <https://drive.google.com/file/d/1n1wweJko_pfh3027lkHg6E6J0v7FW0MO>`_
 
 | You will need to place this file in the appropriate directory:
 | ``PATH_TO_INSTALLATION/Chem-I-Calc/chemicalc/data/``
