@@ -52,35 +52,4 @@ The S/N is then interpolated onto the instrument's wavelength grid.
 Querying ETCs w/ Chem-I-Calc
 ----------------------------
 
-Documentation Coming Soon!
-
-WMKO
-++++
-
-MMT/Hectospec & Binospec
-++++++++++++++++++++++++
-
-VLT
-+++
-
-MSE
-+++
-
-LCO
-+++
-
-Built In ETC Calculations
--------------------------
-
-Documentation Coming Soon!
-
-LBT/MODS
-++++++++
-
-Keck/FOBOS
-++++++++++
-
-TMT/WFOS
-++++++++
-
-VLT/(blue)MUSE
+Chem-I-Calc supports querying ETCs and internal ETC calculations for the following telescope and instruments: WMKO, MMT/Hectospec & Binospec, VLT, MSE, LCO, LBT/MODS, Keck/FOBOS, TMT/WFOS, VLT/(MUSE).
