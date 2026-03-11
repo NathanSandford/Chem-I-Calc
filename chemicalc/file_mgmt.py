@@ -16,8 +16,8 @@ precomputed_res: List = [300000]
 """
 List[float]: Resolution at which pre-computed spectral grids have been calculated.
 """
-precomputed_ref_id: Dict[float, str] = {300000: "1I9GzorHm0KfqJ-wvZMVGbQDeyMwEu3n2"}
-precomputed_label_id: str = "1-qCCjDXp2eNzRGCfIqI_2JZrzi22rFor"
+precomputed_ref_id: Dict[float, str] = {300000: "1DqO7lIDTr7FZke1oMKLnq_oyct4ox_9e"}
+precomputed_label_id: str = "1n1wweJko_pfh3027lkHg6E6J0v7FW0MO"
 
 precomputed_alpha_included: List[str] = [
     "MSTO_m1.5",
